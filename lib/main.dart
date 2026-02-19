@@ -69,7 +69,12 @@ void main() async {
     ..indicatorColor = Colors.white
     ..maskColor = Colors.blue.withOpacity(0.5)
     ..userInteractions = false
-    ..dismissOnTap = false;
+    ..dismissOnTap = false
+    ..textStyle = const TextStyle(
+      color: Colors.white,
+      fontSize: 14,
+      fontFamily: null, // use system font — supports Arabic, English, etc.
+    );
   runApp(const MyApp());
 }
 
