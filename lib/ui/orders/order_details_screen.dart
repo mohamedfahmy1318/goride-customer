@@ -81,6 +81,14 @@ class OrderDetailsScreen extends StatelessWidget {
                           OrderModel orderModel =
                               OrderModel.fromJson(snapshot.data!.data()!);
 
+                          // If ride was cancelled, go back
+                          if (orderModel.status == Constant.rideCanceled) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              Get.back();
+                            });
+                            return const SizedBox.shrink();
+                          }
+
                           // If a driver has been assigned, navigate to live tracking
                           if (orderModel.status != Constant.ridePlaced) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
