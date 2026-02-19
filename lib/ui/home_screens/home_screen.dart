@@ -619,6 +619,8 @@ class HomeScreen extends StatelessWidget {
                                     const SizedBox(
                                       height: 10,
                                     ),
+                                    Obx(() => Column(
+                                      children: [
                                     // تم إخفاء خيار المكيف A/C
                                     // A/C option removed
                                     controller.selectedType.value.offerRate ==
@@ -688,6 +690,8 @@ class HomeScreen extends StatelessWidget {
                                         ),
                                       ),
                                     ),
+                                      ],
+                                    )),
                                     const SizedBox(
                                       height: 10,
                                     ),
