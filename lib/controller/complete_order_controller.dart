@@ -166,12 +166,27 @@ class CompleteOrderController extends GetxController {
 
     if (orderModel.value.finalRate != null &&
         orderModel.value.finalRate != '0.0') {
+      // Driver has finalized the rate — derive km-charge portion for display
       amount.value = double.parse(orderModel.value.finalRate.toString()) -
           basicFareCharge.value -
           totalChargeOfMinute.value;
+    } else if (orderModel.value.offerRate != null &&
+        orderModel.value.offerRate != '0.0' &&
+        orderModel.value.offerRate != '') {
+      // Use the pre-calculated price from booking (calculated by home_controller)
+      double offerRateVal =
+          double.tryParse(orderModel.value.offerRate.toString()) ?? 0.0;
+      // km-charge portion = offerRate - basicFareCharge - perMinuteCharge
+      amount.value = offerRateVal - basicFareCharge.value - totalChargeOfMinute.value;
     } else {
-      amount.value = amount.value *
-          double.parse(orderModel.value.service!.nightCharge.toString());
+      // Fallback: use recalculated km charge (apply night multiplier safely)
+      double nightChargeVal =
+          double.tryParse(orderModel.value.service!.nightCharge.toString()) ??
+              1.0;
+      if (currentTime.isAfter(startNightTimeString) &&
+          currentTime.isBefore(endNightTimeString)) {
+        amount.value = amount.value * nightChargeVal;
+      }
     }
 
     subTotal.value = amount.value +

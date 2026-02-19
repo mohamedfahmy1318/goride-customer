@@ -362,9 +362,10 @@ class HomeController extends GetxController {
           currentDate.day, int.parse(endParts[0]), int.parse(endParts[1]));
 
       nightCharge.value = selectedType.value.nightCharge.toString();
+      log('📍 coords check: sourceLat=${sourceLocationLAtLng.value.latitude}, destLat=${destinationLocationLAtLng.value.latitude}');
       if (sourceLocationLAtLng.value.latitude != null &&
           destinationLocationLAtLng.value.latitude != null) {
-        double durationValueInMinutes = convertToMinutes(duration.toString());
+        double durationValueInMinutes = convertToMinutes(duration.value);
         double distanceVal = double.tryParse(distance.value) ?? 0.0;
         double basicFareVal = double.tryParse(basicFare.value) ?? 0.0;
         if (distanceVal <= basicFareVal) {
