@@ -67,7 +67,7 @@ class PaymentOrderController extends GetxController {
   }
 
   completeOrder() async {
-    ShowToastDialog.showLoader("Please wait..");
+    ShowToastDialog.showLoader("Please wait");
     orderModel.value.paymentStatus = true;
     orderModel.value.paymentType = selectedPaymentMethod.value;
     orderModel.value.status = Constant.rideComplete;
@@ -170,7 +170,7 @@ class PaymentOrderController extends GetxController {
   }
 
   completeWalletOrder() async {
-    ShowToastDialog.showLoader("Please wait..");
+    ShowToastDialog.showLoader("Please wait");
 
     // Check wallet balance
     double walletBalance =

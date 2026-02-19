@@ -1,12 +1,13 @@
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart';
 
 class ShowToastDialog {
   static showToast(String? message, {Duration? duration}) {
-    EasyLoading.showToast(message!, duration: duration);
+    EasyLoading.showToast(message!.tr, duration: duration);
   }
 
   static showLoader(String message) {
-    EasyLoading.show(status: message);
+    EasyLoading.show(status: message.tr);
   }
 
   static closeLoader() {

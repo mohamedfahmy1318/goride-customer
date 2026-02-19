@@ -63,7 +63,7 @@ class IntercityPaymentOrderController extends GetxController {
   }
 
   completeOrder() async {
-    ShowToastDialog.showLoader("Please wait..");
+    ShowToastDialog.showLoader("Please wait");
     orderModel.value.paymentStatus = true;
     orderModel.value.paymentType = selectedPaymentMethod.value;
     orderModel.value.status = Constant.rideComplete;
@@ -141,7 +141,7 @@ class IntercityPaymentOrderController extends GetxController {
   }
 
   completeCashOrder() async {
-    ShowToastDialog.showLoader("Please wait..");
+    ShowToastDialog.showLoader("Please wait");
 
     orderModel.value.paymentType = selectedPaymentMethod.value;
     orderModel.value.status = Constant.rideComplete;
@@ -162,7 +162,7 @@ class IntercityPaymentOrderController extends GetxController {
   }
 
   completeWalletOrder() async {
-    ShowToastDialog.showLoader("Please wait..");
+    ShowToastDialog.showLoader("Please wait");
 
     double totalAmount = calculateAmount();
 
