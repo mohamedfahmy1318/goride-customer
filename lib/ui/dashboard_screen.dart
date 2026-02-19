@@ -6,7 +6,9 @@ import 'package:customer/themes/app_colors.dart';
 import 'package:customer/themes/responsive.dart';
 import 'package:customer/utils/DarkThemeProvider.dart';
 import 'package:customer/utils/fire_store_utils.dart';
+import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -100,8 +102,20 @@ class DashBoardScreen extends StatelessWidget {
               ],
             ),
             drawer: buildAppDrawer(context, controller),
-            body: WillPopScope(
-                onWillPop: controller.onWillPop,
+            body: PopScope(
+                canPop: false,
+                onPopInvokedWithResult: (didPop, result) {
+                  if (!didPop) {
+                    final now = DateTime.now();
+                    if (now.difference(controller.currentBackPressTime.value) >
+                        const Duration(seconds: 2)) {
+                      controller.currentBackPressTime.value = now;
+                      ShowToastDialog.showToast('Double press to exit'.tr);
+                    } else {
+                      SystemNavigator.pop();
+                    }
+                  }
+                },
                 child: controller
                     .getDrawerItemWidget(controller.selectedDrawerIndex.value)),
           );
