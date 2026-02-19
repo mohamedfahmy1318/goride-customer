@@ -620,78 +620,94 @@ class HomeScreen extends StatelessWidget {
                                       height: 10,
                                     ),
                                     Obx(() => Column(
-                                      children: [
-                                    // تم إخفاء خيار المكيف A/C
-                                    // A/C option removed
-                                    controller.selectedType.value.offerRate ==
-                                            true
-                                        ? const SizedBox(
-                                            height: 10,
-                                          )
-                                        : SizedBox.shrink(),
-                                    Visibility(
-                                      visible: controller
-                                              .selectedType.value.offerRate ==
-                                          true,
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 14),
-                                        decoration: BoxDecoration(
-                                          color: themeChange.getThem()
-                                              ? AppColors.darkTextField
-                                              : AppColors.textField,
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                          border: Border.all(
-                                            color: themeChange.getThem()
-                                                ? AppColors.darkTextFieldBorder
-                                                : AppColors.textFieldBorder,
-                                          ),
-                                        ),
-                                        child: Row(
                                           children: [
-                                            Text(
-                                              Constant.currencyModel!.symbol
-                                                  .toString(),
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                                color: themeChange.getThem()
-                                                    ? Colors.white70
-                                                    : Colors.black54,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                              child: Text(
-                                                controller
-                                                        .amount.value.isNotEmpty
-                                                    ? controller.amount.value
-                                                    : "Offer rate".tr,
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: controller.amount.value
-                                                          .isNotEmpty
-                                                      ? (themeChange.getThem()
-                                                          ? Colors.white
-                                                          : Colors.black)
-                                                      : Colors.grey,
+                                            // تم إخفاء خيار المكيف A/C
+                                            // A/C option removed
+                                            controller.selectedType.value
+                                                        .offerRate ==
+                                                    true
+                                                ? const SizedBox(
+                                                    height: 10,
+                                                  )
+                                                : SizedBox.shrink(),
+                                            Visibility(
+                                              visible: controller.selectedType
+                                                      .value.offerRate ==
+                                                  true,
+                                              child: Container(
+                                                width: double.infinity,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 14),
+                                                decoration: BoxDecoration(
+                                                  color: themeChange.getThem()
+                                                      ? AppColors.darkTextField
+                                                      : AppColors.textField,
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                  border: Border.all(
+                                                    color: themeChange.getThem()
+                                                        ? AppColors
+                                                            .darkTextFieldBorder
+                                                        : AppColors
+                                                            .textFieldBorder,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      Constant
+                                                          .currencyModel!.symbol
+                                                          .toString(),
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: themeChange
+                                                                .getThem()
+                                                            ? Colors.white70
+                                                            : Colors.black54,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 10),
+                                                    Expanded(
+                                                      child: Text(
+                                                        controller.amount.value
+                                                                .isNotEmpty
+                                                            ? controller
+                                                                .amount.value
+                                                            : "Offer rate".tr,
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: controller
+                                                                  .amount
+                                                                  .value
+                                                                  .isNotEmpty
+                                                              ? (themeChange
+                                                                      .getThem()
+                                                                  ? Colors.white
+                                                                  : Colors
+                                                                      .black)
+                                                              : Colors.grey,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Icon(
+                                                      Icons.lock_outline,
+                                                      size: 18,
+                                                      color: Colors.grey[400],
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ),
-                                            Icon(
-                                              Icons.lock_outline,
-                                              size: 18,
-                                              color: Colors.grey[400],
-                                            ),
                                           ],
-                                        ),
-                                      ),
-                                    ),
-                                      ],
-                                    )),
+                                        )),
                                     const SizedBox(
                                       height: 10,
                                     ),
@@ -1700,7 +1716,7 @@ class HomeScreen extends StatelessWidget {
                   title: 'New Ride Available'.tr,
                   body: 'A customer has placed a ride near your location.'.tr,
                   payload: playLoad,
-                  dataOnly: true);
+                  dataOnly: false);
             }
           }
         });
