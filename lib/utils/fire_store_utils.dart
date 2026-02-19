@@ -443,8 +443,14 @@ class FireStoreUtils {
         .then((value) {
       log('📋 Services found: ${value.docs.length}');
       for (var element in value.docs) {
-        ServiceModel documentModel = ServiceModel.fromJson(element.data());
-        serviceList.add(documentModel);
+        try {
+          ServiceModel documentModel = ServiceModel.fromJson(element.data());
+          documentModel.id = element.id;
+          serviceList.add(documentModel);
+          log('✅ Service loaded: id=${element.id}, kmCharge=${documentModel.kmCharge}, basicFare=${documentModel.basicFare}, basicFareCharge=${documentModel.basicFareCharge}, perMinuteCharge=${documentModel.perMinuteCharge}');
+        } catch (e) {
+          log('❌ Error parsing service doc ${element.id}: $e\nData: ${element.data()}');
+        }
       }
     }).catchError((error) {
       log('❌ Error loading services: $error');

@@ -48,17 +48,17 @@ class ServiceModel {
     enable = json['enable'];
     offerRate = json['offerRate'];
     id = json['id'];
-    acCharge = json['acCharge'];
-    nonAcCharge = json['nonAcCharge'];
-    basicFare = json['basicFare'];
-    basicFareCharge = json['basicFareCharge'];
-    holdingMinute = json['holdingMinute'];
-    holdingMinuteCharge = json['holdingMinuteCharge'];
+    acCharge = json['acCharge']?.toString() ?? '0.0';
+    nonAcCharge = json['nonAcCharge']?.toString() ?? '0.0';
+    basicFare = json['basicFare']?.toString() ?? '0.0';
+    basicFareCharge = json['basicFareCharge']?.toString() ?? '0.0';
+    holdingMinute = json['holdingMinute']?.toString() ?? '0.0';
+    holdingMinuteCharge = json['holdingMinuteCharge']?.toString() ?? '0.0';
     endNightTime = json['endNightTime'];
     startNightTime = json['startNightTime'];
-    nightCharge = json['nightCharge'];
-    perMinuteCharge = json['perMinuteCharge'];
-    kmCharge = json['kmCharge'];
+    nightCharge = json['nightCharge']?.toString() ?? '0.0';
+    perMinuteCharge = json['perMinuteCharge']?.toString() ?? '0';
+    kmCharge = json['kmCharge']?.toString();
     intercityType = json['intercityType'];
     isAcNonAc = json['isAcNonAc'];
     adminCommission = json['adminCommission'] != null
