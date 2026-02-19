@@ -1,0 +1,337 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==================== HELPER FUNCTIONS ====================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user is the owner of the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Check if user is a customer
+    function isCustomer() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
+    // Check if user is a driver
+    function isDriver() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/driver_users/$(request.auth.uid));
+    }
+    
+    // Check if user is either customer or driver
+    function isValidUser() {
+      return isCustomer() || isDriver();
+    }
+    
+    // ==================== USERS COLLECTION ====================
+    
+    // Customer users
+    match /users/{userId} {
+      // Users can read their own full profile
+      // Other authenticated users can only read (needed for ride matching)
+      // Sensitive fields should be excluded via Firestore field-level security or app logic
+      allow read: if isOwner(userId) || isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+      
+      // Wallet transactions subcollection
+      match /wallet_transaction/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) || isDriver();
+        allow update: if isOwner(userId);
+        allow delete: if false;
+      }
+    }
+    
+    // Driver users
+    match /driver_users/{userId} {
+      // Users can read their own full profile
+      // Customers can read driver profiles (for ride info display)
+      allow read: if isOwner(userId) || isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+      
+      // Wallet transactions subcollection
+      match /wallet_transaction/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) || isCustomer();
+        allow update: if isOwner(userId);
+        allow delete: if false;
+      }
+    }
+    
+    // ==================== ORDERS COLLECTION ====================
+    
+    // Regular orders
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        resource.data.driverId == null ||
+        resource.data.status == 'ride_placed'
+      );
+      allow create: if isCustomer();
+      allow update: if isAuthenticated() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        resource.data.driverId == null
+      );
+      allow delete: if false;
+      
+      // Accepted drivers subcollection
+      match /acceptedDriver/{driverId} {
+        allow read: if isAuthenticated();
+        allow create: if isDriver();
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+    
+    // Intercity orders
+    match /orders_intercity/{orderId} {
+      allow read: if isAuthenticated() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        resource.data.driverId == null ||
+        resource.data.status == 'ride_placed'
+      );
+      allow create: if isCustomer();
+      allow update: if isAuthenticated() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        resource.data.driverId == null
+      );
+      allow delete: if false;
+      
+      // Accepted drivers subcollection
+      match /acceptedDriver/{driverId} {
+        allow read: if isAuthenticated();
+        allow create: if isDriver();
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+    
+    // ==================== PUBLIC READ COLLECTIONS ====================
+    
+    // Settings - public read, no write
+    match /settings/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Services - public read
+    match /service/{serviceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Intercity services - public read
+    match /intercity_service/{serviceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Banners - public read
+    match /banner/{bannerId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Tax - public read
+    match /tax/{taxId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Currency - public read
+    match /currency/{currencyId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Languages - public read
+    match /languages/{languageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Referral settings - public read
+    match /referral/{referralId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Onboarding - public read
+    match /on_boarding/{onboardingId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // FAQ - public read
+    match /faq/{faqId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // SOS - public read
+    match /sos/{sosId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Freight vehicles - public read
+    match /freight_vehicle/{vehicleId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Airports - public read
+    match /airports/{airportId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Zones - public read
+    match /zone/{zoneId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // CMS Pages - public read
+    match /cms_pages/{pageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // ==================== AUTHENTICATED COLLECTIONS ====================
+    
+    // Coupons - authenticated read
+    match /coupon/{couponId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    // Driver reviews - authenticated users can read and create
+    match /review_driver/{reviewId} {
+      allow read: if isAuthenticated();
+      allow create: if isCustomer();
+      allow update, delete: if false;
+    }
+    
+    // ==================== CHAT COLLECTION ====================
+    
+    match /chat/{chatId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+      
+      // Messages subcollection (thread)
+      match /thread/{messageId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update, delete: if false;
+      }
+      
+      // Legacy messages subcollection
+      match /messages/{messageId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update, delete: if false;
+      }
+    }
+    
+    // Customer reviews
+    match /review_customer/{reviewId} {
+      allow read: if isAuthenticated();
+      allow create: if isDriver();
+      allow update, delete: if false;
+    }
+    
+    // ==================== WALLET TRANSACTIONS (Root level) ====================
+    
+    match /wallet_transaction/{transactionId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid
+      );
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // ==================== DRIVER DOCUMENTS ====================
+    
+    match /driver_document/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+    
+    // Document definitions - public read
+    match /documents/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    // Vehicle types - public read
+    match /vehicle_type/{vehicleId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Bank details - owner only
+    match /bank_details/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+    
+    // Withdrawal history - owner only
+    match /withdrawal_history/{withdrawId} {
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // Subscription plans - public read
+    match /subscription_plans/{planId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    // Subscription history - owner only
+    match /subscription_history/{historyId} {
+      allow read: if isAuthenticated() && 
+        resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // Driver rules - public read
+    match /driver_rules/{ruleId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    // Referral data
+    match /referral/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+  }
+}

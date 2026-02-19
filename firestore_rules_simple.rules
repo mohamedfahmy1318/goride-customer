@@ -1,0 +1,268 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==================== HELPER FUNCTIONS ====================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ==================== USERS COLLECTION (Customers) ====================
+    
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+      
+      match /wallet_transaction/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isAuthenticated();
+        allow update, delete: if false;
+      }
+    }
+    
+    // ==================== DRIVER USERS COLLECTION ====================
+    
+    match /driver_users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+      
+      match /wallet_transaction/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isAuthenticated();
+        allow update, delete: if false;
+      }
+    }
+    
+    // ==================== DRIVER LOCATION ====================
+    
+    match /driver_location/{driverId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(driverId);
+      allow delete: if isOwner(driverId);
+    }
+    
+    // ==================== ORDERS ====================
+    
+    match /orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+    
+    match /orders_intercity/{orderId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+    
+    match /orders_freight/{orderId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+    
+    // ==================== CHAT ====================
+    
+    match /chat/{chatId} {
+      allow read, write: if isAuthenticated();
+      
+      match /thread/{messageId} {
+        allow read, write: if isAuthenticated();
+      }
+      
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+    
+    // ==================== REFERRAL ====================
+    
+    match /referral/{referralId} {
+      allow read: if true;
+      allow create, update: if isAuthenticated();
+      allow delete: if false;
+    }
+    
+    match /referral_history/{historyId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // ==================== REVIEWS ====================
+    
+    match /review_driver/{reviewId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    match /review_customer/{reviewId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // ==================== WALLET ====================
+    
+    match /wallet_transaction/{transactionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // ==================== NOTIFICATIONS ====================
+    
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+    
+    // ==================== DOCUMENTS ====================
+    
+    match /documents/{documentId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /driver_document/{docId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if false;
+    }
+    
+    // ==================== WITHDRAWAL ====================
+    
+    match /withdrawal_history/{withdrawId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    match /bank_details/{bankId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ==================== SUBSCRIPTION ====================
+    
+    match /subscription_plans/{planId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /subscription_history/{historyId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // ==================== PUBLIC READ COLLECTIONS ====================
+    
+    match /settings/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /service/{serviceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /intercity_service/{serviceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /freight_vehicle/{vehicleId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /vehicle_type/{typeId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /zone/{zoneId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /banner/{bannerId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /tax/{taxId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /currency/{currencyId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /languages/{languageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /coupon/{couponId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    match /on_boarding/{onboardingId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /faq/{faqId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /sos/{sosId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /airports/{airportId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /cms_pages/{pageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+       match /driver_rules/{ruleId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // ========== CATCH-ALL for any other collections ==========
+    match /{collection}/{document=**} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+  }
+}

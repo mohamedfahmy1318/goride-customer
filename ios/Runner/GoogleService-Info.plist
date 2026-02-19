@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>API_KEY</key>
+    <string>AIzaSyAZM9MMaizcCmg_c-TDA9-WTeKvipdLFRA</string>
+    <key>CLIENT_ID</key>
+    <string>202123276886-v20blrno0qt62d3fve71ore7kq0u7fom.apps.googleusercontent.com</string>
+    <key>PROJECT_ID</key>
+    <string>goride-a9d8f</string>
+    <key>STORAGE_BUCKET</key>
+    <string>goride-a9d8f.firebasestorage.app</string>
+    <key>GCM_SENDER_ID</key>
+    <string>202123276886</string>
+    <key>PLIST_VERSION</key>
+    <string>1</string>
+    <key>BUNDLE_ID</key>
+    <string>com.goride.customer</string>
+    <key>DATABASE_URL</key>
+    <string>https://goride-a9d8f-default-rtdb.firebaseio.com</string>
+    <key>GOOGLE_APP_ID</key>
+    <string>1:202123276886:android:d8e774cb0b1f02474181f7</string>
+</dict>
+</plist>

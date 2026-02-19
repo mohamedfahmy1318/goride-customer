@@ -1,0 +1,74 @@
+{
+  "documents": {
+    "VehicleRegistration01": {
+      "id": "VehicleRegistration01",
+      "backSide": false,
+      "enable": true,
+      "expireAt": true,
+      "frontSide": true,
+      "isDeleted": false,
+      "title": [
+        { "title": "Vehicle Registration", "type": "en" },
+        { "title": "استمارة السيارة", "type": "ar" },
+        { "title": "Certificat d'immatriculation", "type": "fr" }
+      ],
+      "__collections__": {}
+    },
+    "VehicleInsurance01": {
+      "id": "VehicleInsurance01",
+      "backSide": false,
+      "enable": true,
+      "expireAt": true,
+      "frontSide": true,
+      "isDeleted": false,
+      "title": [
+        { "title": "Vehicle Insurance", "type": "en" },
+        { "title": "تأمين السيارة", "type": "ar" },
+        { "title": "Assurance véhicule", "type": "fr" }
+      ],
+      "__collections__": {}
+    },
+    "Authorization01": {
+      "id": "Authorization01",
+      "backSide": false,
+      "enable": true,
+      "expireAt": false,
+      "frontSide": true,
+      "isDeleted": false,
+      "title": [
+        { "title": "Authorization", "type": "en" },
+        { "title": "التفويض", "type": "ar" },
+        { "title": "Autorisation", "type": "fr" }
+      ],
+      "__collections__": {}
+    },
+    "FrontLicensePlate01": {
+      "id": "FrontLicensePlate01",
+      "backSide": false,
+      "enable": true,
+      "expireAt": false,
+      "frontSide": true,
+      "isDeleted": false,
+      "title": [
+        { "title": "Front License Plate", "type": "en" },
+        { "title": "صورة اللوحة الأمامية", "type": "ar" },
+        { "title": "Plaque d'immatriculation avant", "type": "fr" }
+      ],
+      "__collections__": {}
+    },
+    "BackLicensePlate01": {
+      "id": "BackLicensePlate01",
+      "backSide": false,
+      "enable": true,
+      "expireAt": false,
+      "frontSide": true,
+      "isDeleted": false,
+      "title": [
+        { "title": "Back License Plate", "type": "en" },
+        { "title": "صورة اللوحة الخلفية", "type": "ar" },
+        { "title": "Plaque d'immatriculation arrière", "type": "fr" }
+      ],
+      "__collections__": {}
+    }
+  }
+}

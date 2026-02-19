@@ -1,0 +1,529 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==================== HELPER FUNCTIONS ====================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user is the owner of the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Check if user is a customer
+    function isCustomer() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
+    // Check if user is a driver
+    function isDriver() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/driver_users/$(request.auth.uid));
+    }
+    
+    // Check if user is either customer or driver
+    function isValidUser() {
+      return isCustomer() || isDriver();
+    }
+    
+    // Check if driver is verified AND active (can accept rides)
+    // Uses: documentVerification (docs verified) + isApproved (admin approved)
+    function isActiveDriver() {
+      return isDriver() && 
+        get(/databases/$(database)/documents/driver_users/$(request.auth.uid)).data.isApproved == true &&
+        get(/databases/$(database)/documents/driver_users/$(request.auth.uid)).data.documentVerification == true;
+    }
+    
+    // Check if driver is online (available for rides)
+    function isOnlineDriver() {
+      return isActiveDriver() && 
+        get(/databases/$(database)/documents/driver_users/$(request.auth.uid)).data.isOnline == true;
+    }
+    
+    // Validate order status values
+    function isValidOrderStatus(status) {
+      return status in ['pending', 'accepted', 'rideActive', 'rideInProgress', 
+                        'rideComplete', 'rideCanceled', 'rideHold', 'rideHoldAccepted'];
+    }
+    
+    // ==================== USERS COLLECTION (Customers) ====================
+    
+    match /users/{userId} {
+      // Any authenticated user can read customer profiles (needed for chat, orders)
+      allow read: if isAuthenticated();
+      
+      // User can only create their own profile
+      allow create: if isOwner(userId) && 
+        request.resource.data.keys().hasAll(['fullName', 'email', 'phoneNumber']) &&
+        request.resource.data.id == userId;
+      
+      // User can only update their own profile
+      // Cannot change: id, walletAmount (server-side only), createdAt
+      allow update: if isOwner(userId) && 
+        request.resource.data.id == resource.data.id;
+      
+      // No deletion allowed - data integrity
+      allow delete: if false;
+      
+      // Wallet transactions subcollection
+      match /wallet_transaction/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) || isDriver();
+        allow update, delete: if false; // Immutable financial records
+      }
+    }
+    
+    // ==================== DRIVER USERS COLLECTION ====================
+    
+    match /driver_users/{userId} {
+      // Any authenticated user can read driver profiles
+      allow read: if isAuthenticated();
+      
+      // Driver can only create their own profile
+      allow create: if isOwner(userId) && 
+        request.resource.data.keys().hasAll(['fullName', 'email', 'phoneNumber']) &&
+        request.resource.data.id == userId;
+      
+      // Driver can update their own profile
+      // CANNOT change: id, documentVerification, isApproved (admin only), createdAt, walletAmount
+      allow update: if isOwner(userId) && 
+        request.resource.data.id == resource.data.id &&
+        request.resource.data.documentVerification == resource.data.documentVerification &&
+        request.resource.data.isApproved == resource.data.isApproved;
+      
+      allow delete: if false;
+      
+      // Wallet transactions
+      match /wallet_transaction/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) || isCustomer();
+        allow update, delete: if false;
+      }
+    }
+    
+    // ==================== DRIVER LOCATION (Real-time tracking like Uber) ====================
+    
+    match /driver_location/{driverId} {
+      // Customers can read driver location (for live tracking on map)
+      // Drivers can read (to show nearby drivers)
+      allow read: if isAuthenticated();
+      
+      // Only the driver can update their own location
+      allow create, update: if isOwner(driverId) && isDriver() &&
+        request.resource.data.keys().hasAll(['latitude', 'longitude', 'rotation']);
+      
+      // Driver can delete when going offline
+      allow delete: if isOwner(driverId);
+    }
+    
+    // ==================== ORDERS COLLECTION (City Rides) ====================
+    
+    match /orders/{orderId} {
+      // READ permissions:
+      // - Customer can see their own orders
+      // - Driver can see orders assigned to them
+      // - Online drivers can see pending/unassigned orders (to accept new rides)
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        (resource.data.driverId == null && isActiveDriver()) ||
+        (resource.data.status == 'pending' && isActiveDriver())
+      );
+      
+      // CREATE: Only customers can create orders
+      allow create: if isCustomer() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+      
+      // UPDATE rules:
+      allow update: if isAuthenticated() && (
+        // Customer can cancel/update their pending order
+        (resource.data.userId == request.auth.uid && 
+         resource.data.status in ['pending', 'accepted', 'rideActive', 'rideHold', 'rideHoldAccepted']) ||
+        
+        // Active driver can accept unassigned orders
+        (resource.data.driverId == null && isActiveDriver() && 
+         request.resource.data.driverId == request.auth.uid) ||
+        
+        // Assigned driver can update order (status, etc)
+        (resource.data.driverId == request.auth.uid && isDriver())
+      );
+      
+      // Never delete orders - keep for history/audit
+      allow delete: if false;
+    }
+    
+    // ==================== INTERCITY ORDERS ====================
+    
+    match /orders_intercity/{orderId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        (resource.data.driverId == null && isActiveDriver()) ||
+        (resource.data.status == 'pending' && isActiveDriver())
+      );
+      
+      allow create: if isCustomer() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+      
+      allow update: if isAuthenticated() && (
+        (resource.data.userId == request.auth.uid && 
+         resource.data.status in ['pending', 'accepted', 'rideActive', 'rideHold', 'rideHoldAccepted']) ||
+        (resource.data.driverId == null && isActiveDriver() && 
+         request.resource.data.driverId == request.auth.uid) ||
+        (resource.data.driverId == request.auth.uid && isDriver())
+      );
+      
+      allow delete: if false;
+    }
+    
+    // ==================== FREIGHT ORDERS ====================
+    
+    match /orders_freight/{orderId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        (resource.data.driverId == null && isActiveDriver())
+      );
+      
+      allow create: if isCustomer() && 
+        request.resource.data.userId == request.auth.uid;
+      
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid ||
+        (resource.data.driverId == null && isActiveDriver())
+      );
+      
+      allow delete: if false;
+    }
+    
+    // ==================== DRIVER BIDS/OFFERS (like inDrive) ====================
+    
+    match /order_bids/{bidId} {
+      // Anyone authenticated can read bids
+      allow read: if isAuthenticated();
+      
+      // Only active drivers can place bids
+      allow create: if isActiveDriver() && 
+        request.resource.data.driverId == request.auth.uid;
+      
+      // Driver can update their own bid (change price)
+      allow update: if isDriver() && 
+        resource.data.driverId == request.auth.uid;
+      
+      // Driver can withdraw their bid
+      allow delete: if isDriver() && 
+        resource.data.driverId == request.auth.uid;
+    }
+    
+    // ==================== CHAT COLLECTION ====================
+    
+    match /chat/{chatId} {
+      // Only chat participants can access
+      allow read: if isAuthenticated() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid
+      );
+      
+      // Participants can create chat
+      allow create: if isAuthenticated() && (
+        request.resource.data.customerId == request.auth.uid ||
+        request.resource.data.driverId == request.auth.uid
+      );
+      
+      // Participants can update (mark as read, typing status)
+      allow update: if isAuthenticated() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid
+      );
+      
+      allow delete: if false;
+      
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if isAuthenticated();
+        
+        // Only sender can create message
+        allow create: if isAuthenticated() && 
+          request.resource.data.senderId == request.auth.uid;
+        
+        // Messages are immutable
+        allow update, delete: if false;
+      }
+    }
+    
+    // ==================== REVIEWS ====================
+    
+    // Driver reviews (by customers)
+    match /review_driver/{reviewId} {
+      allow read: if isAuthenticated();
+      
+      // Only customers can review drivers
+      allow create: if isCustomer() && 
+        request.resource.data.customerId == request.auth.uid;
+      
+      // Reviews are permanent
+      allow update, delete: if false;
+    }
+    
+    // Customer reviews (by drivers)
+    match /review_customer/{reviewId} {
+      allow read: if isAuthenticated();
+      
+      // Only drivers can review customers
+      allow create: if isDriver() && 
+        request.resource.data.driverId == request.auth.uid;
+      
+      allow update, delete: if false;
+    }
+    
+    // ==================== NOTIFICATIONS ====================
+    
+    match /notifications/{notificationId} {
+      // User can only read their own notifications
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // System/users can create notifications
+      allow create: if isAuthenticated();
+      
+      // User can mark as read only
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      allow delete: if false;
+    }
+    
+    // ==================== WALLET TRANSACTIONS ====================
+    
+    match /wallet_transaction/{transactionId} {
+      // User can only read their own transactions
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Users can create transactions (payments, withdrawals)
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      
+      // Financial records are immutable
+      allow update, delete: if false;
+    }
+    
+    // ==================== WITHDRAWAL REQUESTS ====================
+    
+    match /withdrawal_requests/{requestId} {
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      
+      // Only status can be updated (by admin)
+      allow update: if false; // Admin only
+      allow delete: if false;
+    }
+    
+    // ==================== DRIVER EARNINGS ====================
+    
+    match /driver_earnings/{earningId} {
+      allow read: if isAuthenticated() && 
+        resource.data.driverId == request.auth.uid;
+      
+      allow create: if isDriver() && 
+        request.resource.data.driverId == request.auth.uid;
+      
+      allow update, delete: if false;
+    }
+    
+    // ==================== SCHEDULED RIDES ====================
+    
+    match /scheduled_rides/{rideId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid
+      );
+      
+      allow create: if isCustomer() && 
+        request.resource.data.userId == request.auth.uid;
+      
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.driverId == request.auth.uid
+      );
+      
+      // Customer can cancel pending scheduled rides
+      allow delete: if isCustomer() && 
+        resource.data.userId == request.auth.uid &&
+        resource.data.status == 'pending';
+    }
+    
+    // ==================== FAVORITE PLACES ====================
+    
+    match /favorite_locations/{locationId} {
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      
+      allow update, delete: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // ==================== SUPPORT TICKETS ====================
+    
+    match /support_tickets/{ticketId} {
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      allow delete: if false;
+    }
+    
+    // ==================== REFERRAL HISTORY ====================
+    
+    match /referral_history/{referralId} {
+      allow read: if isAuthenticated() && (
+        resource.data.referrerId == request.auth.uid ||
+        resource.data.referredId == request.auth.uid
+      );
+      
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // ==================== PUBLIC READ COLLECTIONS (Admin write only) ====================
+    
+    // Global settings
+    match /settings/{document} {
+      allow read: if true;
+      allow write: if false; // Admin console only
+    }
+    
+    // Services (vehicle types, prices)
+    match /service/{serviceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Intercity services
+    match /intercity_service/{serviceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Freight vehicles
+    match /freight_vehicle/{vehicleId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Service zones/areas
+    match /zone/{zoneId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Promotional banners
+    match /banner/{bannerId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Tax settings
+    match /tax/{taxId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Currency settings
+    match /currency/{currencyId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // App languages
+    match /languages/{languageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Coupons/Promo codes
+    match /coupon/{couponId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    // Referral program settings
+    match /referral/{referralId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Onboarding screens
+    match /on_boarding/{onboardingId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // FAQ
+    match /faq/{faqId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // SOS/Emergency contacts
+    match /sos/{sosId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Airports
+    match /airports/{airportId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // CMS Pages (Privacy Policy, Terms, About)
+    match /cms_pages/{pageId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Vehicle brands
+    match /vehicle_brand/{brandId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Vehicle models
+    match /vehicle_model/{modelId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Payment methods
+    match /payment_methods/{methodId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Cancellation reasons
+    match /cancellation_reasons/{reasonId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

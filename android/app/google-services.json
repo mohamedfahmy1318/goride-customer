@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "202123276886",
+    "project_id": "goride-a9d8f",
+    "storage_bucket": "goride-a9d8f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:202123276886:android:d8e774cb0b1f02474181f7",
+        "android_client_info": {
+          "package_name": "com.goride.customer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "202123276886-v20blrno0qt62d3fve71ore7kq0u7fom.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZM9MMaizcCmg_c-TDA9-WTeKvipdLFRA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "202123276886-v20blrno0qt62d3fve71ore7kq0u7fom.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
