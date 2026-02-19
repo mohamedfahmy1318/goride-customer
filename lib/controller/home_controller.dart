@@ -319,11 +319,13 @@ class HomeController extends GetxController {
   }
 
   calculateAmount() async {
-    acCharge.value = selectedType.value.acCharge.toString();
-    nonAcCharge.value = selectedType.value.nonAcCharge.toString();
-    basicFare.value = selectedType.value.basicFare.toString();
-    basicFareCharge.value = selectedType.value.basicFareCharge.toString();
-    isAcNonAc.value = selectedType.value.isAcNonAc!;
+    try {
+    log('🔢 calculateAmount called: serviceList.length=${serviceList.length}, selectedType.id=${selectedType.value.id}, kmCharge=${selectedType.value.kmCharge}, basicFare=${selectedType.value.basicFare}, basicFareCharge=${selectedType.value.basicFareCharge}, perMinuteCharge=${selectedType.value.perMinuteCharge}, isAcNonAc=${selectedType.value.isAcNonAc}, distance=${distance.value}, duration=${duration.value}');
+    acCharge.value = selectedType.value.acCharge?.toString() ?? '0.0';
+    nonAcCharge.value = selectedType.value.nonAcCharge?.toString() ?? '0.0';
+    basicFare.value = selectedType.value.basicFare?.toString() ?? '0.0';
+    basicFareCharge.value = selectedType.value.basicFareCharge?.toString() ?? '0.0';
+    isAcNonAc.value = selectedType.value.isAcNonAc ?? false;
     String formatTime(String? time) {
       if (time == null || !time.contains(":")) {
         return "00:00";
@@ -405,6 +407,10 @@ class HomeController extends GetxController {
         }
       }
       offerYourRateController.value.text = amount.value;
+    }
+    } catch (e) {
+      log('❌ calculateAmount error: $e');
+      log('   selectedType: id=${selectedType.value.id}, kmCharge=${selectedType.value.kmCharge}, basicFare=${selectedType.value.basicFare}, basicFareCharge=${selectedType.value.basicFareCharge}, perMinuteCharge=${selectedType.value.perMinuteCharge}, isAcNonAc=${selectedType.value.isAcNonAc}');
     }
     update();
   }
