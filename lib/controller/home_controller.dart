@@ -319,105 +319,111 @@ class HomeController extends GetxController {
   }
 
   calculateAmount() async {
+    log('🔢 calculateAmount called: serviceList.length=${serviceList.length}, distance="${distance.value}", selectedType.id=${selectedType.value.id}, kmCharge=${selectedType.value.kmCharge}, offerRate=${selectedType.value.offerRate}');
     // Guard: don't calculate if distance or service data not ready yet
-    if (distance.value.isEmpty || (double.tryParse(distance.value) ?? 0.0) <= 0.0) {
+    if (distance.value.isEmpty ||
+        (double.tryParse(distance.value) ?? 0.0) <= 0.0) {
+      log('⚠️ calculateAmount: distance empty or zero, skipping');
       amount.value = "";
       update();
       return;
     }
     if (selectedType.value.id == null || selectedType.value.kmCharge == null) {
+      log('⚠️ calculateAmount: selectedType not ready (id=${selectedType.value.id}, kmCharge=${selectedType.value.kmCharge})');
       amount.value = "";
       update();
       return;
     }
     try {
-    acCharge.value = selectedType.value.acCharge?.toString() ?? '0.0';
-    nonAcCharge.value = selectedType.value.nonAcCharge?.toString() ?? '0.0';
-    basicFare.value = selectedType.value.basicFare?.toString() ?? '0.0';
-    basicFareCharge.value = selectedType.value.basicFareCharge?.toString() ?? '0.0';
-    isAcNonAc.value = selectedType.value.isAcNonAc ?? false;
-    String formatTime(String? time) {
-      if (time == null || !time.contains(":")) {
-        return "00:00";
-      }
-      List<String> parts = time.split(':');
-      if (parts.length != 2) return "00:00";
-      return "${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
-    }
-
-    startNightTime = formatTime(selectedType.value.startNightTime);
-    endNightTime = formatTime(selectedType.value.endNightTime);
-
-    List<String> startParts = startNightTime!.split(':');
-    List<String> endParts = endNightTime!.split(':');
-
-    startNightTimeString = DateTime(currentDate.year, currentDate.month,
-        currentDate.day, int.parse(startParts[0]), int.parse(startParts[1]));
-    endNightTimeString = DateTime(currentDate.year, currentDate.month,
-        currentDate.day, int.parse(endParts[0]), int.parse(endParts[1]));
-
-    nightCharge.value = selectedType.value.nightCharge.toString();
-    if (sourceLocationLAtLng.value.latitude != null &&
-        destinationLocationLAtLng.value.latitude != null) {
-      double durationValueInMinutes = convertToMinutes(duration.toString());
-      double distanceVal = double.tryParse(distance.value) ?? 0.0;
-      double basicFareVal = double.tryParse(basicFare.value) ?? 0.0;
-      if (distanceVal <= basicFareVal) {
-        double basicFareChargeVal =
-            double.tryParse(basicFareCharge.value.toString()) ?? 0.0;
-        double perMinuteChargeVal =
-            double.tryParse(selectedType.value.perMinuteCharge.toString()) ??
-                0.0;
-        amount.value =
-            (basicFareChargeVal + (durationValueInMinutes * perMinuteChargeVal))
-                .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-
-        totalNightFare.value = double.tryParse(amount.value) ?? 0.0;
-        if (currentTime.isAfter(startNightTimeString) &&
-            currentTime.isBefore(endNightTimeString)) {
-          double nightChargeVal =
-              double.tryParse(nightCharge.value.toString()) ?? 1.0;
-          amount.value =
-              (totalNightFare.value * nightChargeVal).toStringAsFixed(2);
+      acCharge.value = selectedType.value.acCharge?.toString() ?? '0.0';
+      nonAcCharge.value = selectedType.value.nonAcCharge?.toString() ?? '0.0';
+      basicFare.value = selectedType.value.basicFare?.toString() ?? '0.0';
+      basicFareCharge.value =
+          selectedType.value.basicFareCharge?.toString() ?? '0.0';
+      isAcNonAc.value = selectedType.value.isAcNonAc ?? false;
+      String formatTime(String? time) {
+        if (time == null || !time.contains(":")) {
+          return "00:00";
         }
-      } else {
-        double distanceValue = double.tryParse(distance.value) ?? 0.0;
-        double basicFareValue = double.tryParse(basicFare.value) ?? 0.0;
-        double extraDist = distanceValue - basicFareValue;
-        extraDistance.value = extraDist;
-        double nonAcChargeValue =
-            double.tryParse(nonAcCharge.value.toString()) ?? 0.0;
-        double acChargeValue =
-            double.tryParse(acCharge.value.toString()) ?? 0.0;
-        double perKmCharge = isAcNonAc.value == true
-            ? isAcSelected.value == false
-                ? nonAcChargeValue
-                : acChargeValue
-            : double.tryParse(selectedType.value.kmCharge.toString()) ?? 0.0;
-        double perMinuteCharge =
-            double.tryParse(selectedType.value.perMinuteCharge.toString()) ??
-                0.0;
-        double durationInMinutes =
-            double.tryParse(durationValueInMinutes.toString()) ?? 0.0;
-        double basicFareChargeValue =
-            double.tryParse(basicFareCharge.value.toString()) ?? 0.0;
-        totalAmount.value = (perKmCharge * extraDist) +
-            (durationInMinutes * perMinuteCharge) +
-            basicFareChargeValue;
-
-        totalNightFare.value = totalAmount.value;
-        amount.value = totalNightFare.value.toStringAsFixed(2);
-
-        if (currentTime.isAfter(startNightTimeString) &&
-            currentTime.isBefore(endNightTimeString)) {
-          double nightChargeVal =
-              double.tryParse(nightCharge.value.toString()) ?? 1.0;
-          amount.value =
-              (totalNightFare.value * nightChargeVal).toStringAsFixed(2);
-        }
+        List<String> parts = time.split(':');
+        if (parts.length != 2) return "00:00";
+        return "${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
       }
-      offerYourRateController.value.text = amount.value;
-    }
+
+      startNightTime = formatTime(selectedType.value.startNightTime);
+      endNightTime = formatTime(selectedType.value.endNightTime);
+
+      List<String> startParts = startNightTime!.split(':');
+      List<String> endParts = endNightTime!.split(':');
+
+      startNightTimeString = DateTime(currentDate.year, currentDate.month,
+          currentDate.day, int.parse(startParts[0]), int.parse(startParts[1]));
+      endNightTimeString = DateTime(currentDate.year, currentDate.month,
+          currentDate.day, int.parse(endParts[0]), int.parse(endParts[1]));
+
+      nightCharge.value = selectedType.value.nightCharge.toString();
+      if (sourceLocationLAtLng.value.latitude != null &&
+          destinationLocationLAtLng.value.latitude != null) {
+        double durationValueInMinutes = convertToMinutes(duration.toString());
+        double distanceVal = double.tryParse(distance.value) ?? 0.0;
+        double basicFareVal = double.tryParse(basicFare.value) ?? 0.0;
+        if (distanceVal <= basicFareVal) {
+          double basicFareChargeVal =
+              double.tryParse(basicFareCharge.value.toString()) ?? 0.0;
+          double perMinuteChargeVal =
+              double.tryParse(selectedType.value.perMinuteCharge.toString()) ??
+                  0.0;
+          amount.value = (basicFareChargeVal +
+                  (durationValueInMinutes * perMinuteChargeVal))
+              .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
+
+          totalNightFare.value = double.tryParse(amount.value) ?? 0.0;
+          if (currentTime.isAfter(startNightTimeString) &&
+              currentTime.isBefore(endNightTimeString)) {
+            double nightChargeVal =
+                double.tryParse(nightCharge.value.toString()) ?? 1.0;
+            amount.value =
+                (totalNightFare.value * nightChargeVal).toStringAsFixed(2);
+          }
+        } else {
+          double distanceValue = double.tryParse(distance.value) ?? 0.0;
+          double basicFareValue = double.tryParse(basicFare.value) ?? 0.0;
+          double extraDist = distanceValue - basicFareValue;
+          extraDistance.value = extraDist;
+          double nonAcChargeValue =
+              double.tryParse(nonAcCharge.value.toString()) ?? 0.0;
+          double acChargeValue =
+              double.tryParse(acCharge.value.toString()) ?? 0.0;
+          double perKmCharge = isAcNonAc.value == true
+              ? isAcSelected.value == false
+                  ? nonAcChargeValue
+                  : acChargeValue
+              : double.tryParse(selectedType.value.kmCharge.toString()) ?? 0.0;
+          double perMinuteCharge =
+              double.tryParse(selectedType.value.perMinuteCharge.toString()) ??
+                  0.0;
+          double durationInMinutes =
+              double.tryParse(durationValueInMinutes.toString()) ?? 0.0;
+          double basicFareChargeValue =
+              double.tryParse(basicFareCharge.value.toString()) ?? 0.0;
+          totalAmount.value = (perKmCharge * extraDist) +
+              (durationInMinutes * perMinuteCharge) +
+              basicFareChargeValue;
+
+          totalNightFare.value = totalAmount.value;
+          amount.value = totalNightFare.value.toStringAsFixed(2);
+
+          if (currentTime.isAfter(startNightTimeString) &&
+              currentTime.isBefore(endNightTimeString)) {
+            double nightChargeVal =
+                double.tryParse(nightCharge.value.toString()) ?? 1.0;
+            amount.value =
+                (totalNightFare.value * nightChargeVal).toStringAsFixed(2);
+          }
+        }
+        offerYourRateController.value.text = amount.value;
+        log('✅ calculateAmount result: amount=${amount.value}, distanceVal=$distanceVal, duration=${duration.value}');
+      }
     } catch (e) {
       log('❌ calculateAmount error: $e');
       log('   selectedType: id=${selectedType.value.id}, kmCharge=${selectedType.value.kmCharge}, basicFare=${selectedType.value.basicFare}, basicFareCharge=${selectedType.value.basicFareCharge}, perMinuteCharge=${selectedType.value.perMinuteCharge}, isAcNonAc=${selectedType.value.isAcNonAc}');
