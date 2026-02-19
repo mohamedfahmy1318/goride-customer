@@ -319,8 +319,18 @@ class HomeController extends GetxController {
   }
 
   calculateAmount() async {
+    // Guard: don't calculate if distance or service data not ready yet
+    if (distance.value.isEmpty || (double.tryParse(distance.value) ?? 0.0) <= 0.0) {
+      amount.value = "";
+      update();
+      return;
+    }
+    if (selectedType.value.id == null || selectedType.value.kmCharge == null) {
+      amount.value = "";
+      update();
+      return;
+    }
     try {
-    log('🔢 calculateAmount called: serviceList.length=${serviceList.length}, selectedType.id=${selectedType.value.id}, kmCharge=${selectedType.value.kmCharge}, basicFare=${selectedType.value.basicFare}, basicFareCharge=${selectedType.value.basicFareCharge}, perMinuteCharge=${selectedType.value.perMinuteCharge}, isAcNonAc=${selectedType.value.isAcNonAc}, distance=${distance.value}, duration=${duration.value}');
     acCharge.value = selectedType.value.acCharge?.toString() ?? '0.0';
     nonAcCharge.value = selectedType.value.nonAcCharge?.toString() ?? '0.0';
     basicFare.value = selectedType.value.basicFare?.toString() ?? '0.0';
