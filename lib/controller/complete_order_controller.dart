@@ -177,7 +177,8 @@ class CompleteOrderController extends GetxController {
       double offerRateVal =
           double.tryParse(orderModel.value.offerRate.toString()) ?? 0.0;
       // km-charge portion = offerRate - basicFareCharge - perMinuteCharge
-      amount.value = offerRateVal - basicFareCharge.value - totalChargeOfMinute.value;
+      amount.value =
+          offerRateVal - basicFareCharge.value - totalChargeOfMinute.value;
     } else {
       // Fallback: use recalculated km charge (apply night multiplier safely)
       double nightChargeVal =
