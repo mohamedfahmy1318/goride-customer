@@ -36,12 +36,11 @@ void main() async {
     // Already initialized (e.g. on hot restart)
   }
 
-  // Activate Firebase App Check
-  // TODO: Change back to playIntegrity/appAttest before releasing to Play Store
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
-    appleProvider: AppleProvider.debug,
-  );
+  // App Check disabled for testing — re-enable before Play Store release
+  // await FirebaseAppCheck.instance.activate(
+  //   androidProvider: AndroidProvider.playIntegrity,
+  //   appleProvider: AppleProvider.appAttest,
+  // );
 
   // Initialize Firebase Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
