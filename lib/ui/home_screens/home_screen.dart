@@ -1716,7 +1716,7 @@ class HomeScreen extends StatelessWidget {
                   title: 'New Ride Available'.tr,
                   body: 'A customer has placed a ride near your location.'.tr,
                   payload: playLoad,
-                  dataOnly: false);
+                  dataOnly: true); // data-only: prevents Firebase from auto-showing a duplicate system notification
             }
           }
         });
