@@ -36,11 +36,11 @@ void main() async {
     // Already initialized (e.g. on hot restart)
   }
 
-  // Activate Firebase App Check (required for Storage access)
+  // Activate Firebase App Check
+  // TODO: Change back to playIntegrity/appAttest before releasing to Play Store
   await FirebaseAppCheck.instance.activate(
-    androidProvider:
-        kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
-    appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
+    androidProvider: AndroidProvider.debug,
+    appleProvider: AppleProvider.debug,
   );
 
   // Initialize Firebase Crashlytics
