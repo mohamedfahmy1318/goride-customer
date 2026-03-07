@@ -178,8 +178,6 @@ final Map<String, String> arAR = {
   "Wallet Amount Insufficient": "الرصيد في المحفظة غير كافٍ",
   "Ride Details": "تفاصيل الرحلة",
   "Map view": "عرض الخريطة",
-  "No active rides found": "لم يتم العثور على رحلات نشطة",
-  "No completed rides found": "لم يتم العثور على رحلات مكتملة",
   "Update Profile": "تحديث الملف الشخصي",
   "Profile update successfully": "تم تحديث الملف الشخصي بنجاح",
   "Please Select": "يرجى الاختيار",
@@ -211,8 +209,6 @@ final Map<String, String> arAR = {
   "Please contact to administrator": "يرجى الاتصال بالإدارة",
   "Are you sure want to delete Account.":
       "هل أنت متأكد من أنك تريد حذف الحساب.",
-  "Privacy Policy": "سياسة الخصوصية",
-  "Terms and Conditions": "الشروط والأحكام",
   "Total Balance": "الرصيد الإجمالي",
   "Topup Wallet": "شحن المحفظة",
   "No transaction found": "لم يتم العثور على أي معاملة",
@@ -220,7 +216,6 @@ final Map<String, String> arAR = {
   "Enter Amount": "أدخل المبلغ",
   "Select Payment Option": "اختر خيار الدفع",
   "Topup": "شحن",
-  "Please select payment method": "يرجى اختيار طريقة الدفع",
   "Please enter amount": "يرجى إدخال المبلغ",
   "Transaction Details": "تفاصيل المعاملة",
   "Transaction ID": "رقم المعاملة",
@@ -264,6 +259,7 @@ final Map<String, String> arAR = {
   'Ride Hold Accepted': 'تم قبول تعليق الرحلة',
   'Minute charge': 'رسوم الدقيقة',
   'Base Fare': 'التعريفة الأساسية',
+  'Meter Start': 'فتح العداد',
   'You have already submitted your review': 'لقد قمت بإرسال تقييمك بالفعل',
   // الترجمات المفقودة
   'Cancel Payment': 'إلغاء الدفع',
@@ -288,4 +284,13 @@ final Map<String, String> arAR = {
   'hours': 'ساعات',
   'minutes': 'دقائق',
   'Loader needed': 'مطلوب حمّال',
+  'You are not able to book a new ride. Please complete your previous ride payment.':
+      'لا يمكنك حجز رحلة جديدة. يرجى إكمال دفع الرحلة السابقة.',
+  'Cancel Ride': 'إلغاء الرحلة',
+  'Are you sure you want to cancel this ride?':
+      'هل أنت متأكد من إلغاء هذه الرحلة؟',
+  'Yes, Cancel': 'نعم، إلغاء',
+  'Canceling ride...': 'جاري إلغاء الرحلة...',
+  'The customer has canceled the ride.': 'قام العميل بإلغاء الرحلة.',
+  'Ride canceled successfully': 'تم إلغاء الرحلة بنجاح',
 };

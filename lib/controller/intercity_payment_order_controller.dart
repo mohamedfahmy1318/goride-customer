@@ -8,6 +8,7 @@ import 'package:customer/model/intercity_order_model.dart';
 import 'package:customer/model/payment_model.dart';
 import 'package:customer/model/user_model.dart';
 import 'package:customer/model/wallet_transaction_model.dart';
+import 'package:customer/ui/dashboard_screen.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:get/get.dart';
 
@@ -136,6 +137,7 @@ class IntercityPaymentOrderController extends GetxController {
       if (value == true) {
         ShowToastDialog.closeLoader();
         ShowToastDialog.showToast("Ride Complete successfully");
+        Get.offAll(() => const DashBoardScreen());
       }
     });
   }
@@ -157,6 +159,7 @@ class IntercityPaymentOrderController extends GetxController {
       if (value == true) {
         ShowToastDialog.closeLoader();
         ShowToastDialog.showToast("Payment method update successfully");
+        Get.offAll(() => const DashBoardScreen());
       }
     });
   }
@@ -268,6 +271,7 @@ class IntercityPaymentOrderController extends GetxController {
       if (value == true) {
         ShowToastDialog.closeLoader();
         ShowToastDialog.showToast("Ride Complete successfully");
+        Get.offAll(() => const DashBoardScreen());
       }
     });
   }

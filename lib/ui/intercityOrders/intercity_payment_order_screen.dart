@@ -1,11 +1,9 @@
 import 'package:customer/constant/collection_name.dart';
 import 'package:customer/constant/constant.dart';
-import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/controller/intercity_payment_order_controller.dart';
 import 'package:customer/model/driver_user_model.dart';
 import 'package:customer/model/intercity_order_model.dart';
 import 'package:customer/model/tax_model.dart';
-import 'package:customer/payment/bankily/bankily.dart';
 import 'package:customer/themes/app_colors.dart';
 import 'package:customer/themes/responsive.dart';
 import 'package:customer/ui/coupon_screen/coupon_screen.dart';
@@ -701,31 +699,9 @@ class InterCityPaymentOrderScreen extends StatelessWidget {
                                             ),
                                             ButtonThem.buildButton(
                                               context,
-                                              title: "ادفع عبر Bankily".tr,
+                                              title: "تأكيد الدفع نقداً".tr,
                                               onPress: () async {
-                                                final result =
-                                                    await navigateToBankilyPayment(
-                                                  context: context,
-                                                  amount: controller
-                                                      .calculateAmount(),
-                                                  paymentType:
-                                                      BankilyPaymentType
-                                                          .intercityRide,
-                                                  orderId: controller
-                                                      .orderModel.value.id,
-                                                  onSuccess: () {
-                                                    controller
-                                                        .selectedPaymentMethod
-                                                        .value = "Bankily";
-                                                    controller.completeOrder();
-                                                  },
-                                                );
-
-                                                if (result != true) {
-                                                  ShowToastDialog.showToast(
-                                                      'تم إلغاء الدفع أو فشل. حاول مرة أخرى.'
-                                                          .tr);
-                                                }
+                                                controller.completeCashOrder();
                                               },
                                             ),
                                             const SizedBox(height: 10),

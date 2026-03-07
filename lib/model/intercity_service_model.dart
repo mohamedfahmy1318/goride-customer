@@ -1,30 +1,47 @@
-
 import 'package:customer/model/admin_commission.dart';
 import 'package:customer/model/language_name.dart';
 
 class IntercityServiceModel {
   String? image;
   bool? enable;
+  String? meterStart; // فتح العداد
   String? kmCharge;
+  String? perMinuteCharge;
+  bool? enableMinuteCharge;
   List<LanguageName>? name;
   bool? offerRate;
   String? id;
   AdminCommission? adminCommission;
 
-  IntercityServiceModel({this.image, this.enable, this.kmCharge, this.name, this.offerRate, this.id,this.adminCommission});
+  IntercityServiceModel({
+    this.image,
+    this.enable,
+    this.meterStart,
+    this.kmCharge,
+    this.perMinuteCharge,
+    this.enableMinuteCharge,
+    this.name,
+    this.offerRate,
+    this.id,
+    this.adminCommission,
+  });
 
   IntercityServiceModel.fromJson(Map<String, dynamic> json) {
     image = json['image'];
     enable = json['enable'];
+    meterStart = json['meterStart']?.toString() ?? '0.0';
     kmCharge = json['kmCharge'];
+    perMinuteCharge = json['perMinuteCharge']?.toString() ?? '0';
+    enableMinuteCharge = json['enableMinuteCharge'] ?? false;
     if (json['name'] != null) {
       name = <LanguageName>[];
       json['name'].forEach((v) {
         name!.add(LanguageName.fromJson(v));
       });
     }
-    adminCommission =
-    json['adminCommission'] != null ? AdminCommission.fromJson(json['adminCommission']) : AdminCommission(isEnabled: true, amount: "", type: "");
+    adminCommission = json['adminCommission'] != null
+        ? AdminCommission.fromJson(json['adminCommission'])
+        : AdminCommission(isEnabled: true, amount: "", type: "");
 
     offerRate = json['offerRate'];
     id = json['id'];
@@ -34,7 +51,10 @@ class IntercityServiceModel {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['image'] = image;
     data['enable'] = enable;
+    data['meterStart'] = meterStart;
     data['kmCharge'] = kmCharge;
+    data['perMinuteCharge'] = perMinuteCharge;
+    data['enableMinuteCharge'] = enableMinuteCharge;
     if (name != null) {
       data['name'] = name!.map((v) => v.toJson()).toList();
     }

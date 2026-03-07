@@ -23,50 +23,62 @@ class GlobalSettingController extends GetxController {
   }
 
   getCurrentCurrency() async {
-    if (Preferences.getString(Preferences.languageCodeKey)
-        .toString()
-        .isNotEmpty) {
-      LanguageModel languageModel = Constant.getLanguage();
-      LocalizationService().changeLocale(languageModel.code.toString());
-    } else {
-      await FireStoreUtils.getLanguage().then((value) {
-        if (value != null) {
-          List<LanguageModel> languageList = value;
+    try {
+      if (Preferences.getString(Preferences.languageCodeKey)
+          .toString()
+          .isNotEmpty) {
+        LanguageModel languageModel = Constant.getLanguage();
+        LocalizationService().changeLocale(languageModel.code.toString());
+      } else {
+        await FireStoreUtils.getLanguage().then((value) {
+          if (value != null) {
+            List<LanguageModel> languageList = value;
 
-          if (languageList
-              .where((element) => element.isDefault == true)
-              .isNotEmpty) {
-            LanguageModel languageModel =
-                languageList.firstWhere((element) => element.isDefault == true);
-            Preferences.setString(
-                Preferences.languageCodeKey, jsonEncode(languageModel));
-            LocalizationService().changeLocale(languageModel.code.toString());
+            if (languageList
+                .where((element) => element.isDefault == true)
+                .isNotEmpty) {
+              LanguageModel languageModel = languageList
+                  .firstWhere((element) => element.isDefault == true);
+              Preferences.setString(
+                  Preferences.languageCodeKey, jsonEncode(languageModel));
+              LocalizationService().changeLocale(languageModel.code.toString());
+            }
           }
+        });
+      }
+
+      await FireStoreUtils().getCurrency().then((value) {
+        if (value != null) {
+          Constant.currencyModel = value;
+        } else {
+          Constant.currencyModel = CurrencyModel(
+              id: "",
+              code: "USD",
+              decimalDigits: 2,
+              enable: true,
+              name: "US Dollar",
+              symbol: "\$",
+              symbolAtRight: false);
         }
       });
-    }
-
-    await FireStoreUtils().getCurrency().then((value) {
-      if (value != null) {
-        Constant.currencyModel = value;
-      } else {
-        Constant.currencyModel = CurrencyModel(
-            id: "",
-            code: "USD",
-            decimalDigits: 2,
-            enable: true,
-            name: "US Dollar",
-            symbol: "\$",
-            symbolAtRight: false);
+      try {
+        await FireStoreUtils().getSettings();
+      } catch (e) {
+        log('Failed to load settings: $e');
       }
-    });
-    try {
-      await FireStoreUtils().getSettings();
-      log('✅ Settings loaded: mapAPIKey=${Constant.mapAPIKey}, selectedMapType=${Constant.selectedMapType}');
     } catch (e) {
-      log('❌ Failed to load settings: $e');
+      log("❌ Error loading global settings: $e");
+      Constant.currencyModel = CurrencyModel(
+          id: "",
+          code: "USD",
+          decimalDigits: 2,
+          enable: true,
+          name: "US Dollar",
+          symbol: "\$",
+          symbolAtRight: false);
+    } finally {
+      settingsLoaded.value = true;
     }
-    settingsLoaded.value = true;
   }
 
   NotificationService notificationService = NotificationService();
@@ -74,7 +86,6 @@ class GlobalSettingController extends GetxController {
   notificationInit() {
     notificationService.initInfo().then((value) async {
       String token = await NotificationService.getToken();
-      log(":::::::TOKEN:::::: $token");
       if (FirebaseAuth.instance.currentUser != null) {
         await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid())
             .then((value) {

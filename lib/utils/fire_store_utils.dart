@@ -650,6 +650,28 @@ class FireStoreUtils {
     return isAdded;
   }
 
+  /// Get online drivers whose zoneIds contain [zoneId].
+  /// Used for intercity / freight order notifications (no geo-radius needed).
+  static Future<List<DriverUserModel>> getDriversInZoneForIntercity(
+      String zoneId) async {
+    List<DriverUserModel> drivers = [];
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot = await fireStore
+          .collection(CollectionName.driverUsers)
+          .where('zoneIds', arrayContains: zoneId)
+          .where('isOnline', isEqualTo: true)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        DriverUserModel driver = DriverUserModel.fromJson(doc.data());
+        drivers.add(driver);
+      }
+    } catch (e) {
+      log("getDriversInZoneForIntercity error: $e");
+    }
+    return drivers;
+  }
+
   static Future<DriverIdAcceptReject?> getAcceptedOrders(
       String orderId, String driverId) async {
     DriverIdAcceptReject? driverIdAcceptReject;
@@ -1046,20 +1068,30 @@ class FireStoreUtils {
   static Future<bool?> deleteUser() async {
     bool? isDelete;
     try {
-      await fireStore
-          .collection(CollectionName.users)
-          .doc(FireStoreUtils.getCurrentUid())
-          .delete();
-
-      // delete user  from firebase auth
+      // IMPORTANT: Delete Firebase Auth user FIRST, then Firestore data.
+      // If Auth deletion fails (e.g. requires-recent-login), we don't lose user data.
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        await currentUser.delete().then((value) {
-          isDelete = true;
-        });
+        final uid = currentUser.uid;
+        await currentUser.delete();
+
+        // Auth deletion succeeded — now safe to delete Firestore data
+        await fireStore
+            .collection(CollectionName.users)
+            .doc(uid)
+            .delete();
+
+        isDelete = true;
       }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        log('FireStoreUtils.deleteUser requires recent login - user needs to re-authenticate');
+        return false;
+      }
+      log('FireStoreUtils.deleteUser FirebaseAuthException: $e');
+      return false;
     } catch (e, s) {
-      log('FireStoreUtils.firebaseCreateNewUser $e $s');
+      log('FireStoreUtils.deleteUser $e $s');
       return false;
     }
     return isDelete;

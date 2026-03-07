@@ -174,17 +174,17 @@ exports.bankilyPayment = onCall(async (request) => {
             errorCode: result.errorCode || '',
             errorMessage: result.errorMessage || '',
             transactionId: result.transactionId || '',
-            status: result.errorCode === '0' ? 'success' : 'failed',
+            status: String(result.errorCode) === '0' ? 'success' : 'failed',
             userId: request.auth.uid,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             environment: BANKILY_ENV,
         }, { merge: true });
 
         return {
-            success: result.errorCode === '0',
-            errorCode: result.errorCode,
-            errorMessage: result.errorMessage,
-            transactionId: result.transactionId,
+            success: String(result.errorCode) === '0',
+            errorCode: String(result.errorCode),
+            errorMessage: result.errorMessage || '',
+            transactionId: result.transactionId || '',
         };
     } catch (error) {
         console.error('Bankily Payment Error:', error.response?.data || error.message);

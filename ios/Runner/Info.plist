@@ -14,7 +14,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Customer</string>
+	<string>GoRide</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,7 +22,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>customer</string>
+	<string>GoRide</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -44,26 +44,30 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to camera permission</string>
+	<string>GoRide needs camera access to take a profile photo for your account.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>GoRide needs your location to find nearby drivers, track your ride in real-time, and calculate accurate trip distances.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to location when in the background.</string>
+	<string>GoRide needs your location to find nearby drivers, track your ride in real-time, and calculate accurate trip distances.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
-		<key>YourPurposeKey</key>
-		<string>The example App requires temporary access to the device&apos;s precise location.</string>
+		<key>RiderLocationAccess</key>
+		<string>GoRide needs your precise location to show your position on the map and find the closest drivers near you.</string>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open.</string>
+	<string>GoRide needs your location to show you on the map, find nearby drivers, and track your ongoing ride.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>This app needs access to audio permission.</string>
+	<string>GoRide needs microphone access to make voice calls with your driver during active rides.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to your gallery photo.</string>
+	<string>GoRide needs photo library access to upload your profile photo.</string>
 	<key>SERVER_CLIENT_ID</key>
 	<string>703618062340-ghqeo2t2cv66e16jth0l72f8kki0aj6d.apps.googleusercontent.com</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

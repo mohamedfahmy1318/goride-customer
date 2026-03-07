@@ -149,7 +149,7 @@ class DashBoardScreen extends StatelessWidget {
       DrawerItem('OutStation'.tr, "assets/icons/ic_intercity.svg"),
       DrawerItem('Rides'.tr, "assets/icons/ic_order.svg"),
       DrawerItem('OutStation Rides'.tr, "assets/icons/ic_order.svg"),
-      DrawerItem('My Wallet'.tr, "assets/icons/ic_wallet.svg"),
+      DrawerItem('My Wallet'.tr, "assets/images/logo_bankily.png"),
       DrawerItem('Settings'.tr, "assets/icons/ic_settings.svg"),
       DrawerItem('Referral a friends'.tr, "assets/icons/ic_referral.svg"),
       DrawerItem('Inbox'.tr, "assets/icons/ic_inbox.svg"),
@@ -176,13 +176,19 @@ class DashBoardScreen extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                SvgPicture.asset(
-                  d.icon,
-                  width: 20,
-                  color: i == controller.selectedDrawerIndex.value
-                      ? Colors.white
-                      : AppColors.drawerIcon,
-                ),
+                d.icon.endsWith('.svg')
+                    ? SvgPicture.asset(
+                        d.icon,
+                        width: 20,
+                        color: i == controller.selectedDrawerIndex.value
+                            ? Colors.white
+                            : AppColors.drawerIcon,
+                      )
+                    : Image.asset(
+                        d.icon,
+                        width: 20,
+                        height: 20,
+                      ),
                 const SizedBox(
                   width: 20,
                 ),

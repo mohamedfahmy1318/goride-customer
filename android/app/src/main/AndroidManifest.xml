@@ -1,9 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <queries>
@@ -29,8 +29,8 @@
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:label="customer"
-        android:usesCleartextTraffic="true"
+        android:label="GoRide"
+        android:usesCleartextTraffic="false"
         android:enableOnBackInvokedCallback="true"
         tools:replace="android:label">
 
@@ -107,10 +107,10 @@
             android:resource="@mipmap/ic_launcher" />
 
         <service
-            android:name="com.example.app.backgroundService"
+            android:name="com.goride.customer.backgroundService"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.example.app.START_BACKGROUND" />
+                <action android:name="com.goride.customer.START_BACKGROUND" />
             </intent-filter>
         </service>
         <receiver

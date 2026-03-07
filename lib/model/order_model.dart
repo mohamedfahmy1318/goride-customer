@@ -45,6 +45,10 @@ class OrderModel {
   ZoneModel? zone;
   String? zoneId;
   VehicleInformation? vehicleInformation;
+  bool? destinationless;
+  String? actualDistance;
+  String? actualDuration;
+  Timestamp? rideStartTime;
 
   OrderModel(
       {this.position,
@@ -78,8 +82,12 @@ class OrderModel {
       this.service,
       this.adminCommission,
       this.zone,
-        this.vehicleInformation,
-      this.zoneId});
+      this.vehicleInformation,
+      this.zoneId,
+      this.destinationless,
+      this.actualDistance,
+      this.actualDuration,
+      this.rideStartTime});
 
   OrderModel.fromJson(Map<String, dynamic> json) {
     serviceId = json['serviceId'];
@@ -120,6 +128,10 @@ class OrderModel {
     rejectedDriverId = json['rejectedDriverId'];
     paymentStatus = json['paymentStatus'];
     isAcSelected = json['isAcSelected'];
+    destinationless = json['destinationless'] ?? false;
+    actualDistance = json['actualDistance'];
+    actualDuration = json['actualDuration'];
+    rideStartTime = json['rideStartTime'];
     position =
         json['position'] != null ? Positions.fromJson(json['position']) : null;
     service =
@@ -188,6 +200,10 @@ class OrderModel {
     data['rejectedDriverId'] = rejectedDriverId;
     data['paymentStatus'] = paymentStatus;
     data['isAcSelected'] = isAcSelected;
+    data['destinationless'] = destinationless ?? false;
+    if (actualDistance != null) data['actualDistance'] = actualDistance;
+    if (actualDuration != null) data['actualDuration'] = actualDuration;
+    if (rideStartTime != null) data['rideStartTime'] = rideStartTime;
     if (taxList != null) {
       data['taxList'] = taxList!.map((v) => v.toJson()).toList();
     }

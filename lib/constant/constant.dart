@@ -275,15 +275,13 @@ class Constant {
     LatLng departureLatLong,
     LatLng destinationLatLong,
   ) async {
-    String url = 'http://router.project-osrm.org/route/v1/driving';
+    String url = 'https://router.project-osrm.org/route/v1/driving';
     String coordinates =
         '${departureLatLong.longitude},${departureLatLong.latitude};${destinationLatLong.longitude},${destinationLatLong.latitude}';
 
     http.Response response = await http.get(
       Uri.parse('$url/$coordinates?overview=false&steps=false'),
     );
-
-    log(response.body.toString());
 
     return jsonDecode(response.body);
   }

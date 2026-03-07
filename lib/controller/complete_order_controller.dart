@@ -58,140 +58,64 @@ class CompleteOrderController extends GetxController {
   RxDouble subTotal = 0.0.obs;
   RxDouble total = 0.0.obs;
   RxDouble taxAmount = 0.0.obs;
-  RxString startNightTime = "".obs;
-  RxString endNightTime = "".obs;
-  RxDouble totalNightFare = 0.0.obs;
   RxDouble totalChargeOfMinute = 0.0.obs;
-  RxDouble basicFareCharge = 0.0.obs;
+  RxDouble meterStartCharge = 0.0.obs;
   RxDouble holdingCharge = 0.0.obs;
-  DateTime currentTime = DateTime.now();
-  DateTime currentDate = DateTime.now();
-  DateTime startNightTimeString = DateTime.now();
-  DateTime endNightTimeString = DateTime.now();
 
   calculateAmount() async {
-    String formatTime(String? time) {
-      if (time == null || !time.contains(":")) {
-        return "00:00";
-      }
-      List<String> parts = time.split(':');
-      if (parts.length != 2) return "00:00";
-      return "${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
-    }
-
-    startNightTime.value = formatTime(orderModel.value.service!.startNightTime);
-    endNightTime.value = formatTime(orderModel.value.service!.endNightTime);
-
-    List<String> startParts = startNightTime.split(':');
-    List<String> endParts = endNightTime.split(':');
-
-    startNightTimeString = DateTime(currentDate.year, currentDate.month,
-        currentDate.day, int.parse(startParts[0]), int.parse(startParts[1]));
-    endNightTimeString = DateTime(currentDate.year, currentDate.month,
-        currentDate.day, int.parse(endParts[0]), int.parse(endParts[1]));
-
+    // New formula: meterStart + (distance × kmCharge) + (optional: minutes × perMinuteCharge) + holdingCharge
     double durationValueInMinutes =
         convertToMinutes(orderModel.value.duration.toString());
-    double distance =
-        double.tryParse(orderModel.value.distance.toString()) ?? 0.0;
-    double nonAcChargeValue = 0.0;
-    double acChargeValue = 0.0;
-    double kmCharge = 0.0;
-
-    if (orderModel.value.driverId != null &&
-        orderModel.value.driverId!.isNotEmpty) {
-      nonAcChargeValue = double.tryParse(driverModel
-              .value.vehicleInformation!.nonAcPerKmRate
-              .toString()) ??
-          0.0;
-      acChargeValue = double.tryParse(driverModel
-              .value.vehicleInformation!.nonAcPerKmRate
-              .toString()) ??
-          0.0;
-      kmCharge = double.tryParse(
-              driverModel.value.vehicleInformation!.perKmRate ?? '0.0') ??
-          0.0;
-    } else {
-      nonAcChargeValue =
-          double.tryParse(orderModel.value.service!.nonAcCharge.toString()) ??
-              0.0;
-      acChargeValue =
-          double.tryParse(orderModel.value.service!.acCharge.toString()) ?? 0.0;
-      kmCharge =
-          double.tryParse(orderModel.value.service!.kmCharge ?? '0.0') ?? 0.0;
+    // Use actual distance/duration if available (from GPS tracking during ride)
+    double distance = double.tryParse(orderModel.value.actualDistance ??
+            orderModel.value.distance.toString()) ??
+        0.0;
+    if (orderModel.value.actualDuration != null) {
+      durationValueInMinutes =
+          double.tryParse(orderModel.value.actualDuration!) ??
+              durationValueInMinutes;
     }
 
-    totalChargeOfMinute.value =
-        double.parse(durationValueInMinutes.toString()) *
-            double.parse(orderModel.value.service!.perMinuteCharge.toString());
-    basicFareCharge.value =
-        double.parse(orderModel.value.service!.basicFareCharge.toString());
-    holdingCharge.value =
-        double.parse(orderModel.value.totalHoldingCharges.toString());
-    if (distance <=
-        double.parse(orderModel.value.service!.basicFare.toString())) {
-      if (currentTime.isAfter(startNightTimeString) &&
-          currentTime.isBefore(endNightTimeString)) {
-        amount.value = amount.value *
-            double.parse(orderModel.value.service!.nightCharge.toString());
-      } else {
-        amount.value =
-            double.parse(orderModel.value.service!.basicFareCharge.toString());
-      }
-    } else {
-      double distanceValue =
-          double.tryParse(orderModel.value.distance.toString()) ?? 0.0;
-      double basicFareValue =
-          double.tryParse(orderModel.value.service!.basicFare.toString()) ??
-              0.0;
-      double extraDist = distanceValue - basicFareValue;
+    double kmCharge =
+        double.tryParse(orderModel.value.service!.kmCharge ?? '0.0') ?? 0.0;
+    double meterStartVal =
+        double.tryParse(orderModel.value.service!.meterStart ?? '0.0') ?? 0.0;
+    double perMinuteChargeVal =
+        double.tryParse(orderModel.value.service!.perMinuteCharge ?? '0') ??
+            0.0;
+    bool enableMinuteCharge =
+        orderModel.value.service!.enableMinuteCharge ?? true;
+    bool enableHoldingCharge =
+        orderModel.value.service!.enableHoldingCharge ?? true;
 
-      double perKmCharge = orderModel.value.service!.isAcNonAc == true
-          ? orderModel.value.isAcSelected == false
-              ? nonAcChargeValue
-              : acChargeValue
-          : kmCharge;
-      amount.value = (perKmCharge * extraDist);
+    meterStartCharge.value = meterStartVal;
+    amount.value = distance * kmCharge;
+    totalChargeOfMinute.value = enableMinuteCharge
+        ? (durationValueInMinutes * perMinuteChargeVal)
+        : 0.0;
+    holdingCharge.value = enableHoldingCharge
+        ? (double.tryParse(orderModel.value.totalHoldingCharges.toString()) ??
+            0.0)
+        : 0.0;
 
-      if (currentTime.isAfter(startNightTimeString) &&
-          currentTime.isBefore(endNightTimeString)) {
-        totalChargeOfMinute.value = totalChargeOfMinute.value *
-            double.parse(orderModel.value.service!.nightCharge.toString());
-        basicFareCharge.value = basicFareCharge.value *
-            double.parse(orderModel.value.service!.nightCharge.toString());
-        holdingCharge.value = holdingCharge.value *
-            double.parse(orderModel.value.service!.nightCharge.toString());
-      }
-    }
-
+    // If finalRate is set by driver, use it and derive km-charge portion for display
     if (orderModel.value.finalRate != null &&
         orderModel.value.finalRate != '0.0') {
-      // Driver has finalized the rate — derive km-charge portion for display
-      amount.value = double.parse(orderModel.value.finalRate.toString()) -
-          basicFareCharge.value -
-          totalChargeOfMinute.value;
+      double finalRateVal = double.parse(orderModel.value.finalRate.toString());
+      amount.value =
+          finalRateVal - meterStartCharge.value - totalChargeOfMinute.value;
     } else if (orderModel.value.offerRate != null &&
         orderModel.value.offerRate != '0.0' &&
         orderModel.value.offerRate != '') {
-      // Use the pre-calculated price from booking (calculated by home_controller)
+      // Use the pre-calculated price from booking
       double offerRateVal =
           double.tryParse(orderModel.value.offerRate.toString()) ?? 0.0;
-      // km-charge portion = offerRate - basicFareCharge - perMinuteCharge
       amount.value =
-          offerRateVal - basicFareCharge.value - totalChargeOfMinute.value;
-    } else {
-      // Fallback: use recalculated km charge (apply night multiplier safely)
-      double nightChargeVal =
-          double.tryParse(orderModel.value.service!.nightCharge.toString()) ??
-              1.0;
-      if (currentTime.isAfter(startNightTimeString) &&
-          currentTime.isBefore(endNightTimeString)) {
-        amount.value = amount.value * nightChargeVal;
-      }
+          offerRateVal - meterStartCharge.value - totalChargeOfMinute.value;
     }
 
     subTotal.value = amount.value +
-        basicFareCharge.value +
+        meterStartCharge.value +
         totalChargeOfMinute.value +
         holdingCharge.value;
 

@@ -154,35 +154,11 @@ class HomeController extends GetxController {
     }
   }
 
-  // دالة مساعدة لترتيب المركبات حسب الأولوية
-  // الترتيب: سيارة (Car) أولاً، ثم تكتوك (TukTuk/Rickshaw)، ثم دباب (Bike/Motorcycle)
-  int _getVehiclePriority(ServiceModel service) {
-    String title = service.title?.first.title?.toLowerCase() ?? '';
-    if (title.contains('car') ||
-        title.contains('سيارة') ||
-        title.contains('sedan')) {
-      return 1; // السيارة أولاً
-    } else if (title.contains('tuktuk') ||
-        title.contains('tuk tuk') ||
-        title.contains('تكتوك') ||
-        title.contains('rickshaw') ||
-        title.contains('auto')) {
-      return 2; // تكتوك ثانياً
-    } else if (title.contains('bike') ||
-        title.contains('دباب') ||
-        title.contains('motor') ||
-        title.contains('scooter')) {
-      return 3; // دباب ثالثاً
-    }
-    return 4; // أي نوع آخر في النهاية
-  }
-
   getServiceType() async {
     await FireStoreUtils.getService().then((value) {
-      // ترتيب المركبات: سيارة أولاً، ثم تكتوك، ثم دباب
+      // ترتيب المركبات حسب حقل position اللي بيتحدد من لوحة التحكم
       List<ServiceModel> sortedList = List.from(value);
-      sortedList.sort(
-          (a, b) => _getVehiclePriority(a).compareTo(_getVehiclePriority(b)));
+      sortedList.sort((a, b) => a.position.compareTo(b.position));
       serviceList.value = sortedList;
       if (serviceList.isNotEmpty) {
         selectedType.value = serviceList.first;
@@ -219,14 +195,7 @@ class HomeController extends GetxController {
   RxString duration = "".obs;
   RxString distance = "".obs;
   RxString amount = "".obs;
-  RxString acCharge = "".obs;
-  RxString nonAcCharge = "".obs;
-  RxString basicFare = "".obs;
-  RxString basicFareCharge = "".obs;
-  RxString nightCharge = "".obs;
   RxDouble totalAmount = 0.0.obs;
-  RxDouble totalNightFare = 0.0.obs;
-  RxBool isAcNonAc = false.obs;
   DateTime currentTime = DateTime.now();
   DateTime currentDate = DateTime.now();
 
@@ -319,7 +288,7 @@ class HomeController extends GetxController {
   }
 
   calculateAmount() async {
-    log('🔢 calculateAmount called: serviceList.length=${serviceList.length}, distance="${distance.value}", selectedType.id=${selectedType.value.id}, kmCharge=${selectedType.value.kmCharge}, offerRate=${selectedType.value.offerRate}');
+    log('🔢 calculateAmount called: distance="${distance.value}", selectedType.id=${selectedType.value.id}, kmCharge=${selectedType.value.kmCharge}, meterStart=${selectedType.value.meterStart}');
     // Guard: don't calculate if distance or service data not ready yet
     if (distance.value.isEmpty ||
         (double.tryParse(distance.value) ?? 0.0) <= 0.0) {
@@ -335,99 +304,31 @@ class HomeController extends GetxController {
       return;
     }
     try {
-      acCharge.value = selectedType.value.acCharge?.toString() ?? '0.0';
-      nonAcCharge.value = selectedType.value.nonAcCharge?.toString() ?? '0.0';
-      basicFare.value = selectedType.value.basicFare?.toString() ?? '0.0';
-      basicFareCharge.value =
-          selectedType.value.basicFareCharge?.toString() ?? '0.0';
-      isAcNonAc.value = selectedType.value.isAcNonAc ?? false;
-      String formatTime(String? time) {
-        if (time == null || !time.contains(":")) {
-          return "00:00";
-        }
-        List<String> parts = time.split(':');
-        if (parts.length != 2) return "00:00";
-        return "${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}";
-      }
+      // New formula: meterStart + (distance × kmCharge) + (optional: minutes × perMinuteCharge)
+      double distanceVal = double.tryParse(distance.value) ?? 0.0;
+      double meterStartVal =
+          double.tryParse(selectedType.value.meterStart ?? '0') ?? 0.0;
+      double kmChargeVal =
+          double.tryParse(selectedType.value.kmCharge ?? '0') ?? 0.0;
+      double perMinuteChargeVal =
+          double.tryParse(selectedType.value.perMinuteCharge ?? '0') ?? 0.0;
+      bool enableMinuteCharge = selectedType.value.enableMinuteCharge ?? true;
 
-      startNightTime = formatTime(selectedType.value.startNightTime);
-      endNightTime = formatTime(selectedType.value.endNightTime);
+      double durationValueInMinutes = convertToMinutes(duration.value);
 
-      List<String> startParts = startNightTime!.split(':');
-      List<String> endParts = endNightTime!.split(':');
+      double kmAmount = distanceVal * kmChargeVal;
+      double minuteAmount = enableMinuteCharge
+          ? (durationValueInMinutes * perMinuteChargeVal)
+          : 0.0;
 
-      startNightTimeString = DateTime(currentDate.year, currentDate.month,
-          currentDate.day, int.parse(startParts[0]), int.parse(startParts[1]));
-      endNightTimeString = DateTime(currentDate.year, currentDate.month,
-          currentDate.day, int.parse(endParts[0]), int.parse(endParts[1]));
+      totalAmount.value = meterStartVal + kmAmount + minuteAmount;
+      amount.value = totalAmount.value
+          .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
 
-      nightCharge.value = selectedType.value.nightCharge.toString();
-      log('📍 coords check: sourceLat=${sourceLocationLAtLng.value.latitude}, destLat=${destinationLocationLAtLng.value.latitude}');
-      if (sourceLocationLAtLng.value.latitude != null &&
-          destinationLocationLAtLng.value.latitude != null) {
-        double durationValueInMinutes = convertToMinutes(duration.value);
-        double distanceVal = double.tryParse(distance.value) ?? 0.0;
-        double basicFareVal = double.tryParse(basicFare.value) ?? 0.0;
-        if (distanceVal <= basicFareVal) {
-          double basicFareChargeVal =
-              double.tryParse(basicFareCharge.value.toString()) ?? 0.0;
-          double perMinuteChargeVal =
-              double.tryParse(selectedType.value.perMinuteCharge.toString()) ??
-                  0.0;
-          amount.value = (basicFareChargeVal +
-                  (durationValueInMinutes * perMinuteChargeVal))
-              .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-
-          totalNightFare.value = double.tryParse(amount.value) ?? 0.0;
-          if (currentTime.isAfter(startNightTimeString) &&
-              currentTime.isBefore(endNightTimeString)) {
-            double nightChargeVal =
-                double.tryParse(nightCharge.value.toString()) ?? 1.0;
-            amount.value =
-                (totalNightFare.value * nightChargeVal).toStringAsFixed(2);
-          }
-        } else {
-          double distanceValue = double.tryParse(distance.value) ?? 0.0;
-          double basicFareValue = double.tryParse(basicFare.value) ?? 0.0;
-          double extraDist = distanceValue - basicFareValue;
-          extraDistance.value = extraDist;
-          double nonAcChargeValue =
-              double.tryParse(nonAcCharge.value.toString()) ?? 0.0;
-          double acChargeValue =
-              double.tryParse(acCharge.value.toString()) ?? 0.0;
-          double perKmCharge = isAcNonAc.value == true
-              ? isAcSelected.value == false
-                  ? nonAcChargeValue
-                  : acChargeValue
-              : double.tryParse(selectedType.value.kmCharge.toString()) ?? 0.0;
-          double perMinuteCharge =
-              double.tryParse(selectedType.value.perMinuteCharge.toString()) ??
-                  0.0;
-          double durationInMinutes =
-              double.tryParse(durationValueInMinutes.toString()) ?? 0.0;
-          double basicFareChargeValue =
-              double.tryParse(basicFareCharge.value.toString()) ?? 0.0;
-          totalAmount.value = (perKmCharge * extraDist) +
-              (durationInMinutes * perMinuteCharge) +
-              basicFareChargeValue;
-
-          totalNightFare.value = totalAmount.value;
-          amount.value = totalNightFare.value.toStringAsFixed(2);
-
-          if (currentTime.isAfter(startNightTimeString) &&
-              currentTime.isBefore(endNightTimeString)) {
-            double nightChargeVal =
-                double.tryParse(nightCharge.value.toString()) ?? 1.0;
-            amount.value =
-                (totalNightFare.value * nightChargeVal).toStringAsFixed(2);
-          }
-        }
-        offerYourRateController.value.text = amount.value;
-        log('✅ calculateAmount result: amount=${amount.value}, distanceVal=$distanceVal, duration=${duration.value}');
-      }
+      offerYourRateController.value.text = amount.value;
+      log('✅ calculateAmount result: amount=${amount.value}, meterStart=$meterStartVal, kmAmount=$kmAmount, minuteAmount=$minuteAmount');
     } catch (e) {
       log('❌ calculateAmount error: $e');
-      log('   selectedType: id=${selectedType.value.id}, kmCharge=${selectedType.value.kmCharge}, basicFare=${selectedType.value.basicFare}, basicFareCharge=${selectedType.value.basicFareCharge}, perMinuteCharge=${selectedType.value.perMinuteCharge}, isAcNonAc=${selectedType.value.isAcNonAc}');
     }
     update();
   }

@@ -22,7 +22,7 @@ class DashBoardController extends GetxController {
     DrawerItem('OutStation'.tr, "assets/icons/ic_intercity.svg"),
     DrawerItem('Rides'.tr, "assets/icons/ic_order.svg"),
     DrawerItem('OutStation Rides'.tr, "assets/icons/ic_order.svg"),
-    DrawerItem('My Wallet'.tr, "assets/icons/ic_wallet.svg"),
+    DrawerItem('My Wallet'.tr, "assets/images/logo_bankily.png"),
     DrawerItem('Settings'.tr, "assets/icons/ic_settings.svg"),
     DrawerItem('Referral a friends'.tr, "assets/icons/ic_referral.svg"),
     DrawerItem('Inbox'.tr, "assets/icons/ic_inbox.svg"),

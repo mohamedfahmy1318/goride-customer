@@ -4,7 +4,6 @@ import 'package:customer/controller/wallet_controller.dart';
 import 'package:customer/model/intercity_order_model.dart';
 import 'package:customer/model/order_model.dart';
 import 'package:customer/model/wallet_transaction_model.dart';
-import 'package:customer/payment/bankily/bankily.dart';
 import 'package:customer/themes/app_colors.dart';
 import 'package:customer/themes/button_them.dart';
 import 'package:customer/themes/responsive.dart';
@@ -15,7 +14,6 @@ import 'package:customer/utils/DarkThemeProvider.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -231,15 +229,10 @@ class WalletScreen extends StatelessWidget {
                                                             padding:
                                                                 const EdgeInsets
                                                                     .all(12.0),
-                                                            child: SvgPicture
-                                                                .asset(
-                                                              'assets/icons/ic_wallet.svg',
+                                                            child: Image.asset(
+                                                              'assets/images/logo_bankily.png',
                                                               width: 24,
-                                                              color: themeChange
-                                                                      .getThem()
-                                                                  ? Colors.white
-                                                                  : Colors
-                                                                      .black,
+                                                              height: 24,
                                                             ),
                                                           )),
                                                       const SizedBox(
@@ -361,6 +354,60 @@ class WalletScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                const SizedBox(height: 10),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: Colors.green.shade200),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      const Icon(Icons.account_balance_wallet,
+                                          size: 40, color: Colors.green),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        "لشحن المحفظة، حوّل المبلغ على الرقم التالي:",
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border:
+                                              Border.all(color: Colors.green),
+                                        ),
+                                        child: SelectableText(
+                                          "01091626965",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green.shade800,
+                                            letterSpacing: 2,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        "بعد التحويل تواصل مع الدعم لتأكيد الشحن",
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 12, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 15),
                                 Text(
                                   "Add Topup Amount".tr,
                                   style: GoogleFonts.poppins(
@@ -387,27 +434,12 @@ class WalletScreen extends StatelessWidget {
                         height: 10,
                       ),
                       ButtonThem.buildButton(context,
-                          title: "شحن عبر Bankily".tr, onPress: () async {
+                          title: "تواصل مع الدعم لتأكيد الشحن".tr,
+                          onPress: () async {
                         if (controller.amountController.value.text.isNotEmpty) {
-                          final amount = double.tryParse(
-                                  controller.amountController.value.text) ??
-                              0;
                           Get.back();
-                          final result = await navigateToBankilyPayment(
-                            context: context,
-                            amount: amount,
-                            paymentType: BankilyPaymentType.walletTopUp,
-                            onSuccess: () {
-                              controller.getUser();
-                            },
-                          );
-
-                          if (result == true) {
-                            ShowToastDialog.showToast('تم شحن المحفظة بنجاح!');
-                          } else {
-                            ShowToastDialog.showToast(
-                                'تم إلغاء الدفع أو فشل. حاول مرة أخرى.');
-                          }
+                          ShowToastDialog.showToast(
+                              'حوّل المبلغ على الرقم 01091626965 ثم تواصل مع الدعم لتأكيد الشحن');
                         } else {
                           ShowToastDialog.showToast("Please enter amount".tr);
                         }

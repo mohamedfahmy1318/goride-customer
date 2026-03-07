@@ -69,7 +69,7 @@ class _BankilyPaymentScreenState extends State<BankilyPaymentScreen> {
           onPressed: _isProcessing ? null : () => Get.back(result: false),
         ),
         title: Text(
-          'الدفع عبر Bankily',
+          'الدفع عبر بنكيلي',
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -244,8 +244,7 @@ class _BankilyPaymentScreenState extends State<BankilyPaymentScreen> {
                         LengthLimitingTextInputFormatter(8),
                       ],
                       decoration: InputDecoration(
-                        labelText: 'رقم هاتف Bankily',
-                        hintText: '48XXXXXX',
+                        labelText: 'رقم هاتف',
                         prefixIcon: const Icon(Icons.phone,
                             color: Color(BankilyConfig.brandColor)),
                         border: OutlineInputBorder(

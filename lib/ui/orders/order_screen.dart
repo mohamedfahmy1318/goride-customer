@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:customer/constant/collection_name.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
-import 'package:customer/controller/timer_controller.dart';
+import 'package:customer/constant/send_notification.dart';
 import 'package:customer/model/driver_user_model.dart';
 import 'package:customer/model/order_model.dart';
 import 'package:customer/model/sos_model.dart';
@@ -20,7 +20,6 @@ import 'package:customer/ui/orders/payment_order_screen.dart';
 import 'package:customer/ui/review/review_screen.dart';
 import 'package:customer/utils/DarkThemeProvider.dart';
 import 'package:customer/utils/fire_store_utils.dart';
-import 'package:customer/utils/utils.dart';
 import 'package:customer/widget/driver_view.dart';
 import 'package:customer/widget/location_view.dart';
 import 'package:flutter/material.dart';
@@ -635,6 +634,40 @@ class OrderScreen extends StatelessWidget {
                                                                 },
                                                               ),
                                                             )),
+                                                        // Cancel Ride button for rideActive / rideDriverArrived
+                                                        Visibility(
+                                                            visible: orderModel
+                                                                        .status ==
+                                                                    Constant
+                                                                        .rideActive ||
+                                                                orderModel
+                                                                        .status ==
+                                                                    Constant
+                                                                        .rideDriverArrived,
+                                                            child: Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                      top: 10),
+                                                              child: ButtonThem
+                                                                  .roundButton(
+                                                                context,
+                                                                title:
+                                                                    "إلغاء الرحلة"
+                                                                        .tr,
+                                                                btnHeight: 44,
+                                                                btnColor:
+                                                                    Colors.red,
+                                                                txtColor: Colors
+                                                                    .white,
+                                                                onPress:
+                                                                    () async {
+                                                                  _showCancelRideDialog(
+                                                                      context,
+                                                                      orderModel);
+                                                                },
+                                                              ),
+                                                            )),
                                                         const SizedBox(
                                                           height: 10,
                                                         ),
@@ -702,6 +735,10 @@ class OrderScreen extends StatelessWidget {
                                                                         .status ==
                                                                     Constant
                                                                         .rideInProgress &&
+                                                                (orderModel
+                                                                        .service
+                                                                        ?.enableHoldingCharge ??
+                                                                    true) &&
                                                                 (orderModel.totalHoldingCharges ==
                                                                         null ||
                                                                     orderModel
@@ -1201,4 +1238,94 @@ class OrderScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showCancelRideDialog(BuildContext context, OrderModel orderModel) {
+  showDialog(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded,
+                color: Colors.red, size: 28),
+            const SizedBox(width: 8),
+            Text(
+              'Cancel Ride'.tr,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to cancel this ride?'.tr,
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              'No'.tr,
+              style: GoogleFonts.poppins(
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              ShowToastDialog.showLoader('Canceling ride...'.tr);
+
+              orderModel.status = Constant.rideCanceled;
+
+              // Notify driver about cancellation
+              if (orderModel.driverId != null &&
+                  orderModel.driverId!.isNotEmpty) {
+                DriverUserModel? driver = await FireStoreUtils.getDriver(
+                    orderModel.driverId.toString());
+                if (driver != null && driver.fcmToken != null) {
+                  Map<String, dynamic> playLoad = <String, dynamic>{
+                    "type": "city_order_canceled",
+                    "orderId": orderModel.id,
+                  };
+                  await SendNotification.sendOneNotification(
+                    token: driver.fcmToken.toString(),
+                    title: 'Ride Canceled'.tr,
+                    body: 'The customer has canceled the ride.'.tr,
+                    payload: playLoad,
+                  );
+                }
+              }
+
+              await FireStoreUtils.setOrder(orderModel).then((value) {
+                ShowToastDialog.closeLoader();
+                if (value == true) {
+                  ShowToastDialog.showToast('Ride canceled successfully'.tr);
+                }
+              });
+            },
+            child: Text(
+              'Yes, Cancel'.tr,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
 }

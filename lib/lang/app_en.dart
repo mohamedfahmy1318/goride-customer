@@ -5,8 +5,8 @@ final Map<String, String> enUS = {
   "The destination must be at least 1 km away":
       "The destination must be at least 1 km away",
   "English": "English",
-  "Arabic": "العربية",
-  "French": "Français",
+  "Arabic": "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©",
+  "French": "FranÃ§ais",
   "Sign up": "Sign up",
   "Create your account to start using GoRide":
       "Create your account to start using GoRide",
@@ -142,7 +142,7 @@ final Map<String, String> enUS = {
   'Add your parcel image.': 'Add your parcel image.',
   "Which vehicle is suitable for your cargo?":
       "Which vehicle is suitable for your cargo?",
-  "📦 len/wid/hgt :": "📦 len/wid/hgt :",
+  "ðŸ“¦ len/wid/hgt :": "ðŸ“¦ len/wid/hgt :",
   // "Someone else taking this ride?":"Someone else taking this ride?",
   'Take a picture': 'Take a picture',
   // "Choose a contact and share a code to conform that ride.":"Choose a contact and share a code to conform that ride.",
@@ -191,8 +191,6 @@ final Map<String, String> enUS = {
   "Wallet Amount Insufficient": "Wallet Amount Insufficient",
   "Ride Details": "Ride Details",
   "Map view": "Map view",
-  "No active rides found": "No active rides found",
-  "No completed rides found": "No completed rides found",
   "Update Profile": "Update Profile",
   "Profile update successfully": "Profile update successfully",
   "Please Select": "Please Select",
@@ -201,8 +199,8 @@ final Map<String, String> enUS = {
   "Invite Friend & Businesses": "Invite Friend & Businesses",
   "Earn": "Earn",
   "each": "each",
-  "Invite GoRide to sign up using your link and you’ll get":
-      "Invite GoRide to sign up using your link and you’ll get",
+  "Invite GoRide to sign up using your link and youâ€™ll get":
+      "Invite GoRide to sign up using your link and youâ€™ll get",
   "Invite a Friend": "Invite a Friend",
   "They register": "They register",
   "Get Reward to complete first order": "Get Reward to complete first order",
@@ -224,8 +222,6 @@ final Map<String, String> enUS = {
   "Please contact to administrator": "Please contact to administrator",
   "Are you sure want to delete Account.":
       "Are you sure want to delete Account.",
-  "Privacy Policy": "Privacy Policy",
-  "Terms and Conditions": "Terms and Conditions",
   "Total Balance": "Total Balance",
   "Topup Wallet": "Topup Wallet",
   "No transaction found": "No transaction found",
@@ -233,7 +229,6 @@ final Map<String, String> enUS = {
   'Enter Amount': 'Enter Amount',
   "Select Payment Option": "Select Payment Option",
   "Topup": "Topup",
-  "Please select payment method": "Please select payment method",
   "Please enter amount": "Please enter amount",
   "Transaction Details": "Transaction Details",
   "Transaction ID": "Transaction ID",
@@ -277,6 +272,7 @@ final Map<String, String> enUS = {
   'Ride Hold Accepted': 'Ride Hold Accepted',
   'Minute charge': 'Minute charge',
   'Base Fare': 'Base Fare',
+  'Meter Start': 'Meter Start',
   'You have already submitted your review':
       'You have already submitted your review',
   // Missing translations
@@ -303,4 +299,13 @@ final Map<String, String> enUS = {
   'hours': 'hours',
   'minutes': 'minutes',
   'Loader needed': 'Loader needed',
+  'You are not able to book a new ride. Please complete your previous ride payment.':
+      'You are not able to book a new ride. Please complete your previous ride payment.',
+  'Cancel Ride': 'Cancel Ride',
+  'Are you sure you want to cancel this ride?':
+      'Are you sure you want to cancel this ride?',
+  'Yes, Cancel': 'Yes, Cancel',
+  'Canceling ride...': 'Canceling ride...',
+  'The customer has canceled the ride.': 'The customer has canceled the ride.',
+  'Ride canceled successfully': 'Ride canceled successfully',
 };

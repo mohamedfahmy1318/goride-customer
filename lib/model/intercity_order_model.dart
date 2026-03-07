@@ -50,6 +50,9 @@ class InterCityOrderModel {
   AdminCommission? adminCommission;
   ZoneModel? zone;
   String? zoneId;
+  String? actualDistance;
+  String? actualDuration;
+  Timestamp? rideStartTime;
 
   InterCityOrderModel(
       {this.position,
@@ -83,7 +86,10 @@ class InterCityOrderModel {
         this.comments,
         this.otp,
         this.someOneElse,
-        this.adminCommission,this.zone,this.zoneId});
+        this.adminCommission,this.zone,this.zoneId,
+        this.actualDistance,
+        this.actualDuration,
+        this.rideStartTime});
 
   InterCityOrderModel.fromJson(Map<String, dynamic> json) {
     intercityServiceId = json['intercityServiceId'];
@@ -123,6 +129,9 @@ class InterCityOrderModel {
     someOneElse = json['someOneElse'] != null ? ContactModel.fromJson(json['someOneElse']) : null;
     zone = json['zone'] != null ? ZoneModel.fromJson(json['zone']) : null;
     zoneId = json['zoneId'];
+    actualDistance = json['actualDistance'];
+    actualDuration = json['actualDuration'];
+    rideStartTime = json['rideStartTime'];
     if (json['taxList'] != null) {
       taxList = <TaxModel>[];
       json['taxList'].forEach((v) {
@@ -191,6 +200,9 @@ class InterCityOrderModel {
     if (adminCommission != null) {
       data['adminCommission'] = adminCommission!.toJson();
     }
+    if (actualDistance != null) data['actualDistance'] = actualDistance;
+    if (actualDuration != null) data['actualDuration'] = actualDuration;
+    if (rideStartTime != null) data['rideStartTime'] = rideStartTime;
     return data;
   }
 }

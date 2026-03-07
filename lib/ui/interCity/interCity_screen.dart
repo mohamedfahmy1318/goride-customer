@@ -4,6 +4,7 @@ import 'package:bottom_picker/bottom_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/constant.dart';
+import 'package:customer/constant/send_notification.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/controller/interCity_controller.dart';
 import 'package:customer/model/contact_model.dart';
@@ -984,13 +985,15 @@ class InterCityScreen extends StatelessWidget {
                                                   await FireStoreUtils
                                                           .setInterCityOrder(
                                                               intercityOrderModel)
-                                                      .then((value) {
+                                                      .then((value) async {
                                                     ShowToastDialog
                                                         .closeLoader();
                                                     if (value == true) {
                                                       ShowToastDialog.showToast(
                                                           "Ride Placed successfully"
                                                               .tr);
+                                                      _notifyDriversForIntercityOrder(
+                                                          intercityOrderModel);
                                                       controller
                                                           .dashboardController
                                                           .selectedDrawerIndex(
@@ -1210,13 +1213,15 @@ class InterCityScreen extends StatelessWidget {
                                                   await FireStoreUtils
                                                           .setInterCityOrder(
                                                               intercityOrderModel)
-                                                      .then((value) {
+                                                      .then((value) async {
                                                     ShowToastDialog
                                                         .closeLoader();
                                                     if (value == true) {
                                                       ShowToastDialog.showToast(
                                                           "Ride Placed successfully"
                                                               .tr);
+                                                      _notifyDriversForIntercityOrder(
+                                                          intercityOrderModel);
                                                       controller
                                                           .dashboardController
                                                           .selectedDrawerIndex(
@@ -1414,13 +1419,15 @@ class InterCityScreen extends StatelessWidget {
                                                   await FireStoreUtils
                                                           .setInterCityOrder(
                                                               intercityOrderModel)
-                                                      .then((value) {
+                                                      .then((value) async {
                                                     ShowToastDialog
                                                         .closeLoader();
                                                     if (value == true) {
                                                       ShowToastDialog.showToast(
                                                           "Ride Placed successfully"
                                                               .tr);
+                                                      _notifyDriversForIntercityOrder(
+                                                          intercityOrderModel);
                                                       controller
                                                           .dashboardController
                                                           .selectedDrawerIndex(
@@ -1460,7 +1467,7 @@ class InterCityScreen extends StatelessWidget {
   showAlertDialog(BuildContext context) {
     // set up the button
     Widget okButton = TextButton(
-      child: const Text("OK"),
+      child: Text("OK".tr),
       onPressed: () {
         Get.back();
       },
@@ -1468,9 +1475,10 @@ class InterCityScreen extends StatelessWidget {
 
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
-      title: const Text("Warning"),
-      content: const Text(
-          "You are not able book new ride please complete previous ride payment"),
+      title: Text("Warning".tr),
+      content: Text(
+          "You are not able to book a new ride. Please complete your previous ride payment."
+              .tr),
       actions: [
         okButton,
       ],
@@ -1635,115 +1643,6 @@ class InterCityScreen extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              Visibility(
-                                visible: controller
-                                        .paymentModel.value.bankily?.enable ==
-                                    true,
-                                child: Obx(
-                                  () => Column(
-                                    children: [
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
-                                      InkWell(
-                                        onTap: () {
-                                          controller.selectedPaymentMethod
-                                              .value = controller.paymentModel
-                                                  .value.bankily?.name
-                                                  ?.toString() ??
-                                              "";
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(10)),
-                                            border: Border.all(
-                                                color: controller
-                                                            .selectedPaymentMethod
-                                                            .value ==
-                                                        controller.paymentModel
-                                                            .value.bankily?.name
-                                                            .toString()
-                                                    ? themeChange.getThem()
-                                                        ? AppColors
-                                                            .darkModePrimary
-                                                        : AppColors.primary
-                                                    : AppColors.textFieldBorder,
-                                                width: 1),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 10),
-                                            child: Row(
-                                              children: [
-                                                Container(
-                                                  height: 40,
-                                                  width: 80,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                          color: AppColors
-                                                              .lightGray,
-                                                          borderRadius:
-                                                              BorderRadius.all(
-                                                                  Radius
-                                                                      .circular(
-                                                                          5))),
-                                                  child: const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Icon(
-                                                        Icons.account_balance,
-                                                        color: Colors.black),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  width: 10,
-                                                ),
-                                                Expanded(
-                                                  child: Text(
-                                                    controller.paymentModel
-                                                            .value.bankily?.name
-                                                            ?.toString() ??
-                                                        "",
-                                                    style:
-                                                        GoogleFonts.poppins(),
-                                                  ),
-                                                ),
-                                                Radio(
-                                                  value: controller.paymentModel
-                                                          .value.bankily?.name
-                                                          ?.toString() ??
-                                                      "",
-                                                  groupValue: controller
-                                                      .selectedPaymentMethod
-                                                      .value,
-                                                  activeColor:
-                                                      themeChange.getThem()
-                                                          ? AppColors
-                                                              .darkModePrimary
-                                                          : AppColors.primary,
-                                                  onChanged: (value) {
-                                                    controller
-                                                        .selectedPaymentMethod
-                                                        .value = controller
-                                                            .paymentModel
-                                                            .value
-                                                            .bankily
-                                                            ?.name
-                                                            ?.toString() ??
-                                                        "";
-                                                  },
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
                               // ===== Wallet Payment Option =====
                               Obx(
                                 () => Column(
@@ -1837,6 +1736,7 @@ class InterCityScreen extends StatelessWidget {
                                   ],
                                 ),
                               ),
+                              // Bankily removed (V1)
                             ],
                           ),
                         ),
@@ -2408,5 +2308,34 @@ class InterCityScreen extends StatelessWidget {
       ),
     );
     showCupertinoModalPopup(context: context, builder: (context) => action);
+  }
+}
+
+/// Sends FCM data-only push to all online drivers in the order's zone.
+/// Fire-and-forget — does not block the booking flow.
+void _notifyDriversForIntercityOrder(InterCityOrderModel orderModel) async {
+  if (orderModel.zoneId == null || orderModel.zoneId!.isEmpty) return;
+  try {
+    List drivers =
+        await FireStoreUtils.getDriversInZoneForIntercity(orderModel.zoneId!);
+    for (var driver in drivers) {
+      if (driver.fcmToken != null && driver.fcmToken!.isNotEmpty) {
+        Map<String, dynamic> payload = {
+          "type": "intercity_order",
+          "orderId": orderModel.id,
+        };
+        await SendNotification.sendOneNotification(
+          token: driver.fcmToken!,
+          title: 'طلب رحلة بين المدن'.tr,
+          body:
+              'عميل يحتاج رحلة من ${orderModel.sourceLocationName ?? orderModel.sourceCity} إلى ${orderModel.destinationLocationName ?? orderModel.destinationCity}'
+                  .tr,
+          payload: payload,
+          dataOnly: true,
+        );
+      }
+    }
+  } catch (e) {
+    // Non-critical — order is already saved, don't block on notification failure
   }
 }
