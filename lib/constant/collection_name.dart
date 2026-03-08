@@ -7,7 +7,6 @@ class CollectionName {
   static const String intercityService = "intercity_service";
   static const String orders = "orders";
   static const String ordersIntercity = "orders_intercity";
-  static const String ordersFreight = "orders_freight";
   static const String settings = "settings";
   static const String tax = "tax";
   static const String coupon = "coupon";
@@ -21,7 +20,6 @@ class CollectionName {
   static const String onBoarding = "on_boarding";
   static const String faq = "faq";
   static const String sos = "sos";
-  static const String freightVehicle = "freight_vehicle";
   static const String airPorts = "airports";
   static const String zone = "zone";
   static const String chat = "chat";

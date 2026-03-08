@@ -1,6 +1,7 @@
 import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/ui/auth_screen/login_screen.dart';
 import 'package:customer/ui/chat_screen/inbox_screen.dart';
+import 'package:customer/ui/about_us/about_us_screen.dart';
 import 'package:customer/ui/contact_us/contact_us_screen.dart';
 import 'package:customer/ui/faq/faq_screen.dart';
 import 'package:customer/ui/home_screens/home_screen.dart';
@@ -28,6 +29,7 @@ class DashBoardController extends GetxController {
     DrawerItem('Inbox'.tr, "assets/icons/ic_inbox.svg"),
     DrawerItem('Profile'.tr, "assets/icons/ic_profile.svg"),
     DrawerItem('Contact us'.tr, "assets/icons/ic_contact_us.svg"),
+    DrawerItem('About Us'.tr, "assets/icons/ic_contact_us.svg"),
     DrawerItem('FAQs'.tr, "assets/icons/ic_faq.svg"),
     DrawerItem('Log out'.tr, "assets/icons/ic_logout.svg"),
   ].obs;
@@ -55,6 +57,8 @@ class DashBoardController extends GetxController {
       case 9:
         return const ContactUsScreen();
       case 10:
+        return const AboutUsScreen();
+      case 11:
         return const FaqScreen();
       default:
         return const Text("Error");
@@ -70,7 +74,7 @@ class DashBoardController extends GetxController {
   RxInt selectedDrawerIndex = 0.obs;
 
   onSelectItem(int index) async {
-    if (index == 11) {
+    if (index == 12) {
       await FirebaseAuth.instance.signOut();
       Get.offAll(const LoginScreen());
     } else {

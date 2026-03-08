@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/controller/dash_board_controller.dart';
 import 'package:customer/model/contact_model.dart';
-import 'package:customer/model/freight_vehicle.dart';
 import 'package:customer/model/intercity_service_model.dart';
 import 'package:customer/model/order/location_lat_lng.dart';
 import 'package:customer/model/payment_model.dart';
@@ -43,9 +42,7 @@ class InterCityController extends GetxController {
 
   RxList<IntercityServiceModel> intercityService =
       <IntercityServiceModel>[].obs;
-  RxList<FreightVehicle> frightVehicleList = <FreightVehicle>[].obs;
   Rx<IntercityServiceModel> selectedInterCityType = IntercityServiceModel().obs;
-  Rx<FreightVehicle> selectedFreightVehicle = FreightVehicle().obs;
   RxList zoneList = <ZoneModel>[].obs;
   Rx<ZoneModel> selectedZone = ZoneModel().obs;
 
@@ -78,12 +75,6 @@ class InterCityController extends GetxController {
       if (intercityService.isNotEmpty) {
         selectedInterCityType.value = intercityService.first;
       }
-    });
-    await FireStoreUtils.getFreightVehicle().then((value) {
-      frightVehicleList.value = value;
-      // if (frightVehicleList.isNotEmpty) {
-      //   selectedFreightVehicle.value = frightVehicleList.first;
-      // }
     });
     isLoading.value = false;
   }
@@ -120,6 +111,45 @@ class InterCityController extends GetxController {
   RxString distance = "".obs;
   RxString amount = "".obs;
 
+  double convertToMinutes(String duration) {
+    double durationValue = 0.0;
+    try {
+      final RegExp hoursRegex = RegExp(r"(\d+)\s*hour");
+      final RegExp minutesRegex = RegExp(r"(\d+)\s*min");
+      final Match? hoursMatch = hoursRegex.firstMatch(duration);
+      if (hoursMatch != null) {
+        int hours = int.parse(hoursMatch.group(1)!.trim());
+        durationValue += hours * 60;
+      }
+      final Match? minutesMatch = minutesRegex.firstMatch(duration);
+      if (minutesMatch != null) {
+        int minutes = int.parse(minutesMatch.group(1)!.trim());
+        durationValue += minutes;
+      }
+    } catch (e) {
+      log('convertToMinutes error: $e');
+    }
+    return durationValue;
+  }
+
+  double _calculateTotalAmount(double distanceVal, double durationMinutes) {
+    double meterStartVal =
+        double.tryParse(selectedInterCityType.value.meterStart ?? '0') ?? 0.0;
+    double kmChargeVal =
+        double.tryParse(selectedInterCityType.value.kmCharge ?? '0') ?? 0.0;
+    double perMinuteChargeVal =
+        double.tryParse(selectedInterCityType.value.perMinuteCharge ?? '0') ??
+            0.0;
+    bool enableMinuteCharge =
+        selectedInterCityType.value.enableMinuteCharge ?? false;
+
+    double kmAmount = distanceVal * kmChargeVal;
+    double minuteAmount =
+        enableMinuteCharge ? (durationMinutes * perMinuteChargeVal) : 0.0;
+
+    return meterStartVal + kmAmount + minuteAmount;
+  }
+
   calculateOsmAmount() async {
     log(sourceLocationLAtLng.value.latitude.toString() +
         "::: duration sourceLocationLAtLng :::" +
@@ -127,192 +157,72 @@ class InterCityController extends GetxController {
     log(destinationLocationLAtLng.value.latitude.toString() +
         "::: duration destinationLocationLAtLng :::" +
         destinationLocationLAtLng.value.longitude.toString());
-    if (selectedInterCityType.value.id == "Kn2VEnPI3ikF58uK8YqY") {
-      if (selectedFreightVehicle.value.id == null) {
-        amount.value = "0.0";
-        offerYourRateController.value.text = "0.0";
-      } else {
-        if (sourceLocationLAtLng.value.latitude != null &&
-            destinationLocationLAtLng.value.latitude != null) {
-          await Constant.getDurationOsmDistance(
-                  LatLng(sourceLocationLAtLng.value.latitude!,
-                      sourceLocationLAtLng.value.longitude!),
-                  LatLng(destinationLocationLAtLng.value.latitude!,
-                      destinationLocationLAtLng.value.longitude!))
-              .then((value) {
-            if (value != {} && value.isNotEmpty) {
-              int hours = value['routes'].first['duration'] ~/ 3600;
-              int minutes =
-                  ((value['routes'].first['duration'] % 3600) / 60).round();
-              duration.value = '$hours hours $minutes minutes';
-
-              if (Constant.distanceType == "Km") {
-                distance.value =
-                    (value['routes'].first['distance'] / 1000).toString();
-                amount.value = Constant.amountCalculate(
-                        selectedFreightVehicle.value.kmCharge.toString(),
-                        distance.value)
-                    .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-                offerYourRateController.value.text = Constant.amountCalculate(
-                        selectedFreightVehicle.value.kmCharge.toString(),
-                        distance.value)
-                    .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-              } else {
-                distance.value =
-                    (value['routes'].first['distance'] / 1609.34).toString();
-                amount.value = Constant.amountCalculate(
-                        selectedFreightVehicle.value.kmCharge.toString(),
-                        distance.value)
-                    .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-                offerYourRateController.value.text = Constant.amountCalculate(
-                        selectedFreightVehicle.value.kmCharge.toString(),
-                        distance.value)
-                    .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-              }
-            }
-          });
-        }
-      }
-    } else {
-      amount.value = "0.0";
-      offerYourRateController.value.text = "0.0";
-      if (sourceLocationLAtLng.value.latitude != null &&
-          destinationLocationLAtLng.value.latitude != null) {
-        await Constant.getDurationOsmDistance(
-                LatLng(sourceLocationLAtLng.value.latitude!,
-                    sourceLocationLAtLng.value.longitude!),
-                LatLng(destinationLocationLAtLng.value.latitude!,
-                    destinationLocationLAtLng.value.longitude!))
-            .then((value) {
-          if (value != {} && value.isNotEmpty) {
-            int hours = value['routes'].first['duration'] ~/ 3600;
-            int minutes =
-                ((value['routes'].first['duration'] % 3600) / 60).round();
-            duration.value = '$hours hours $minutes minutes';
-            if (Constant.distanceType == "Km") {
-              distance.value =
-                  (value['routes'].first['distance'] / 1000).toString();
-              amount.value = Constant.amountCalculate(
-                      selectedInterCityType.value.kmCharge.toString(),
-                      distance.value)
-                  .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-              offerYourRateController.value.text = Constant.amountCalculate(
-                      selectedInterCityType.value.kmCharge.toString(),
-                      distance.value)
-                  .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-            } else {
-              distance.value =
-                  (value['routes'].first['distance'] / 1609.34).toString();
-              amount.value = Constant.amountCalculate(
-                      selectedInterCityType.value.kmCharge.toString(),
-                      distance.value)
-                  .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-              offerYourRateController.value.text = Constant.amountCalculate(
-                      selectedInterCityType.value.kmCharge.toString(),
-                      distance.value)
-                  .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-            }
+    amount.value = "0.0";
+    offerYourRateController.value.text = "0.0";
+    if (sourceLocationLAtLng.value.latitude != null &&
+        destinationLocationLAtLng.value.latitude != null) {
+      await Constant.getDurationOsmDistance(
+              LatLng(sourceLocationLAtLng.value.latitude!,
+                  sourceLocationLAtLng.value.longitude!),
+              LatLng(destinationLocationLAtLng.value.latitude!,
+                  destinationLocationLAtLng.value.longitude!))
+          .then((value) {
+        if (value != {} && value.isNotEmpty) {
+          int hours = value['routes'].first['duration'] ~/ 3600;
+          int minutes =
+              ((value['routes'].first['duration'] % 3600) / 60).round();
+          duration.value = '$hours hours $minutes minutes';
+          if (Constant.distanceType == "Km") {
+            distance.value =
+                (value['routes'].first['distance'] / 1000).toString();
+          } else {
+            distance.value =
+                (value['routes'].first['distance'] / 1609.34).toString();
           }
-        });
-      }
+          double distanceVal = double.tryParse(distance.value) ?? 0.0;
+          double durationMinutes = convertToMinutes(duration.value);
+          double total = _calculateTotalAmount(distanceVal, durationMinutes);
+          amount.value =
+              total.toStringAsFixed(Constant.currencyModel!.decimalDigits!);
+          offerYourRateController.value.text = amount.value;
+        }
+      });
     }
   }
 
   calculateAmount() async {
-    if (selectedInterCityType.value.id == "Kn2VEnPI3ikF58uK8YqY") {
-      if (selectedFreightVehicle.value.id == null) {
-        amount.value = "0.0";
-        offerYourRateController.value.text = "0.0";
-      } else {
-        if (sourceLocationLAtLng.value.latitude != null &&
-            destinationLocationLAtLng.value.latitude != null) {
-          await Constant.getDurationDistance(
-                  LatLng(sourceLocationLAtLng.value.latitude!,
-                      sourceLocationLAtLng.value.longitude!),
-                  LatLng(destinationLocationLAtLng.value.latitude!,
-                      destinationLocationLAtLng.value.longitude!))
-              .then((value) {
-            if (value != null) {
-              duration.value =
-                  value.rows!.first.elements!.first.duration!.text.toString();
-              log("duration  :: 11 :: ${duration.value}");
-              if (Constant.distanceType == "Km") {
-                distance.value = (value
-                            .rows!.first.elements!.first.distance!.value!
-                            .toInt() /
+    amount.value = "0.0";
+    offerYourRateController.value.text = "0.0";
+    if (sourceLocationLAtLng.value.latitude != null &&
+        destinationLocationLAtLng.value.latitude != null) {
+      await Constant.getDurationDistance(
+              LatLng(sourceLocationLAtLng.value.latitude!,
+                  sourceLocationLAtLng.value.longitude!),
+              LatLng(destinationLocationLAtLng.value.latitude!,
+                  destinationLocationLAtLng.value.longitude!))
+          .then((value) {
+        if (value != null) {
+          duration.value =
+              value.rows!.first.elements!.first.duration!.text.toString();
+          if (Constant.distanceType == "Km") {
+            distance.value =
+                (value.rows!.first.elements!.first.distance!.value!.toInt() /
                         1000)
                     .toString();
-                amount.value = Constant.amountCalculate(
-                        selectedFreightVehicle.value.kmCharge.toString(),
-                        distance.value)
-                    .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-                offerYourRateController.value.text = Constant.amountCalculate(
-                        selectedFreightVehicle.value.kmCharge.toString(),
-                        distance.value)
-                    .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-              } else {
-                distance.value = (value
-                            .rows!.first.elements!.first.distance!.value!
-                            .toInt() /
+          } else {
+            distance.value =
+                (value.rows!.first.elements!.first.distance!.value!.toInt() /
                         1609.34)
                     .toString();
-                amount.value = Constant.amountCalculate(
-                        selectedFreightVehicle.value.kmCharge.toString(),
-                        distance.value)
-                    .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-                offerYourRateController.value.text = Constant.amountCalculate(
-                        selectedFreightVehicle.value.kmCharge.toString(),
-                        distance.value)
-                    .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-              }
-            }
-          });
-        }
-      }
-    } else {
-      amount.value = "0.0";
-      offerYourRateController.value.text = "0.0";
-      if (sourceLocationLAtLng.value.latitude != null &&
-          destinationLocationLAtLng.value.latitude != null) {
-        await Constant.getDurationDistance(
-                LatLng(sourceLocationLAtLng.value.latitude!,
-                    sourceLocationLAtLng.value.longitude!),
-                LatLng(destinationLocationLAtLng.value.latitude!,
-                    destinationLocationLAtLng.value.longitude!))
-            .then((value) {
-          if (value != null) {
-            duration.value =
-                value.rows!.first.elements!.first.duration!.text.toString();
-            if (Constant.distanceType == "Km") {
-              distance.value =
-                  (value.rows!.first.elements!.first.distance!.value!.toInt() /
-                          1000)
-                      .toString();
-              amount.value = Constant.amountCalculate(
-                      selectedInterCityType.value.kmCharge.toString(),
-                      distance.value)
-                  .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-              offerYourRateController.value.text = Constant.amountCalculate(
-                      selectedInterCityType.value.kmCharge.toString(),
-                      distance.value)
-                  .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-            } else {
-              distance.value =
-                  (value.rows!.first.elements!.first.distance!.value!.toInt() /
-                          1609.34)
-                      .toString();
-              amount.value = Constant.amountCalculate(
-                      selectedInterCityType.value.kmCharge.toString(),
-                      distance.value)
-                  .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-              offerYourRateController.value.text = Constant.amountCalculate(
-                      selectedInterCityType.value.kmCharge.toString(),
-                      distance.value)
-                  .toStringAsFixed(Constant.currencyModel!.decimalDigits!);
-            }
           }
-        });
-      }
+          double distanceVal = double.tryParse(distance.value) ?? 0.0;
+          double durationMinutes = convertToMinutes(duration.value);
+          double total = _calculateTotalAmount(distanceVal, durationMinutes);
+          amount.value =
+              total.toStringAsFixed(Constant.currencyModel!.decimalDigits!);
+          offerYourRateController.value.text = amount.value;
+        }
+      });
     }
   }
 

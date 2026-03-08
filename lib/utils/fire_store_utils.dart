@@ -13,7 +13,6 @@ import 'package:customer/model/coupon_model.dart';
 import 'package:customer/model/currency_model.dart';
 import 'package:customer/model/driver_user_model.dart';
 import 'package:customer/model/faq_model.dart';
-import 'package:customer/model/freight_vehicle.dart';
 import 'package:customer/model/inbox_model.dart';
 import 'package:customer/model/intercity_order_model.dart';
 import 'package:customer/model/intercity_service_model.dart';
@@ -514,23 +513,6 @@ class FireStoreUtils {
     return serviceList;
   }
 
-  static Future<List<FreightVehicle>> getFreightVehicle() async {
-    List<FreightVehicle> freightVehicle = [];
-    await fireStore
-        .collection(CollectionName.freightVehicle)
-        .where('enable', isEqualTo: true)
-        .get()
-        .then((value) {
-      for (var element in value.docs) {
-        FreightVehicle documentModel = FreightVehicle.fromJson(element.data());
-        freightVehicle.add(documentModel);
-      }
-    }).catchError((error) {
-      log(error.toString());
-    });
-    return freightVehicle;
-  }
-
   static Future<bool?> setOrder(OrderModel orderModel) async {
     bool isAdded = false;
     await fireStore
@@ -651,7 +633,7 @@ class FireStoreUtils {
   }
 
   /// Get online drivers whose zoneIds contain [zoneId].
-  /// Used for intercity / freight order notifications (no geo-radius needed).
+  /// Used for intercity order notifications (no geo-radius needed).
   static Future<List<DriverUserModel>> getDriversInZoneForIntercity(
       String zoneId) async {
     List<DriverUserModel> drivers = [];
@@ -1076,10 +1058,7 @@ class FireStoreUtils {
         await currentUser.delete();
 
         // Auth deletion succeeded — now safe to delete Firestore data
-        await fireStore
-            .collection(CollectionName.users)
-            .doc(uid)
-            .delete();
+        await fireStore.collection(CollectionName.users).doc(uid).delete();
 
         isDelete = true;
       }
@@ -1202,6 +1181,8 @@ class FireStoreUtils {
     }).catchError((error) {
       log(error.toString());
     });
+    airPortList
+        .sort((a, b) => (a.position ?? 999999).compareTo(b.position ?? 999999));
     return airPortList;
   }
 }

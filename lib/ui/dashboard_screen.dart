@@ -134,6 +134,7 @@ class DashBoardScreen extends StatelessWidget {
       'Inbox',
       'Profile',
       'Contact us',
+      'About Us',
       'FAQs',
       'Log out',
     ];
@@ -155,6 +156,7 @@ class DashBoardScreen extends StatelessWidget {
       DrawerItem('Inbox'.tr, "assets/icons/ic_inbox.svg"),
       DrawerItem('Profile'.tr, "assets/icons/ic_profile.svg"),
       DrawerItem('Contact us'.tr, "assets/icons/ic_contact_us.svg"),
+      DrawerItem('About Us'.tr, "assets/icons/ic_contact_us.svg"),
       DrawerItem('FAQs'.tr, "assets/icons/ic_faq.svg"),
       DrawerItem('Log out'.tr, "assets/icons/ic_logout.svg"),
     ].obs;

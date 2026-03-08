@@ -88,7 +88,8 @@ final Map<String, String> trFr = {
   "Select Payment type": "SÃ©lectionnez le type de paiement",
   "Book Ride": "Tour de livre",
   "Please select Payment Method": "Veuillez sÃ©lectionner le mode de paiement",
-  "Please select source location": "Veuillez sÃ©lectionner l'emplacement source",
+  "Please select source location":
+      "Veuillez sÃ©lectionner l'emplacement source",
   "Please select destination location":
       "Veuillez sÃ©lectionner l'emplacement de destination",
   "Please select more than two location":
@@ -117,7 +118,6 @@ final Map<String, String> trFr = {
   "Warning": "Avertissement",
   "You are not able book new ride please complete previous ride payment":
       "Vous ne pouvez pas rÃ©server un nouveau trajet, veuillez effectuer le paiement du trajet prÃ©cÃ©dent",
-  "Select Freight Vehicle": "SÃ©lectionnez un vÃ©hicule de fret",
   'To': 'Ã€',
   "Select Option": "SÃ©lectionnez une option",
   'Confirm': 'Confirmer',
@@ -127,7 +127,6 @@ final Map<String, String> trFr = {
   'Number of Passengers': 'Nombre de passagers',
   " Enter your rate": " Entrez votre tarif",
   // "Enter your offer rate":"Enter your offer rate",
-  "Order Freight": "Commande de fret",
   "Order Parcel": "Commande de colis",
   // "Ride Placed":"Ride Placed",
   "Please enter parcel weight": "Veuillez saisir le poids du colis",
@@ -280,7 +279,8 @@ final Map<String, String> trFr = {
   'Minute charge': 'Frais par minute',
   'Base Fare': 'Tarif de base',
   'Meter Start': 'Ouverture du compteur',
-  'You have already submitted your review': 'Vous avez dÃ©jÃ  soumis votre avis',
+  'You have already submitted your review':
+      'Vous avez dÃ©jÃ  soumis votre avis',
   // Traductions manquantes
   'Cancel Payment': 'Annuler le paiement',
   'Continue': 'Continuer',
@@ -314,4 +314,9 @@ final Map<String, String> trFr = {
   'Canceling ride...': 'Annulation en cours...',
   'The customer has canceled the ride.': 'Le client a annulÃ© la course.',
   'Ride canceled successfully': 'Course annulÃ©e avec succÃ¨s',
+  'About Us': 'À propos de nous',
+  'Phone': 'Téléphone',
+  'Address': 'Adresse',
+  'Website': 'Site web',
+  'Follow Us': 'Suivez-nous',
 };

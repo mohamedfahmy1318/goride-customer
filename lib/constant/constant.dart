@@ -371,8 +371,15 @@ class Constant {
 
   static LanguageModel getLanguage() {
     final String user = Preferences.getString(Preferences.languageCodeKey);
-    Map<String, dynamic> userMap = jsonDecode(user);
-    return LanguageModel.fromJson(userMap);
+    if (user.isEmpty) {
+      return LanguageModel(code: "en", name: "English", isDefault: true);
+    }
+    try {
+      Map<String, dynamic> userMap = jsonDecode(user);
+      return LanguageModel.fromJson(userMap);
+    } catch (e) {
+      return LanguageModel(code: "en", name: "English", isDefault: true);
+    }
   }
 
   static String getReferralCode() {

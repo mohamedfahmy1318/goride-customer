@@ -2,6 +2,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url "${rootProject.projectDir}/local-repo" }
+        maven { url 'https://jitpack.io' }
     }
 }
 
@@ -14,6 +16,14 @@ subprojects {
     configurations.configureEach {
         resolutionStrategy {
             force 'pl.droidsonroids.gif:android-gif-drawable:1.2.25'
+        }
+    }
+    project.buildscript {
+        configurations.configureEach {
+            resolutionStrategy {
+                force 'com.android.tools.build:gradle:8.6.0'
+                force 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0'
+            }
         }
     }
 }

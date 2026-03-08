@@ -114,7 +114,6 @@ final Map<String, String> arAR = {
   "Warning": "تحذير",
   "You are not able book new ride please complete previous ride payment":
       "لا يمكنك حجز رحلة جديدة، يرجى إتمام دفع الرحلة السابقة",
-  "Select Freight Vehicle": "اختر مركبة الشحن",
   "To": "إلى",
   "Select Option": "اختر خيارًا",
   "Confirm": "تأكيد",
@@ -123,7 +122,6 @@ final Map<String, String> arAR = {
   "Parcel dimension(In ft.)": "أبعاد الطرد (بالقدم)",
   "Number of Passengers": "عدد الركاب",
   "Enter your rate": "أدخل سعرك",
-  "Order Freight": "طلب شحن",
   "Order Parcel": "طلب طرد",
   "Please enter parcel weight": "يرجى إدخال وزن الطرد",
   "Please enter parcel dimension": "يرجى إدخال أبعاد الطرد",
@@ -293,4 +291,9 @@ final Map<String, String> arAR = {
   'Canceling ride...': 'جاري إلغاء الرحلة...',
   'The customer has canceled the ride.': 'قام العميل بإلغاء الرحلة.',
   'Ride canceled successfully': 'تم إلغاء الرحلة بنجاح',
+  'About Us': 'من نحن',
+  'Phone': 'الهاتف',
+  'Address': 'العنوان',
+  'Website': 'الموقع الإلكتروني',
+  'Follow Us': 'تابعونا',
 };

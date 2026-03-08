@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/model/admin_commission.dart';
 import 'package:customer/model/coupon_model.dart';
-import 'package:customer/model/freight_vehicle.dart';
 import 'package:customer/model/intercity_service_model.dart';
 import 'package:customer/model/order/location_lat_lng.dart';
 import 'package:customer/model/order/positions.dart';
@@ -39,7 +38,6 @@ class InterCityOrderModel {
   bool? paymentStatus;
   List<TaxModel>? taxList;
   CouponModel? coupon;
-  FreightVehicle? freightVehicle;
   IntercityServiceModel? intercityService;
   String? whenDates;
   String? whenTime;
@@ -56,40 +54,42 @@ class InterCityOrderModel {
 
   InterCityOrderModel(
       {this.position,
-        this.intercityServiceId,
-        this.paymentType,
-        this.sourceLocationName,
-        this.sourceCity,
-        this.destinationLocationName,
-        this.destinationCity,
-        this.sourceLocationLAtLng,
-        this.destinationLocationLAtLng,
-        this.id,
-        this.userId,
-        this.distance,
-        this.distanceType,
-        this.status,
-        this.driverId,
-        this.parcelWeight,
-        this.parcelDimension,
-        this.offerRate,
-        this.finalRate,
-        this.paymentStatus,
-        this.createdDate,
-        this.updateDate,
-        this.taxList,
-        this.coupon,
-        this.intercityService,
-        this.whenTime,
-        this.numberOfPassenger,
-        this.whenDates,
-        this.comments,
-        this.otp,
-        this.someOneElse,
-        this.adminCommission,this.zone,this.zoneId,
-        this.actualDistance,
-        this.actualDuration,
-        this.rideStartTime});
+      this.intercityServiceId,
+      this.paymentType,
+      this.sourceLocationName,
+      this.sourceCity,
+      this.destinationLocationName,
+      this.destinationCity,
+      this.sourceLocationLAtLng,
+      this.destinationLocationLAtLng,
+      this.id,
+      this.userId,
+      this.distance,
+      this.distanceType,
+      this.status,
+      this.driverId,
+      this.parcelWeight,
+      this.parcelDimension,
+      this.offerRate,
+      this.finalRate,
+      this.paymentStatus,
+      this.createdDate,
+      this.updateDate,
+      this.taxList,
+      this.coupon,
+      this.intercityService,
+      this.whenTime,
+      this.numberOfPassenger,
+      this.whenDates,
+      this.comments,
+      this.otp,
+      this.someOneElse,
+      this.adminCommission,
+      this.zone,
+      this.zoneId,
+      this.actualDistance,
+      this.actualDuration,
+      this.rideStartTime});
 
   InterCityOrderModel.fromJson(Map<String, dynamic> json) {
     intercityServiceId = json['intercityServiceId'];
@@ -98,11 +98,17 @@ class InterCityOrderModel {
     paymentType = json['paymentType'];
     destinationLocationName = json['destinationLocationName'];
     destinationCity = json['destinationCity'];
-    sourceLocationLAtLng = json['sourceLocationLAtLng'] != null ? LocationLatLng.fromJson(json['sourceLocationLAtLng']) : null;
-    destinationLocationLAtLng = json['destinationLocationLAtLng'] != null ? LocationLatLng.fromJson(json['destinationLocationLAtLng']) : null;
-    coupon = json['coupon'] != null ? CouponModel.fromJson(json['coupon']) : null;
-    freightVehicle = json['freightVehicle'] != null ? FreightVehicle.fromJson(json['freightVehicle']) : null;
-    intercityService = json['intercityService'] != null ? IntercityServiceModel.fromJson(json['intercityService']) : null;
+    sourceLocationLAtLng = json['sourceLocationLAtLng'] != null
+        ? LocationLatLng.fromJson(json['sourceLocationLAtLng'])
+        : null;
+    destinationLocationLAtLng = json['destinationLocationLAtLng'] != null
+        ? LocationLatLng.fromJson(json['destinationLocationLAtLng'])
+        : null;
+    coupon =
+        json['coupon'] != null ? CouponModel.fromJson(json['coupon']) : null;
+    intercityService = json['intercityService'] != null
+        ? IntercityServiceModel.fromJson(json['intercityService'])
+        : null;
     id = json['id'];
     userId = json['userId'];
     offerRate = json['offerRate'];
@@ -124,9 +130,14 @@ class InterCityOrderModel {
     numberOfPassenger = json['numberOfPassenger'];
     comments = json['comments'];
     otp = json['otp'];
-    position = json['position'] != null ? Positions.fromJson(json['position']) : null;
-    adminCommission = json['adminCommission'] != null ? AdminCommission.fromJson(json['adminCommission']) : null;
-    someOneElse = json['someOneElse'] != null ? ContactModel.fromJson(json['someOneElse']) : null;
+    position =
+        json['position'] != null ? Positions.fromJson(json['position']) : null;
+    adminCommission = json['adminCommission'] != null
+        ? AdminCommission.fromJson(json['adminCommission'])
+        : null;
+    someOneElse = json['someOneElse'] != null
+        ? ContactModel.fromJson(json['someOneElse'])
+        : null;
     zone = json['zone'] != null ? ZoneModel.fromJson(json['zone']) : null;
     zoneId = json['zoneId'];
     actualDistance = json['actualDistance'];
@@ -152,9 +163,6 @@ class InterCityOrderModel {
     }
     if (coupon != null) {
       data['coupon'] = coupon!.toJson();
-    }
-    if (freightVehicle != null) {
-      data['freightVehicle'] = freightVehicle!.toJson();
     }
     if (intercityService != null) {
       data['intercityService'] = intercityService!.toJson();

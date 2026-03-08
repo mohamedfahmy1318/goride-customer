@@ -92,11 +92,10 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
             '&radius=100000'); // 100km radius bias for better city coverage
       }
 
-      // Global search - no country restriction
-      // Users can search worldwide for streets, cities, etc.
-
-      // Remove type restriction to include all places (cities, localities, streets, etc.)
-      // This allows searching for cities like "سمنود" (Samanoud)
+      // Restrict search to the configured country
+      if (Constant.regionCode.isNotEmpty && Constant.regionCode != "all") {
+        requestUrl.write('&components=country:${Constant.regionCode}');
+      }
 
       var response = await http.get(Uri.parse(requestUrl.toString()));
 

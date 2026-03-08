@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:customer/constant/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:get/get.dart';
@@ -24,8 +25,17 @@ class OsmSearchPlaceController extends GetxController {
     log(":: fetchAddress :: $text");
     try {
       List<SearchInfo> results = await addressSuggestion(text);
-      // Global search - no country filter
-      suggestionsList.value = results;
+      // Filter results by configured country
+      suggestionsList.value = results.where((place) {
+        String? country = place.address?.country?.toLowerCase();
+        String addressString = place.address.toString().toLowerCase();
+
+        if (Constant.regionCountry.toLowerCase() == "all") {
+          return true;
+        }
+        return country == Constant.regionCountry.toLowerCase() ||
+            addressString.contains(Constant.regionCountry.toLowerCase());
+      }).toList();
     } catch (e) {
       log(e.toString());
     }

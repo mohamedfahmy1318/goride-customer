@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "202123276886-efb5bp96pc1fja5pbvsbbo40fnngq0i7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.goride.customer",
+            "certificate_hash": "d763438fcd484353d9f2ca227e1451ec4e9ce9af"
+          }
+        },
+        {
           "client_id": "202123276886-v20blrno0qt62d3fve71ore7kq0u7fom.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -45,6 +53,81 @@
             {
               "client_id": "202123276886-v20blrno0qt62d3fve71ore7kq0u7fom.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "202123276886-47lq670ko4c61dmngfm8dpdqop0ebmsg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.goride.customer"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:202123276886:android:dc75c318aae17cba4181f7",
+        "android_client_info": {
+          "package_name": "com.goride.driver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "202123276886-1vs1eps78v7opn2jrf7gp4cpeofc90b3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.goride.driver",
+            "certificate_hash": "d763438fcd484353d9f2ca227e1451ec4e9ce9af"
+          }
+        },
+        {
+          "client_id": "202123276886-3vcim0305rf435hm95ajhnho8cviumol.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.goride.driver",
+            "certificate_hash": "5b0e3a4f513835e8a84e92d15ac3553b3460a83d"
+          }
+        },
+        {
+          "client_id": "202123276886-82mt61hulbbmc27iv4ltk3oh7um1v6do.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.goride.driver",
+            "certificate_hash": "2584ffd62859ab8343dd7b721e9907f30b43eda6"
+          }
+        },
+        {
+          "client_id": "202123276886-d0b3mkroc1eqnl2907t8piutubsllfc1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.goride.driver",
+            "certificate_hash": "3ed6362b09692836b455a521aa2caf421be6830b"
+          }
+        },
+        {
+          "client_id": "202123276886-v20blrno0qt62d3fve71ore7kq0u7fom.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZM9MMaizcCmg_c-TDA9-WTeKvipdLFRA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "202123276886-v20blrno0qt62d3fve71ore7kq0u7fom.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "202123276886-47lq670ko4c61dmngfm8dpdqop0ebmsg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.goride.customer"
+              }
             }
           ]
         }

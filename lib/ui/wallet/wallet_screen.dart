@@ -388,7 +388,7 @@ class WalletScreen extends StatelessWidget {
                                               Border.all(color: Colors.green),
                                         ),
                                         child: SelectableText(
-                                          "01091626965",
+                                          "22245004",
                                           style: GoogleFonts.poppins(
                                             fontSize: 22,
                                             fontWeight: FontWeight.bold,
@@ -439,7 +439,7 @@ class WalletScreen extends StatelessWidget {
                         if (controller.amountController.value.text.isNotEmpty) {
                           Get.back();
                           ShowToastDialog.showToast(
-                              'حوّل المبلغ على الرقم 01091626965 ثم تواصل مع الدعم لتأكيد الشحن');
+                              'حوّل المبلغ على الرقم 22245004 ثم تواصل مع الدعم لتأكيد الشحن');
                         } else {
                           ShowToastDialog.showToast("Please enter amount".tr);
                         }

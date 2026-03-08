@@ -112,7 +112,6 @@ final Map<String, String> enUS = {
   "Warning": "Warning",
   "You are not able book new ride please complete previous ride payment":
       "You are not able book new ride please complete previous ride payment",
-  "Select Freight Vehicle": "Select Freight Vehicle",
   'To': 'To',
   "Select Option": "Select Option",
   'Confirm': 'Confirm',
@@ -122,7 +121,6 @@ final Map<String, String> enUS = {
   'Number of Passengers': 'Number of Passengers',
   " Enter your rate": " Enter your rate",
   // "Enter your offer rate":"Enter your offer rate",
-  "Order Freight": "Order Freight",
   "Order Parcel": "Order Parcel",
   // "Ride Placed":"Ride Placed",
   "Please enter parcel weight": "Please enter parcel weight",
@@ -308,4 +306,9 @@ final Map<String, String> enUS = {
   'Canceling ride...': 'Canceling ride...',
   'The customer has canceled the ride.': 'The customer has canceled the ride.',
   'Ride canceled successfully': 'Ride canceled successfully',
+  'About Us': 'About Us',
+  'Phone': 'Phone',
+  'Address': 'Address',
+  'Website': 'Website',
+  'Follow Us': 'Follow Us',
 };
