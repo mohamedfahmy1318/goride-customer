@@ -1,16 +1,13 @@
 import 'package:customer/constant/constant.dart';
-import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/controller/contact_us_controller.dart';
 import 'package:customer/themes/app_colors.dart';
-import 'package:customer/themes/button_them.dart';
 import 'package:customer/themes/responsive.dart';
-import 'package:customer/themes/text_field_them.dart';
 import 'package:customer/utils/DarkThemeProvider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContactUsScreen extends StatelessWidget {
   const ContactUsScreen({super.key});
@@ -44,197 +41,76 @@ class ContactUsScreen extends StatelessWidget {
                           ? Constant.loader()
                           : Padding(
                               padding: const EdgeInsets.only(top: 10),
-                              child: DefaultTabController(
-                                length: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text("Contact us".tr,
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w600)),
-                                      Text(
-                                          "Let us know your issue & feedback"
-                                              .tr,
-                                          style: GoogleFonts.poppins()),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                      TabBar(
-                                        indicatorColor:
-                                            AppColors.darkModePrimary,
-                                        tabs: [
-                                          Tab(
-                                              child: Text(
-                                            "Call Us".tr,
-                                            style: GoogleFonts.poppins(),
-                                          )),
-                                          Tab(
-                                              child: Text(
-                                            "Email Us".tr,
-                                            style: GoogleFonts.poppins(),
-                                          )),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Contact us".tr,
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600)),
+                                    Text("Let us know your issue & feedback".tr,
+                                        style: GoogleFonts.poppins()),
+                                    const SizedBox(
+                                      height: 30,
+                                    ),
+                                    InkWell(
+                                      onTap: () {
+                                        Constant.makePhoneCall('+966542883129');
+                                      },
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.call, size: 28),
+                                          const SizedBox(width: 20),
+                                          Text('+966542883129',
+                                              style: GoogleFonts.poppins(
+                                                  fontSize: 16)),
                                         ],
                                       ),
-                                      Expanded(
-                                        child: TabBarView(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  top: 20),
-                                              child: Column(
-                                                children: [
-                                                  InkWell(
-                                                    onTap: () {
-                                                      Constant.makePhoneCall(
-                                                          controller
-                                                              .phone.value);
-                                                    },
-                                                    child: Row(
-                                                      children: [
-                                                        const Icon(Icons.call),
-                                                        const SizedBox(
-                                                          width: 20,
-                                                        ),
-                                                        Text(controller
-                                                            .phone.value)
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 10,
-                                                  ),
-                                                  const Divider(),
-                                                  const SizedBox(
-                                                    height: 10,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      const Icon(
-                                                          Icons.location_on),
-                                                      const SizedBox(
-                                                        width: 20,
-                                                      ),
-                                                      Expanded(
-                                                          child: Text(controller
-                                                              .address.value))
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 10),
-                                              child: SingleChildScrollView(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text("Write us".tr,
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                                fontSize: 20,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600)),
-                                                    Text(
-                                                        "Describe your issue"
-                                                            .tr,
-                                                        style: GoogleFonts
-                                                            .poppins()),
-                                                    const SizedBox(
-                                                      height: 20,
-                                                    ),
-                                                    TextFieldThem.buildTextFiled(
-                                                        context,
-                                                        hintText: 'Email'.tr,
-                                                        controller: controller
-                                                            .emailController
-                                                            .value),
-                                                    const SizedBox(
-                                                      height: 20,
-                                                    ),
-                                                    TextFieldThem.buildTextFiled(
-                                                        context,
-                                                        hintText:
-                                                            'Describe your issue and feedback'
-                                                                .tr,
-                                                        controller: controller
-                                                            .feedbackController
-                                                            .value,
-                                                        maxLine: 5),
-                                                    const SizedBox(
-                                                      height: 20,
-                                                    ),
-                                                    ButtonThem.buildButton(
-                                                      context,
-                                                      title: "Submit".tr,
-                                                      onPress: () async {
-                                                        if (controller
-                                                            .emailController
-                                                            .value
-                                                            .text
-                                                            .isEmpty) {
-                                                          ShowToastDialog.showToast(
-                                                              "Please enter email"
-                                                                  .tr);
-                                                        } else if (controller
-                                                            .feedbackController
-                                                            .value
-                                                            .text
-                                                            .isEmpty) {
-                                                          ShowToastDialog.showToast(
-                                                              "Please enter feedback"
-                                                                  .tr);
-                                                        } else {
-                                                          final Email email =
-                                                              Email(
-                                                            body: controller
-                                                                .feedbackController
-                                                                .value
-                                                                .text,
-                                                            subject: controller
-                                                                .subject.value,
-                                                            recipients: [
-                                                              controller
-                                                                  .email.value
-                                                            ],
-                                                            cc: [
-                                                              controller
-                                                                  .emailController
-                                                                  .value
-                                                                  .text
-                                                            ],
-                                                            isHTML: false,
-                                                          );
-                                                          await FlutterEmailSender
-                                                              .send(email);
-                                                          controller
-                                                              .emailController
-                                                              .value
-                                                              .clear();
-                                                          controller
-                                                              .feedbackController
-                                                              .value
-                                                              .clear();
-                                                        }
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    const Divider(),
+                                    const SizedBox(height: 10),
+                                    InkWell(
+                                      onTap: () async {
+                                        final Uri url = Uri.parse(
+                                            'https://wa.me/966542883129');
+                                        if (!await launchUrl(url,
+                                            mode: LaunchMode
+                                                .externalApplication)) {
+                                          throw Exception(
+                                              'Could not launch WhatsApp');
+                                        }
+                                      },
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.chat,
+                                              size: 28,
+                                              color: Color(0xFF25D366)),
+                                          const SizedBox(width: 20),
+                                          Text('WhatsApp'.tr,
+                                              style: GoogleFonts.poppins(
+                                                  fontSize: 16)),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    const Divider(),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.location_on, size: 28),
+                                        const SizedBox(width: 20),
+                                        Expanded(
+                                            child: Text(
+                                                controller.address.value,
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 16)))
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),

@@ -483,8 +483,7 @@ class InterCityScreen extends StatelessWidget {
                                                         child: RichText(
                                                           text: TextSpan(
                                                               text:
-                                                                  'Recommended Price ${Constant.amountShow(amount: controller.amount.value)}. Approx time ${controller.duration}'
-                                                                      .tr,
+                                                                  '${"Recommended Price".tr} ${Constant.amountShow(amount: controller.amount.value)}. ${"Approx time".tr} ${controller.duration}',
                                                               style: GoogleFonts.poppins(color: Colors.black),
                                                               children: [
                                                                 TextSpan(
@@ -1802,11 +1801,15 @@ void _notifyDriversForIntercityOrder(InterCityOrderModel orderModel) async {
         };
         await SendNotification.sendOneNotification(
           token: driver.fcmToken!,
-          title: 'طلب رحلة بين المدن'.tr,
+          title: 'Intercity Ride Request',
+          titleAr: 'طلب رحلة بين المدن',
           body:
-              'عميل يحتاج رحلة من ${orderModel.sourceLocationName ?? orderModel.sourceCity} إلى ${orderModel.destinationLocationName ?? orderModel.destinationCity}'
-                  .tr,
+              'A customer needs a ride from ${orderModel.sourceLocationName ?? orderModel.sourceCity} to ${orderModel.destinationLocationName ?? orderModel.destinationCity}',
+          bodyAr:
+              'عميل يحتاج رحلة من ${orderModel.sourceLocationName ?? orderModel.sourceCity} إلى ${orderModel.destinationLocationName ?? orderModel.destinationCity}',
           payload: payload,
+          recipientId: driver.id,
+          recipientType: 'driver',
           dataOnly: true,
         );
       }

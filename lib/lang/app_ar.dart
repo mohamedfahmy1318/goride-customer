@@ -296,4 +296,22 @@ final Map<String, String> arAR = {
   'Address': 'العنوان',
   'Website': 'الموقع الإلكتروني',
   'Follow Us': 'تابعونا',
+  // ترجمات الإشعارات
+  'Payment Received': 'تم استلام الدفع',
+  'Payment changed': 'تم تغيير طريقة الدفع',
+  'Metered Ride Request': 'طلب رحلة بالعداد',
+  'Intercity Ride Request': 'طلب رحلة بين المدن',
+  'Ride Confirmed': 'تم تأكيد الرحلة',
+  'Driver Arrived': 'السائق وصل',
+  'Ride Started': 'بدأت الرحلة',
+  'Ride complete!': 'الرحلة اكتملت!',
+  'Ride Hold Accepted': 'تم قبول تعليق الرحلة',
+  'Ride Hold Ended': 'انتهى تعليق الرحلة',
+  'Cash Payment confirmed': 'تم تأكيد الدفع النقدي',
+  'Scheduled Ride Reminder': 'تذكير برحلة مجدولة',
+  'Warning': 'تحذير',
+  'You are not able book new ride please complete previous ride payment':
+      'لا يمكنك حجز رحلة جديدة، يرجى إكمال دفع الرحلة السابقة',
+  'Recommended Price': 'السعر المقترح',
+  'Approx time': 'الوقت التقريبي',
 };

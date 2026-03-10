@@ -120,6 +120,11 @@ class SettingScreen extends StatelessWidget {
                                                         jsonEncode(controller
                                                             .selectedLanguage
                                                             .value));
+                                                    // Save language to Firestore
+                                                    FireStoreUtils
+                                                        .updateUserLanguage(
+                                                            value.code
+                                                                .toString());
                                                   },
                                                   hint: Text("select".tr),
                                                   items: controller.languageList
@@ -145,10 +150,12 @@ class SettingScreen extends StatelessWidget {
                                         child: InkWell(
                                           onTap: () async {
                                             final Uri url = Uri.parse(
-                                                Constant.supportURL.toString());
-                                            if (!await launchUrl(url)) {
+                                                'https://wa.me/966542883129');
+                                            if (!await launchUrl(url,
+                                                mode: LaunchMode
+                                                    .externalApplication)) {
                                               throw Exception(
-                                                  'Could not launch ${Constant.supportURL.toString()}'
+                                                  'Could not launch WhatsApp'
                                                       .tr);
                                             }
                                           },

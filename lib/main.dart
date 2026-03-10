@@ -36,10 +36,12 @@ void main() async {
     // Already initialized (e.g. on hot restart)
   }
 
-  // Enable Firebase App Check for production security
+  // Enable Firebase App Check
+  // Use debug provider during development, switch to playIntegrity/appAttest for production release
   await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.playIntegrity,
-    appleProvider: AppleProvider.appAttest,
+    androidProvider:
+        kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
+    appleProvider: kReleaseMode ? AppleProvider.appAttest : AppleProvider.debug,
   );
 
   // Initialize Firebase Crashlytics

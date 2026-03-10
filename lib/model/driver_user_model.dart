@@ -37,6 +37,7 @@ class DriverUserModel {
   String? licenseImage; // صورة الرخصة
   bool? isApproved; // الموافقة على فتح الحساب من الإدارة
   Timestamp? approvedAt; // تاريخ الموافقة
+  String? language;
 
   DriverUserModel(
       {this.phoneNumber,
@@ -67,7 +68,8 @@ class DriverUserModel {
       this.identityImage,
       this.licenseImage,
       this.isApproved,
-      this.approvedAt});
+      this.approvedAt,
+      this.language});
 
   DriverUserModel.fromJson(Map<String, dynamic> json) {
     phoneNumber = json['phoneNumber'];
@@ -109,6 +111,7 @@ class DriverUserModel {
     licenseImage = json['licenseImage'];
     isApproved = json['isApproved'] ?? false;
     approvedAt = json['approvedAt'];
+    language = json['language'] ?? 'ar';
   }
 
   Map<String, dynamic> toJson() {
@@ -149,6 +152,7 @@ class DriverUserModel {
     data['licenseImage'] = licenseImage;
     data['isApproved'] = isApproved;
     data['approvedAt'] = approvedAt;
+    data['language'] = language;
     return data;
   }
 }

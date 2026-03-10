@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:customer/constant/constant.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
-import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:map_launcher/map_launcher.dart';
 
@@ -13,33 +12,21 @@ class Utils {
 
     // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    debugPrint('📍 Location service enabled: $serviceEnabled');
 
     if (!serviceEnabled) {
-      // Location services are not enabled don't continue
-      // accessing the position and request users of the
-      // App to enable the location services.
-      debugPrint('⚠️ Location service disabled, opening settings...');
       await Geolocator.openLocationSettings();
     }
 
     permission = await Geolocator.checkPermission();
-    debugPrint('📍 Location permission: $permission');
 
     if (permission == LocationPermission.denied) {
-      debugPrint('⚠️ Permission denied, requesting...');
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.deniedForever) {
-        debugPrint('❌ Permission denied forever');
         return Future.error('Location Not Available');
       }
     }
 
-    // When we reach here, permissions are granted and we can
-    // continue accessing the position of the device.
-    debugPrint('✅ Getting current position...');
     final position = await Geolocator.getCurrentPosition();
-    debugPrint('📍 Got position: ${position.latitude}, ${position.longitude}');
     return position;
   }
 

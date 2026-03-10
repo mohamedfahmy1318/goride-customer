@@ -338,6 +338,14 @@ class FireStoreUtils {
     return isUpdate;
   }
 
+  static Future<void> updateUserLanguage(String langCode) async {
+    final uid = getCurrentUid();
+    if (uid.isEmpty) return;
+    await fireStore.collection(CollectionName.users).doc(uid).update({
+      'language': langCode,
+    });
+  }
+
   static Future<bool> updateDriver(DriverUserModel userModel) async {
     bool isUpdate = false;
     await fireStore
@@ -1137,7 +1145,12 @@ class FireStoreUtils {
         .get()
         .then((value) {
       ShowToastDialog.closeLoader();
-      if (value.size >= 1) {
+      // Exclude cash payment rides - driver handles cash confirmation
+      final nonCashUnpaid = value.docs.where((doc) {
+        final data = doc.data();
+        return data['paymentType'] != 'Cash';
+      }).toList();
+      if (nonCashUnpaid.isNotEmpty) {
         isFirst = true;
       } else {
         isFirst = false;
@@ -1157,8 +1170,13 @@ class FireStoreUtils {
         .get()
         .then((value) {
       ShowToastDialog.closeLoader();
-      log(value.size.toString());
-      if (value.size >= 1) {
+      // Exclude cash payment rides - driver handles cash confirmation
+      final nonCashUnpaid = value.docs.where((doc) {
+        final data = doc.data();
+        return data['paymentType'] != 'Cash';
+      }).toList();
+      log(nonCashUnpaid.length.toString());
+      if (nonCashUnpaid.isNotEmpty) {
         isFirst = true;
       } else {
         isFirst = false;

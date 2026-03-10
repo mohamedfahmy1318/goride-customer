@@ -129,9 +129,14 @@ class PaymentOrderController extends GetxController {
       await SendNotification.sendOneNotification(
           token: driverUserModel.value.fcmToken.toString(),
           title: 'Payment Received',
+          titleAr: 'تم استلام الدفع',
           body:
               '${userModel.value.fullName}  has paid ${Constant.amountShow(amount: total.value.toString())} for the completed ride.Check your earnings for details.',
-          payload: playLoad);
+          bodyAr:
+              '${userModel.value.fullName} دفع ${Constant.amountShow(amount: total.value.toString())} للرحلة المكتملة. تحقق من أرباحك.',
+          payload: playLoad,
+          recipientId: orderModel.value.driverId,
+          recipientType: 'driver');
     }
 
     await FireStoreUtils.getFirestOrderOrNOt(orderModel.value)
@@ -157,9 +162,13 @@ class PaymentOrderController extends GetxController {
 
     await SendNotification.sendOneNotification(
         token: driverUserModel.value.fcmToken.toString(),
-        title: 'Payment changed.',
+        title: 'Payment changed',
+        titleAr: 'تم تغيير طريقة الدفع',
         body: '${userModel.value.fullName} has changed payment method.',
-        payload: {});
+        bodyAr: '${userModel.value.fullName} قام بتغيير طريقة الدفع.',
+        payload: {},
+        recipientId: orderModel.value.driverId,
+        recipientType: 'driver');
 
     FireStoreUtils.setOrder(orderModel.value).then((value) {
       if (value == true) {
@@ -263,9 +272,14 @@ class PaymentOrderController extends GetxController {
       await SendNotification.sendOneNotification(
           token: driverUserModel.value.fcmToken.toString(),
           title: 'Payment Received',
+          titleAr: 'تم استلام الدفع',
           body:
               '${userModel.value.fullName} has paid ${Constant.amountShow(amount: total.value.toString())} from wallet.',
-          payload: playLoad);
+          bodyAr:
+              '${userModel.value.fullName} دفع ${Constant.amountShow(amount: total.value.toString())} من المحفظة.',
+          payload: playLoad,
+          recipientId: orderModel.value.driverId,
+          recipientType: 'driver');
     }
 
     // Referral check

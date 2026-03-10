@@ -108,7 +108,8 @@
 
         <service
             android:name="com.goride.customer.backgroundService"
-            android:exported="false">
+            android:exported="false"
+            android:foregroundServiceType="shortService">
             <intent-filter>
                 <action android:name="com.goride.customer.START_BACKGROUND" />
             </intent-filter>

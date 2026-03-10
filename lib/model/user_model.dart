@@ -14,9 +14,23 @@ class UserModel {
   String? walletAmount;
   bool? isActive;
   Timestamp? createdAt;
+  String? language;
 
   UserModel(
-      {this.fullName, this.id, this.email, this.loginType, this.profilePic, this.fcmToken, this.countryCode, this.phoneNumber, this.reviewsCount, this.reviewsSum, this.isActive, this.walletAmount,this.createdAt});
+      {this.fullName,
+      this.id,
+      this.email,
+      this.loginType,
+      this.profilePic,
+      this.fcmToken,
+      this.countryCode,
+      this.phoneNumber,
+      this.reviewsCount,
+      this.reviewsSum,
+      this.isActive,
+      this.walletAmount,
+      this.createdAt,
+      this.language});
 
   UserModel.fromJson(Map<String, dynamic> json) {
     fullName = json['fullName'];
@@ -32,6 +46,7 @@ class UserModel {
     isActive = json['isActive'];
     walletAmount = json['walletAmount'] ?? "0";
     createdAt = json['createdAt'];
+    language = json['language'] ?? 'ar';
   }
 
   Map<String, dynamic> toJson() {
@@ -49,6 +64,7 @@ class UserModel {
     data['isActive'] = isActive;
     data['walletAmount'] = walletAmount;
     data['createdAt'] = createdAt;
+    data['language'] = language;
     return data;
   }
 }

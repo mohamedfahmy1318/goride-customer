@@ -122,7 +122,7 @@ class OrderScreen extends StatelessWidget {
                                   return snapshot.data!.docs.isEmpty
                                       ? Center(
                                           child:
-                                              Text("No active rides found".tr),
+                                              Text("No active rides Found".tr),
                                         )
                                       : ListView.builder(
                                           itemCount: snapshot.data!.docs.length,
@@ -818,16 +818,20 @@ class OrderScreen extends StatelessWidget {
                                                         const SizedBox(
                                                           height: 10,
                                                         ),
+                                                        // Show Pay button only for non-cash completed rides
+                                                        // Cash payment is confirmed by driver only
                                                         Visibility(
-                                                            visible: orderModel
-                                                                        .status ==
+                                                            visible: orderModel.status ==
                                                                     Constant
                                                                         .rideComplete &&
                                                                 (orderModel.paymentStatus ==
                                                                         null ||
                                                                     orderModel
                                                                             .paymentStatus ==
-                                                                        false),
+                                                                        false) &&
+                                                                orderModel
+                                                                        .paymentType !=
+                                                                    "Cash",
                                                             child: ButtonThem
                                                                 .buildButton(
                                                               context,
@@ -841,7 +845,6 @@ class OrderScreen extends StatelessWidget {
                                                                       "orderModel":
                                                                           orderModel,
                                                                     });
-                                                                // paymentMethodDialog(context, controller, orderModel);
                                                               },
                                                             )),
                                                       ],
@@ -877,7 +880,7 @@ class OrderScreen extends StatelessWidget {
                                   return snapshot.data!.docs.isEmpty
                                       ? Center(
                                           child: Text(
-                                              "No completed rides found".tr),
+                                              "No completed rides Found".tr),
                                         )
                                       : ListView.builder(
                                           itemCount: snapshot.data!.docs.length,
@@ -1061,7 +1064,7 @@ class OrderScreen extends StatelessWidget {
                                   return snapshot.data!.docs.isEmpty
                                       ? Center(
                                           child: Text(
-                                              "No completed rides found".tr),
+                                              "No completed rides Found".tr),
                                         )
                                       : ListView.builder(
                                           itemCount: snapshot.data!.docs.length,
@@ -1303,8 +1306,14 @@ void _showCancelRideDialog(BuildContext context, OrderModel orderModel) {
                   await SendNotification.sendOneNotification(
                     token: driver.fcmToken.toString(),
                     title: 'Ride Canceled'.tr,
-                    body: 'The customer has canceled the ride.'.tr,
+                    titleAr:
+                        '\u062a\u0645 \u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u0631\u062d\u0644\u0629',
+                    body: 'The customer has canceled the ride.',
+                    bodyAr:
+                        '\u0642\u0627\u0645 \u0627\u0644\u0639\u0645\u064a\u0644 \u0628\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u0631\u062d\u0644\u0629.',
                     payload: playLoad,
+                    recipientId: driver.id,
+                    recipientType: 'driver',
                   );
                 }
               }

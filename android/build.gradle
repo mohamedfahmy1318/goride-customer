@@ -3,7 +3,12 @@ allprojects {
         google()
         mavenCentral()
         maven { url "${rootProject.projectDir}/local-repo" }
-        maven { url 'https://jitpack.io' }
+        maven {
+            url 'https://jitpack.io'
+            content {
+                excludeGroup 'io.flutter'
+            }
+        }
     }
 }
 

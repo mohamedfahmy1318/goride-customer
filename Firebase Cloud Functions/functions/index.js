@@ -288,6 +288,7 @@ exports.bankilyCheckTransaction = onCall(async (request) => {
 // Cloud Function: Send Push Notification (Server-side)
 // ============================================================================
 // Sends FCM notifications securely from the server
+// Supports bilingual notifications: titleAr/bodyAr for Arabic, title/body as English default
 // Required data: { token, title, body, payload, dataOnly? }
 // For multiple tokens: { tokens, title, body, payload }
 exports.sendNotification = onCall(async (request) => {
@@ -295,7 +296,7 @@ exports.sendNotification = onCall(async (request) => {
         throw new HttpsError('unauthenticated', 'Must be authenticated.');
     }
 
-    const { token, tokens, title, body, payload, dataOnly } = request.data;
+    const { token, tokens, title, body, titleAr, bodyAr, recipientId, recipientType, payload, dataOnly } = request.data;
 
     if (!title || !body) {
         throw new HttpsError('invalid-argument', 'Missing title or body');
@@ -305,6 +306,23 @@ exports.sendNotification = onCall(async (request) => {
     if (targetTokens.length === 0) {
         throw new HttpsError('invalid-argument', 'Missing token or tokens');
     }
+
+    // Determine recipient's language if bilingual data provided
+    let lang = 'ar'; // default
+    if (titleAr && recipientId && recipientType) {
+        try {
+            const collection = recipientType === 'driver' ? 'driver_users' : 'users';
+            const userDoc = await admin.firestore().collection(collection).doc(recipientId).get();
+            if (userDoc.exists && userDoc.data().language) {
+                lang = userDoc.data().language;
+            }
+        } catch (e) {
+            console.warn('Could not fetch recipient language:', e.message);
+        }
+    }
+
+    const finalTitle = (lang === 'ar' && titleAr) ? titleAr : title;
+    const finalBody = (lang === 'ar' && bodyAr) ? bodyAr : body;
 
     const results = [];
     for (const fcmToken of targetTokens) {
@@ -316,10 +334,10 @@ exports.sendNotification = onCall(async (request) => {
                 android: { priority: 'high' },
             };
             if (dataOnly) {
-                message.data.title = title;
-                message.data.body = body;
+                message.data.title = finalTitle;
+                message.data.body = finalBody;
             } else {
-                message.notification = { title, body };
+                message.notification = { title: finalTitle, body: finalBody };
             }
             const response = await admin.messaging().send(message);
             results.push({ token: fcmToken, success: true, messageId: response });

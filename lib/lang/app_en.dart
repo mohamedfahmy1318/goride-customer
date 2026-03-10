@@ -311,4 +311,22 @@ final Map<String, String> enUS = {
   'Address': 'Address',
   'Website': 'Website',
   'Follow Us': 'Follow Us',
+  // Notification translations
+  'Payment Received': 'Payment Received',
+  'Payment changed': 'Payment changed',
+  'Metered Ride Request': 'Metered Ride Request',
+  'Intercity Ride Request': 'Intercity Ride Request',
+  'Ride Confirmed': 'Ride Confirmed',
+  'Driver Arrived': 'Driver Arrived',
+  'Ride Started': 'Ride Started',
+  'Ride complete!': 'Ride complete!',
+  'Ride Hold Accepted': 'Ride Hold Accepted',
+  'Ride Hold Ended': 'Ride Hold Ended',
+  'Cash Payment confirmed': 'Cash Payment confirmed',
+  'Scheduled Ride Reminder': 'Scheduled Ride Reminder',
+  'Warning': 'Warning',
+  'You are not able book new ride please complete previous ride payment':
+      'You are not able book new ride please complete previous ride payment',
+  'Recommended Price': 'Recommended Price',
+  'Approx time': 'Approx time',
 };

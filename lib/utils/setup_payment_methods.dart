@@ -46,7 +46,7 @@ class PaymentMethodsSetup {
           'name': 'Sedad',
           'enable': true,
           'isSandbox': false,
-          'merchantId': '', // TODO: Add merchant ID
+          'merchantId': '',
           'description': 'الدفع عبر سداد',
           'icon': 'sedad',
           'color': '#2196F3',
@@ -56,7 +56,7 @@ class PaymentMethodsSetup {
           'name': 'Click',
           'enable': true,
           'isSandbox': false,
-          'merchantId': '', // TODO: Add merchant ID
+          'merchantId': '',
           'description': 'الدفع عبر كليك / مصرفي',
           'icon': 'click',
           'color': '#FF9800',

@@ -92,6 +92,17 @@ class GlobalSettingController extends GetxController {
           if (value != null) {
             UserModel driverUserModel = value;
             driverUserModel.fcmToken = token;
+            // Save language to Firestore
+            String langPref =
+                Preferences.getString(Preferences.languageCodeKey);
+            if (langPref.isNotEmpty) {
+              try {
+                final langData = jsonDecode(langPref);
+                driverUserModel.language = langData['code'] ?? 'ar';
+              } catch (_) {
+                driverUserModel.language = 'ar';
+              }
+            }
             FireStoreUtils.updateUser(driverUserModel);
           }
         });

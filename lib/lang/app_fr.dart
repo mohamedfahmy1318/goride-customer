@@ -319,4 +319,9 @@ final Map<String, String> trFr = {
   'Address': 'Adresse',
   'Website': 'Site web',
   'Follow Us': 'Suivez-nous',
+  'Warning': 'Avertissement',
+  'You are not able book new ride please complete previous ride payment':
+      'Vous ne pouvez pas réserver un nouveau trajet, veuillez compléter le paiement du trajet précédent',
+  'Recommended Price': 'Prix recommandé',
+  'Approx time': 'Temps approximatif',
 };

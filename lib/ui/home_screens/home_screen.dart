@@ -258,35 +258,8 @@ class HomeScreen extends StatelessWidget {
                                                                             value.lon);
                                                                 await controller
                                                                     .calculateDurationAndDistance();
-                                                                // Check minimum 1 km distance
-                                                                double dist =
-                                                                    double.tryParse(controller
-                                                                            .distance
-                                                                            .value) ??
-                                                                        0.0;
-                                                                if (dist < 1) {
-                                                                  controller
-                                                                      .destinationLocationController
-                                                                      .value
-                                                                      .clear();
-                                                                  controller
-                                                                          .destinationLocationLAtLng
-                                                                          .value =
-                                                                      LocationLatLng();
-                                                                  controller
-                                                                      .distance
-                                                                      .value = "";
-                                                                  controller
-                                                                      .amount
-                                                                      .value = "";
-                                                                  ShowToastDialog
-                                                                      .showToast(
-                                                                          "The destination must be at least 1 km away"
-                                                                              .tr);
-                                                                } else {
-                                                                  controller
-                                                                      .calculateAmount();
-                                                                }
+                                                                controller
+                                                                    .calculateAmount();
                                                               }
                                                             });
                                                           } else {
@@ -324,33 +297,8 @@ class HomeScreen extends StatelessWidget {
                                                                             .lng);
                                                                     await controller
                                                                         .calculateDurationAndDistance();
-                                                                    // Check minimum 1 km distance
-                                                                    double
-                                                                        dist =
-                                                                        double.tryParse(controller.distance.value) ??
-                                                                            0.0;
-                                                                    if (dist <
-                                                                        1) {
-                                                                      controller
-                                                                          .destinationLocationController
-                                                                          .value
-                                                                          .clear();
-                                                                      controller
-                                                                          .destinationLocationLAtLng
-                                                                          .value = LocationLatLng();
-                                                                      controller
-                                                                          .distance
-                                                                          .value = "";
-                                                                      controller
-                                                                          .amount
-                                                                          .value = "";
-                                                                      ShowToastDialog.showToast(
-                                                                          "The destination must be at least 1 km away"
-                                                                              .tr);
-                                                                    } else {
-                                                                      controller
-                                                                          .calculateAmount();
-                                                                    }
+                                                                    controller
+                                                                        .calculateAmount();
                                                                   },
                                                                   // Global search - no region restriction
                                                                   initialPosition:
@@ -1620,9 +1568,10 @@ class HomeScreen extends StatelessWidget {
 
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
-      title: const Text("Warning"),
-      content: const Text(
-          "You are not able book new ride please complete previous ride payment"),
+      title: Text("Warning".tr),
+      content: Text(
+          "You are not able book new ride please complete previous ride payment"
+              .tr),
       actions: [
         okButton,
       ],
@@ -1743,9 +1692,13 @@ class HomeScreen extends StatelessWidget {
               };
               await SendNotification.sendOneNotification(
                   token: driver.fcmToken.toString(),
-                  title: 'New Ride Available'.tr,
-                  body: 'A customer has placed a ride near your location.'.tr,
+                  title: 'New Ride Available',
+                  titleAr: 'رحلة جديدة متاحة',
+                  body: 'A customer has placed a ride near your location.',
+                  bodyAr: 'عميل حجز رحلة بالقرب من موقعك.',
                   payload: playLoad,
+                  recipientId: driver.id,
+                  recipientType: 'driver',
                   dataOnly:
                       true); // data-only: prevents Firebase from auto-showing a duplicate system notification
             }
@@ -1923,9 +1876,13 @@ class HomeScreen extends StatelessWidget {
               };
               await SendNotification.sendOneNotification(
                   token: driver.fcmToken.toString(),
-                  title: 'طلب رحلة بالعداد'.tr,
-                  body: 'عميل قريب منك يحتاج رحلة بالعداد.'.tr,
+                  title: 'Metered Ride Request',
+                  titleAr: 'طلب رحلة بالعداد',
+                  body: 'A customer nearby needs a metered ride.',
+                  bodyAr: 'عميل قريب منك يحتاج رحلة بالعداد.',
                   payload: playLoad,
+                  recipientId: driver.id,
+                  recipientType: 'driver',
                   dataOnly: true);
             }
           }

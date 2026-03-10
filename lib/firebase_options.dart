@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAZM9MMaizcCmg_c-TDA9-WTeKvipdLFRA',
-    appId: '1:202123276886:android:d8e774cb0b1f02474181f7',
+    appId: '1:202123276886:android:12bf4f0fb15c4c0e4181f7',
     messagingSenderId: '202123276886',
     projectId: 'goride-a9d8f',
     databaseURL: 'https://goride-a9d8f-default-rtdb.firebaseio.com',

@@ -474,9 +474,13 @@ class _ChatScreensState extends State<ChatScreens> {
 
     SendNotification.sendOneNotification(
         title:
-            "${widget.customerName} ${messageType == "image" ? messageType == "video" ? "sent video to you" : "sent image to you" : "sent message to you"}",
+            "${widget.customerName} ${messageType == "image" ? "sent image to you" : messageType == "video" ? "sent video to you" : "sent message to you"}",
+        titleAr:
+            "${widget.customerName} ${messageType == "image" ? "\u0623\u0631\u0633\u0644 \u0644\u0643 \u0635\u0648\u0631\u0629" : messageType == "video" ? "\u0623\u0631\u0633\u0644 \u0644\u0643 \u0641\u064a\u062f\u064a\u0648" : "\u0623\u0631\u0633\u0644 \u0644\u0643 \u0631\u0633\u0627\u0644\u0629"}",
         body: conversationModel.message.toString(),
         token: widget.token.toString(),
+        recipientId: widget.driverId,
+        recipientType: 'driver',
         payload: playLoad);
   }
 

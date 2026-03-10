@@ -12,7 +12,11 @@ class SendNotification {
       required String title,
       required String body,
       required Map<String, dynamic> payload,
-      bool dataOnly = false}) async {
+      bool dataOnly = false,
+      String? titleAr,
+      String? bodyAr,
+      String? recipientId,
+      String? recipientType}) async {
     if (token.isEmpty) {
       debugPrint('FCM token is empty, skipping notification');
       return false;
@@ -20,13 +24,18 @@ class SendNotification {
 
     try {
       final callable = _functions.httpsCallable('sendNotification');
-      final result = await callable.call<Map<String, dynamic>>({
+      final Map<String, dynamic> callData = {
         'token': token,
         'title': title,
         'body': body,
         'payload': payload.map((key, value) => MapEntry(key, value.toString())),
         'dataOnly': dataOnly,
-      });
+      };
+      if (titleAr != null) callData['titleAr'] = titleAr;
+      if (bodyAr != null) callData['bodyAr'] = bodyAr;
+      if (recipientId != null) callData['recipientId'] = recipientId;
+      if (recipientType != null) callData['recipientType'] = recipientType;
+      final result = await callable.call<Map<String, dynamic>>(callData);
 
       log('Notification sent via Cloud Function: ${result.data}');
       return true;

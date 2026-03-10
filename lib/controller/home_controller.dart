@@ -63,7 +63,6 @@ class HomeController extends GetxController {
 
   @override
   void onInit() {
-    // TODO: implement onInit
     getLocation();
     getServiceType();
     getPaymentData();
@@ -73,13 +72,9 @@ class HomeController extends GetxController {
 
   Future<void> getLocation() async {
     try {
-      debugPrint('🔍 Getting current location...');
       Constant.currentLocation = await Utils.getCurrentLocation();
-      debugPrint(
-          '📍 Location: ${Constant.currentLocation?.latitude}, ${Constant.currentLocation?.longitude}');
 
       if (Constant.currentLocation == null) {
-        debugPrint('❌ Location is null');
         return;
       }
 
@@ -90,7 +85,6 @@ class HomeController extends GetxController {
       // Method 1: Google geocoding (native platform)
       if (Constant.selectedMapType == 'google') {
         try {
-          debugPrint('🗺️ Trying Google geocoding...');
           List<Placemark> placeMarks = await placemarkFromCoordinates(
             Constant.currentLocation!.latitude,
             Constant.currentLocation!.longitude,
@@ -101,17 +95,13 @@ class HomeController extends GetxController {
             address =
                 "${placeMarks.first.name}, ${placeMarks.first.subLocality}, ${placeMarks.first.locality}, ${placeMarks.first.administrativeArea}, ${placeMarks.first.postalCode}, ${placeMarks.first.country}";
             geocoded = true;
-            debugPrint('✅ Google geocoding success: $address');
           }
-        } catch (geoError) {
-          debugPrint('⚠️ Google geocoding failed: $geoError');
-        }
+        } catch (_) {}
       }
 
       // Method 2: Nominatim fallback (or primary if OSM selected)
       if (!geocoded) {
         try {
-          debugPrint('🗺️ Trying Nominatim geocoding...');
           Place place = await Nominatim.reverseSearch(
             lat: Constant.currentLocation!.latitude,
             lon: Constant.currentLocation!.longitude,
@@ -124,17 +114,13 @@ class HomeController extends GetxController {
           Constant.country = place.address?['country'] ?? '';
           Constant.city = place.address?['city'] ?? '';
           geocoded = true;
-          debugPrint('✅ Nominatim geocoding success: $address');
-        } catch (nomError) {
-          debugPrint('⚠️ Nominatim geocoding failed: $nomError');
-        }
+        } catch (_) {}
       }
 
       // Method 3: Use raw coordinates if all geocoding fails
       if (!geocoded) {
         address =
             '${Constant.currentLocation!.latitude.toStringAsFixed(4)}, ${Constant.currentLocation!.longitude.toStringAsFixed(4)}';
-        debugPrint('📍 Using raw coordinates as address: $address');
       }
 
       currentLocation.value = address;
@@ -146,7 +132,6 @@ class HomeController extends GetxController {
       );
       sourceLocationController.value.text = currentLocation.value;
     } catch (e) {
-      debugPrint('❌ Location Error: $e');
       ShowToastDialog.showToast(
         "Location access permission is currently unavailable. You're unable to retrieve any location data. Please grant permission from your device settings.",
         duration: const Duration(seconds: 3),
