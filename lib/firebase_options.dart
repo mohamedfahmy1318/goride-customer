@@ -60,7 +60,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDX0jLAAEL6KWQeWE7hNVA7IL7kIBzzrFA',
-    appId: '1:202123276886:ios:f1668f338d6f77be4181f7',
+    appId: '1:202123276886:ios:05d07e02190a886f4181f7',
     messagingSenderId: '202123276886',
     projectId: 'goride-a9d8f',
     databaseURL: 'https://goride-a9d8f-default-rtdb.firebaseio.com',
@@ -68,7 +68,7 @@ class DefaultFirebaseOptions {
     androidClientId:
         '202123276886-3eihnt78fpp7khqbb5ts9o7j160al802.apps.googleusercontent.com',
     iosClientId:
-        '202123276886-47lq670ko4c61dmngfm8dpdqop0ebmsg.apps.googleusercontent.com',
-    iosBundleId: 'com.goride.customer',
+        '202123276886-vp8nv1gsolu0142qivimd8lq8l48g1qn.apps.googleusercontent.com',
+    iosBundleId: 'cloud.goride.customer',
   );
 }
