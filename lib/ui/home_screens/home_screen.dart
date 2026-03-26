@@ -101,7 +101,7 @@ class HomeScreen extends StatelessWidget {
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.background,
+                              color: Theme.of(context).colorScheme.surface,
                               borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(25),
                                   topRight: Radius.circular(25))),
@@ -505,7 +505,7 @@ class HomeScreen extends StatelessWidget {
                                                                 color: Theme.of(
                                                                         context)
                                                                     .colorScheme
-                                                                    .background,
+                                                                    .surface,
                                                                 borderRadius:
                                                                     const BorderRadius
                                                                         .all(
@@ -886,7 +886,7 @@ class HomeScreen extends StatelessWidget {
 
   paymentMethodDialog(BuildContext context, HomeController controller) {
     return showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
                 topRight: Radius.circular(15), topLeft: Radius.circular(15))),
@@ -1165,7 +1165,7 @@ class HomeScreen extends StatelessWidget {
 
   someOneTakingDialog(BuildContext context, HomeController controller) {
     return showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
                 topRight: Radius.circular(15), topLeft: Radius.circular(15))),
@@ -1400,7 +1400,7 @@ class HomeScreen extends StatelessWidget {
   ariPortDialog(
       BuildContext context, HomeController controller, bool isSource) {
     return showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
                 topRight: Radius.circular(15), topLeft: Radius.circular(15))),

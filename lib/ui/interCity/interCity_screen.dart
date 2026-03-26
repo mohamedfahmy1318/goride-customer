@@ -60,7 +60,7 @@ class InterCityScreen extends StatelessWidget {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.background,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: const BorderRadius.only(
                                 topLeft: Radius.circular(25),
                                 topRight: Radius.circular(25))),
@@ -304,7 +304,7 @@ class InterCityScreen extends StatelessWidget {
                                                           color:
                                                               Theme.of(context)
                                                                   .colorScheme
-                                                                  .background,
+                                                                  .surface,
                                                           borderRadius:
                                                               const BorderRadius
                                                                   .all(
@@ -1179,7 +1179,7 @@ class InterCityScreen extends StatelessWidget {
 
   paymentMethodDialog(BuildContext context, InterCityController controller) {
     return showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
                 topRight: Radius.circular(15), topLeft: Radius.circular(15))),
@@ -1450,7 +1450,7 @@ class InterCityScreen extends StatelessWidget {
 
   someOneTakingDialog(BuildContext context, InterCityController controller) {
     return showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
                 topRight: Radius.circular(15), topLeft: Radius.circular(15))),
@@ -1753,9 +1753,9 @@ class InterCityScreen extends StatelessWidget {
           onPressed: () async {
             Get.back();
             await ImagePicker().pickMultiImage().then((value) {
-              value.forEach((element) {
+              for (var element in value) {
                 controller.images.add(element);
-              });
+              }
             });
           },
           child: Text('Choose image from gallery'.tr),

@@ -49,7 +49,7 @@ class LiveTrackingController extends GetxController {
   getArgument() async {
     log("=====argumentData====");
     dynamic argumentData = Get.arguments;
-    log("=====argumentData====${argumentData}");
+    log("=====argumentData====$argumentData");
     if (argumentData != null) {
       type.value = argumentData['type'];
 
@@ -616,24 +616,22 @@ class LiveTrackingController extends GetxController {
       log("======${location.latitude}==${location.longitude}");
       log("======${destinationlocation.latitude}==${destinationlocation.longitude}");
 
-      if (destinationlocation != null) {
-        await mapOsmController.removeLastRoad();
-        roadInfo.value = await mapOsmController.drawRoad(
-          location,
-          destinationlocation,
-          roadType: RoadType.car,
-          roadOption: const RoadOption(
-            roadWidth: 15,
-            roadColor:
-                AppColors.primary, //themeChange ? AppColors.darkModePrimary :
-            zoomInto: false,
-          ),
-        );
-        mapOsmController.moveTo(
-          GeoPoint(latitude: location.latitude, longitude: location.longitude),
-          animate: true,
-        );
-      }
+      await mapOsmController.removeLastRoad();
+      roadInfo.value = await mapOsmController.drawRoad(
+        location,
+        destinationlocation,
+        roadType: RoadType.car,
+        roadOption: const RoadOption(
+          roadWidth: 15,
+          roadColor:
+              AppColors.primary, //themeChange ? AppColors.darkModePrimary :
+          zoomInto: false,
+        ),
+      );
+      mapOsmController.moveTo(
+        GeoPoint(latitude: location.latitude, longitude: location.longitude),
+        animate: true,
+      );
     } catch (e) {
       log('Error: $e');
     }

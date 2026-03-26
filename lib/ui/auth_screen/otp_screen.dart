@@ -18,7 +18,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 
 class OtpScreen extends StatelessWidget {
-  const OtpScreen({Key? key}) : super(key: key);
+  const OtpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

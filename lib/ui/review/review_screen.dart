@@ -17,7 +17,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class ReviewScreen extends StatelessWidget {
-  const ReviewScreen({Key? key}) : super(key: key);
+  const ReviewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

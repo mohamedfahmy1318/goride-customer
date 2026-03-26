@@ -3,6 +3,7 @@
 /// ============================================================================
 /// Models for the eBankily B-PAY direct API integration.
 /// ============================================================================
+library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 

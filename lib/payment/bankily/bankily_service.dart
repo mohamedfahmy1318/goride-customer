@@ -4,6 +4,7 @@
 /// Handles Bankily payments via Firebase Cloud Functions.
 /// The Cloud Function communicates with the eBankily B-PAY API server-side.
 /// ============================================================================
+library;
 
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';

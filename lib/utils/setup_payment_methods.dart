@@ -3,6 +3,7 @@
 /// ============================================================================
 /// Run this script ONCE to initialize payment methods in Firestore.
 /// ============================================================================
+library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';

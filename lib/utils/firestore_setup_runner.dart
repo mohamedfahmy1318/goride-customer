@@ -1,6 +1,7 @@
 /// ============================================================================
 /// GO RIDE CUSTOMER - One-Time Firestore Setup Runner
 /// ============================================================================
+library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:developer';

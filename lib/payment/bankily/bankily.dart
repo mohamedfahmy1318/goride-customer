@@ -1,6 +1,7 @@
 /// ============================================================================
 /// GO RIDE - Bankily Payment Module Exports
 /// ============================================================================
+library;
 
 export 'bankily_config.dart';
 export 'bankily_models.dart';

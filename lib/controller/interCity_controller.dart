@@ -151,12 +151,8 @@ class InterCityController extends GetxController {
   }
 
   calculateOsmAmount() async {
-    log(sourceLocationLAtLng.value.latitude.toString() +
-        "::: duration sourceLocationLAtLng :::" +
-        sourceLocationLAtLng.value.longitude.toString());
-    log(destinationLocationLAtLng.value.latitude.toString() +
-        "::: duration destinationLocationLAtLng :::" +
-        destinationLocationLAtLng.value.longitude.toString());
+    log("${sourceLocationLAtLng.value.latitude}::: duration sourceLocationLAtLng :::${sourceLocationLAtLng.value.longitude}");
+    log("${destinationLocationLAtLng.value.latitude}::: duration destinationLocationLAtLng :::${destinationLocationLAtLng.value.longitude}");
     amount.value = "0.0";
     offerYourRateController.value.text = "0.0";
     if (sourceLocationLAtLng.value.latitude != null &&

@@ -62,11 +62,6 @@ class DashBoardController extends GetxController {
     }
   }
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
-
   RxInt selectedDrawerIndex = 0.obs;
 
   onSelectItem(int index) async {

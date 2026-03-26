@@ -447,7 +447,7 @@ class Constant {
       await uploadTask;
       final String videoUrl = await videoRef.getDownloadURL();
       ShowToastDialog.showLoader("Generating thumbnail...");
-      final Uint8List? thumbnailBytes = await VideoThumbnail.thumbnailData(
+      final Uint8List thumbnailBytes = await VideoThumbnail.thumbnailData(
         video: video.path,
         imageFormat: ImageFormat.JPEG,
         maxHeight: 200,

@@ -22,7 +22,7 @@ class _LocationPickerState extends State<LocationPicker> {
   late MapController mapController;
   Place? place;
   TextEditingController textController = TextEditingController();
-  List<GeoPoint> _markers = [];
+  final List<GeoPoint> _markers = [];
 
   @override
   void initState() {

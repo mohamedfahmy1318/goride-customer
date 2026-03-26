@@ -69,13 +69,13 @@ class ButtonThem {
         height: btnHeight,
         child: ElevatedButton(
           style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all<Color>(
+            backgroundColor: WidgetStateProperty.all<Color>(
                 themeChange.getThem() ? AppColors.primary : AppColors.primary),
-            foregroundColor: MaterialStateProperty.all<Color>(
+            foregroundColor: WidgetStateProperty.all<Color>(
                 themeChange.getThem()
                     ? AppColors.background
                     : AppColors.primary),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(borderRadius),
                 side: BorderSide(

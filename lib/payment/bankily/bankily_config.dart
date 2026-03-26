@@ -4,6 +4,7 @@
 /// Direct integration with eBankily B-PAY API via Firebase Cloud Functions.
 /// Merchant: GO RIDE SUARL - Code: 025647
 /// ============================================================================
+library;
 
 class BankilyConfig {
   // ============================================================================

@@ -20,7 +20,7 @@ import 'package:provider/provider.dart';
 import '../../themes/button_them.dart';
 
 class InterCityPaymentOrderScreen extends StatelessWidget {
-  const InterCityPaymentOrderScreen({Key? key}) : super(key: key);
+  const InterCityPaymentOrderScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +64,7 @@ class InterCityPaymentOrderScreen extends StatelessWidget {
                         ? Constant.loader()
                         : Container(
                             decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.background,
+                                color: Theme.of(context).colorScheme.surface,
                                 borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(25),
                                     topRight: Radius.circular(25))),

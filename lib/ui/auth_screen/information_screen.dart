@@ -20,7 +20,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class InformationScreen extends StatelessWidget {
-  const InformationScreen({Key? key}) : super(key: key);
+  const InformationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

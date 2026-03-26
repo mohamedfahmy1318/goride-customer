@@ -19,10 +19,6 @@ class Styles {
           error: isDarkTheme ? AppColors.darkBackground : AppColors.background,
           onError:
               isDarkTheme ? AppColors.darkBackground : AppColors.background,
-          background:
-              isDarkTheme ? AppColors.darkBackground : AppColors.background,
-          onBackground:
-              isDarkTheme ? AppColors.darkBackground : AppColors.background,
           surface:
               isDarkTheme ? AppColors.darkBackground : AppColors.background,
           onSurface:

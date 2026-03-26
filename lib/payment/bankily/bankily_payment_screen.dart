@@ -8,6 +8,7 @@
 /// 4. Enters phone number + passcode here
 /// 5. We call Cloud Function -> eBankily API to process payment
 /// ============================================================================
+library;
 
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';

@@ -18,7 +18,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class IntercityCompleteOrderScreen extends StatelessWidget {
-  const IntercityCompleteOrderScreen({Key? key}) : super(key: key);
+  const IntercityCompleteOrderScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +62,7 @@ class IntercityCompleteOrderScreen extends StatelessWidget {
                         ? const Center(child: CircularProgressIndicator())
                         : Container(
                             decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.background,
+                                color: Theme.of(context).colorScheme.surface,
                                 borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(25),
                                     topRight: Radius.circular(25))),

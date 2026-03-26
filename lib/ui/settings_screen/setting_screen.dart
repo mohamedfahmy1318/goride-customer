@@ -5,7 +5,6 @@ import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/services/localization_service.dart';
 import 'package:customer/themes/app_colors.dart';
 import 'package:customer/themes/responsive.dart';
-import 'package:customer/ui/auth_screen/login_screen.dart';
 import 'package:customer/utils/DarkThemeProvider.dart';
 import 'package:customer/utils/Preferences.dart';
 import 'package:customer/utils/fire_store_utils.dart';
@@ -45,7 +44,7 @@ class SettingScreen extends StatelessWidget {
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.background,
+                              color: Theme.of(context).colorScheme.surface,
                               borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(25),
                                   topRight: Radius.circular(25))),
@@ -98,7 +97,7 @@ class SettingScreen extends StatelessWidget {
                                                     border: InputBorder.none,
                                                     isDense: true,
                                                   ),
-                                                  value: controller
+                                                  initialValue: controller
                                                               .selectedLanguage
                                                               .value
                                                               .id ==
@@ -223,16 +222,14 @@ class SettingScreen extends StatelessWidget {
     Widget okButton = TextButton(
       child: Text("OK".tr),
       onPressed: () async {
-        ShowToastDialog.showLoader("Please wait".tr);
-        await FireStoreUtils.deleteUser().then((value) {
-          ShowToastDialog.closeLoader();
-          if (value == true) {
-            ShowToastDialog.showToast("Account delete".tr);
-            Get.offAll(const LoginScreen());
-          } else {
-            ShowToastDialog.showToast("Please contact to administrator".tr);
-          }
-        });
+        Get.back();
+        final String rawSupport = Constant.supportURL ?? '';
+        final String supportLink =
+            rawSupport.isNotEmpty ? rawSupport : 'https://wa.me/966542883129';
+        final Uri url = Uri.parse(supportLink);
+        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+          ShowToastDialog.showToast("Please contact to administrator".tr);
+        }
       },
     );
     Widget cancel = TextButton(

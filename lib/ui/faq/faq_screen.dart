@@ -17,7 +17,9 @@ class FaqScreen extends StatelessWidget {
     final themeChange = Provider.of<DarkThemeProvider>(context);
 
     return Scaffold(
-      backgroundColor: themeChange.getThem() ? AppColors.darkBackground : AppColors.background,
+      backgroundColor: themeChange.getThem()
+          ? AppColors.darkBackground
+          : AppColors.background,
       body: Column(
         children: [
           SizedBox(
@@ -26,7 +28,11 @@ class FaqScreen extends StatelessWidget {
           ),
           Expanded(
             child: Container(
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.background, borderRadius: const BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25))),
+              decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(25),
+                      topRight: Radius.circular(25))),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: Padding(
@@ -34,8 +40,11 @@ class FaqScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("FAQs".tr, style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600)),
-                      Text("Read FAQs solution".tr, style: GoogleFonts.poppins()),
+                      Text("FAQs".tr,
+                          style: GoogleFonts.poppins(
+                              fontSize: 20, fontWeight: FontWeight.w600)),
+                      Text("Read FAQs solution".tr,
+                          style: GoogleFonts.poppins()),
                       const SizedBox(
                         height: 20,
                       ),
@@ -61,27 +70,53 @@ class FaqScreen extends StatelessWidget {
                                             faqModel.isShow = true;
                                           },
                                           child: Padding(
-                                            padding: const EdgeInsets.symmetric(vertical: 5),
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 5),
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                color: themeChange.getThem() ? AppColors.darkContainerBackground : AppColors.containerBackground,
-                                                borderRadius: const BorderRadius.all(Radius.circular(10)),
-                                                border: Border.all(color: themeChange.getThem() ? AppColors.darkContainerBorder : AppColors.containerBorder, width: 0.5),
+                                                color: themeChange.getThem()
+                                                    ? AppColors
+                                                        .darkContainerBackground
+                                                    : AppColors
+                                                        .containerBackground,
+                                                borderRadius:
+                                                    const BorderRadius.all(
+                                                        Radius.circular(10)),
+                                                border: Border.all(
+                                                    color: themeChange.getThem()
+                                                        ? AppColors
+                                                            .darkContainerBorder
+                                                        : AppColors
+                                                            .containerBorder,
+                                                    width: 0.5),
                                                 boxShadow: themeChange.getThem()
                                                     ? null
                                                     : [
                                                         BoxShadow(
-                                                          color: Colors.grey.withOpacity(0.5),
+                                                          color: Colors.grey
+                                                              .withOpacity(0.5),
                                                           blurRadius: 8,
-                                                          offset: const Offset(0, 2), // changes position of shadow
+                                                          offset: const Offset(
+                                                              0,
+                                                              2), // changes position of shadow
                                                         ),
                                                       ],
                                               ),
                                               child: ExpansionTile(
-                                                title: Text(Constant.localizationTitle(faqModel.title), style: GoogleFonts.poppins()),
+                                                title: Text(
+                                                    Constant.localizationTitle(
+                                                        faqModel.title),
+                                                    style:
+                                                        GoogleFonts.poppins()),
                                                 children: <Widget>[
                                                   ListTile(
-                                                    title: Text(Constant.localizationDescription(faqModel.description), style: GoogleFonts.poppins()),
+                                                    title: Text(
+                                                        Constant
+                                                            .localizationDescription(
+                                                                faqModel
+                                                                    .description),
+                                                        style: GoogleFonts
+                                                            .poppins()),
                                                   ),
                                                 ],
                                               ),
@@ -92,7 +127,7 @@ class FaqScreen extends StatelessWidget {
                                     );
                                   }
                                 default:
-                                  return  Text('Error'.tr);
+                                  return Text('Error'.tr);
                               }
                             }),
                       ),

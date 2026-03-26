@@ -63,7 +63,7 @@ class CouponScreen extends StatelessWidget {
                       offset: const Offset(0, -22),
                       child: Container(
                         decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.background,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: const BorderRadius.only(
                                 topLeft: Radius.circular(25),
                                 topRight: Radius.circular(25))),

@@ -35,7 +35,7 @@ class ChatScreens extends StatefulWidget {
   final String? token;
 
   const ChatScreens(
-      {Key? key,
+      {super.key,
       this.orderId,
       this.customerId,
       this.customerName,
@@ -43,8 +43,7 @@ class ChatScreens extends StatefulWidget {
       this.driverId,
       this.customerProfileImage,
       this.driverProfileImage,
-      this.token})
-      : super(key: key);
+      this.token});
 
   @override
   State<ChatScreens> createState() => _ChatScreensState();

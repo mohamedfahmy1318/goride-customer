@@ -10,7 +10,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class OnBoardingScreen extends StatelessWidget {
-  const OnBoardingScreen({Key? key}) : super(key: key);
+  const OnBoardingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class OnBoardingScreen extends StatelessWidget {
       init: OnBoardingController(),
       builder: (controller) {
         return Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           body: controller.isLoading.value
               ? Constant.loader()
               : Stack(
