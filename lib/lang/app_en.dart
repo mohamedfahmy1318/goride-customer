@@ -13,6 +13,7 @@ final Map<String, String> enUS = {
   "Full name": "Full name",
   "Phone number": "Phone number",
   "Email": "Email",
+  "Email (Optional)": "Email (Optional)",
   "Coupon Code (Optional)": "Coupon Code (Optional)",
   "Create account": "Create account",
   "Please enter full name": "Please enter full name",
@@ -324,9 +325,16 @@ final Map<String, String> enUS = {
   'Ride Hold Ended': 'Ride Hold Ended',
   'Cash Payment confirmed': 'Cash Payment confirmed',
   'Scheduled Ride Reminder': 'Scheduled Ride Reminder',
+  'Tell driver': 'Tell driver',
+  'Start ride without destination': 'Start ride without destination',
   'Warning': 'Warning',
   'You are not able book new ride please complete previous ride payment':
       'You are not able book new ride please complete previous ride payment',
   'Recommended Price': 'Recommended Price',
   'Approx time': 'Approx time',
+  // Ride Expiration
+  'No driver found': 'We could not find a driver. Please try again.',
+  'Ride Canceled by Driver': 'Ride Canceled by Driver',
+  'Your ride has been canceled by the driver. Please request a new ride.':
+      'Your ride has been canceled by the driver. Please request a new ride.',
 };

@@ -13,6 +13,7 @@ final Map<String, String> arAR = {
   "Full name": "الاسم الكامل",
   "Phone number": "رقم التليفون",
   "Email": "بريد إلكتروني",
+  "Email (Optional)": "بريد إلكتروني (اختياري)",
   "Coupon Code (Optional)": "رمز القسيمة (اختياري)",
   "Create account": "إنشاء حساب",
   "Please enter full name": "الرجاء إدخال الاسم الكامل",
@@ -309,9 +310,16 @@ final Map<String, String> arAR = {
   'Ride Hold Ended': 'انتهى تعليق الرحلة',
   'Cash Payment confirmed': 'تم تأكيد الدفع النقدي',
   'Scheduled Ride Reminder': 'تذكير برحلة مجدولة',
+  'Tell driver': 'أخبر السائق',
+  'Start ride without destination': 'ابدأ رحلة بدون تحديد وجهة',
   'Warning': 'تحذير',
   'You are not able book new ride please complete previous ride payment':
       'لا يمكنك حجز رحلة جديدة، يرجى إكمال دفع الرحلة السابقة',
   'Recommended Price': 'السعر المقترح',
   'Approx time': 'الوقت التقريبي',
+  // انتهاء صلاحية الرحلة
+  'No driver found': 'لم نتمكن من إيجاد سائق. يرجى المحاولة مرة أخرى.',
+  'Ride Canceled by Driver': 'تم إلغاء الرحلة من قبل السائق',
+  'Your ride has been canceled by the driver. Please request a new ride.':
+      'تم إلغاء رحلتك من قبل السائق. يرجى طلب رحلة جديدة.',
 };

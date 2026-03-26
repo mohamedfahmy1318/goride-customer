@@ -399,19 +399,19 @@ class HomeScreen extends StatelessWidget {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    "أخبر السائق",
+                                                    "Tell driver".tr,
                                                     style: GoogleFonts.poppins(
-                                                      fontSize: 14,
+                                                      fontSize: 17,
                                                       fontWeight:
-                                                          FontWeight.w600,
+                                                          FontWeight.w700,
                                                       color: AppColors.primary,
                                                     ),
                                                   ),
                                                   Text(
-                                                    "ابدأ رحلة بدون تحديد وجهة"
+                                                    "Start ride without destination"
                                                         .tr,
                                                     style: GoogleFonts.poppins(
-                                                      fontSize: 11,
+                                                      fontSize: 13,
                                                       fontWeight:
                                                           FontWeight.w400,
                                                       color: AppColors.primary
@@ -1706,6 +1706,7 @@ class HomeScreen extends StatelessWidget {
         });
         await FireStoreUtils.setOrder(orderModel).then((value) {
           ShowToastDialog.showToast("Ride Placed successfully".tr);
+          controller.startRideExpirationTimer(orderModel.id!);
           controller.dashboardController.selectedDrawerIndex(2);
           ShowToastDialog.closeLoader();
           controller.isBookingInProgress.value = false;
@@ -1739,7 +1740,7 @@ class HomeScreen extends StatelessWidget {
             children: [
               Icon(Icons.local_taxi, color: AppColors.primary, size: 28),
               const SizedBox(width: 10),
-              Text("أخبر السائق  بالواجهه".tr,
+              Text("Tell driver".tr,
                   style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600, fontSize: 18)),
             ],
@@ -1889,6 +1890,7 @@ class HomeScreen extends StatelessWidget {
         });
         await FireStoreUtils.setOrder(orderModel).then((value) {
           ShowToastDialog.showToast("تم حجز الرحلة بنجاح".tr);
+          controller.startRideExpirationTimer(orderModel.id!);
           controller.dashboardController.selectedDrawerIndex(2);
           ShowToastDialog.closeLoader();
           controller.isBookingInProgress.value = false;

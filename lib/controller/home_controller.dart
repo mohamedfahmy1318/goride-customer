@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:customer/constant/collection_name.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/controller/dash_board_controller.dart';
@@ -47,6 +50,9 @@ class HomeController extends GetxController {
   RxBool isAcSelected = false.obs;
   RxBool isBookingInProgress = false.obs;
   RxDouble extraDistance = 0.0.obs;
+  static Timer? _rideExpirationTimer;
+  static String _activeOrderId = '';
+  RxString activeOrderId = ''.obs;
   final PageController pageController =
       PageController(viewportFraction: 0.96, keepPage: true);
 
@@ -374,5 +380,58 @@ class HomeController extends GetxController {
           .map<ContactModel>((item) => ContactModel.fromJson(item))
           .toList();
     }
+  }
+
+  /// Start a 3-minute expiration timer for the ride request
+  void startRideExpirationTimer(String orderId) {
+    cancelRideExpirationTimer();
+    _activeOrderId = orderId;
+    activeOrderId.value = orderId;
+    _rideExpirationTimer = Timer(const Duration(minutes: 3), () async {
+      try {
+        // Re-fetch the order to check if a driver accepted
+        DocumentSnapshot orderDoc = await FirebaseFirestore.instance
+            .collection(CollectionName.orders)
+            .doc(orderId)
+            .get();
+        if (orderDoc.exists) {
+          Map<String, dynamic> data = orderDoc.data() as Map<String, dynamic>;
+          if (data['status'] == Constant.ridePlaced) {
+            // No driver accepted — cancel the ride
+            await FirebaseFirestore.instance
+                .collection(CollectionName.orders)
+                .doc(orderId)
+                .update({
+              'status': Constant.rideCanceled,
+              'canceledBy': 'system',
+              'cancelReason': 'no_driver_found',
+              'cancelDate': Timestamp.now(),
+            });
+            _activeOrderId = '';
+            activeOrderId.value = '';
+            ShowToastDialog.showToast("No driver found".tr);
+          }
+        }
+      } catch (e) {
+        log("Ride expiration timer error: $e");
+      } finally {
+        _rideExpirationTimer = null;
+      }
+    });
+  }
+
+  /// Cancel the ride expiration timer
+  void cancelRideExpirationTimer() {
+    _rideExpirationTimer?.cancel();
+    _rideExpirationTimer = null;
+    _activeOrderId = '';
+    activeOrderId.value = '';
+  }
+
+  @override
+  void onClose() {
+    // Keep expiration timer alive even if HomeScreen is disposed after booking.
+    activeOrderId.value = _activeOrderId;
+    super.onClose();
   }
 }

@@ -1,4 +1,6 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const admin = require('firebase-admin');
 const axios = require('axios');
 
@@ -35,6 +37,106 @@ let tokenCache = {
     expiresAt: 0,
     refreshExpiresAt: 0,
 };
+
+const RIDE_STATUS_PLACED = 'Ride Placed';
+const RIDE_STATUS_CANCELED = 'Ride Canceled';
+const AUTO_CANCEL_AFTER_MS = 3 * 60 * 1000;
+
+// Save a server-based auto-cancel deadline when a ride request is created.
+exports.setOrderAutoCancelAt = onDocumentCreated('orders/{orderId}', async (event) => {
+    const snap = event.data;
+    if (!snap) return;
+
+    const data = snap.data() || {};
+    if (data.status !== RIDE_STATUS_PLACED) return;
+    if (data.autoCancelAt) return;
+
+    const createdAtMs =
+        data.createdDate && typeof data.createdDate.toMillis === 'function'
+            ? data.createdDate.toMillis()
+            : Date.now();
+
+    const autoCancelAt = admin.firestore.Timestamp.fromMillis(
+        createdAtMs + AUTO_CANCEL_AFTER_MS
+    );
+
+    await snap.ref.set(
+        {
+            autoCancelAt,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+    );
+});
+
+// Server-side fallback: auto-cancel unaccepted rides after 3 minutes.
+// Runs independently of app lifecycle/network and applies to destinationless rides too.
+exports.autoCancelStaleRideRequests = onSchedule(
+    {
+        schedule: 'every 1 minutes',
+        timeZone: 'UTC',
+        region: 'us-central1',
+    },
+    async () => {
+        const db = admin.firestore();
+        const nowMs = Date.now();
+
+        const snapshot = await db
+            .collection('orders')
+            .where('status', '==', RIDE_STATUS_PLACED)
+            .get();
+
+        if (snapshot.empty) {
+            console.log('autoCancelStaleRideRequests: no pending ride requests');
+            return null;
+        }
+
+        const staleRefs = [];
+        for (const doc of snapshot.docs) {
+            const data = doc.data() || {};
+
+            const autoCancelMs =
+                data.autoCancelAt && typeof data.autoCancelAt.toMillis === 'function'
+                    ? data.autoCancelAt.toMillis()
+                    : data.createdDate && typeof data.createdDate.toMillis === 'function'
+                        ? data.createdDate.toMillis() + AUTO_CANCEL_AFTER_MS
+                        : null;
+
+            if (autoCancelMs !== null && autoCancelMs <= nowMs) {
+                staleRefs.push(doc.ref);
+            }
+        }
+
+        if (staleRefs.length === 0) {
+            console.log('autoCancelStaleRideRequests: no expired ride requests');
+            return null;
+        }
+
+        const chunkSize = 450;
+        for (let i = 0; i < staleRefs.length; i += chunkSize) {
+            const chunk = staleRefs.slice(i, i + chunkSize);
+            const batch = db.batch();
+
+            for (const ref of chunk) {
+                batch.update(ref, {
+                    status: RIDE_STATUS_CANCELED,
+                    canceledBy: 'system',
+                    cancelReason: 'no_driver_found',
+                    cancelDate: admin.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    autoCanceled: true,
+                });
+            }
+
+            await batch.commit();
+        }
+
+        console.log(
+            `autoCancelStaleRideRequests: auto-canceled ${staleRefs.length} ride request(s)`
+        );
+        return null;
+    }
+);
 
 // ============================================================================
 // Helper: Get Bankily Access Token

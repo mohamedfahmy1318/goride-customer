@@ -151,7 +151,7 @@ class InformationScreen extends StatelessWidget {
                           height: 10,
                         ),
                         TextFieldThem.buildTextFiled(context,
-                            hintText: 'Email'.tr,
+                            hintText: 'Email (Optional)'.tr,
                             controller: controller.emailController.value,
                             enable: controller.loginType.value ==
                                     Constant.googleLoginType
@@ -172,21 +172,18 @@ class InformationScreen extends StatelessWidget {
                           context,
                           title: "Create account".tr,
                           onPress: () async {
+                            final email =
+                                controller.emailController.value.text.trim();
                             if (controller
                                 .fullNameController.value.text.isEmpty) {
                               ShowToastDialog.showToast(
                                   "Please enter full name".tr);
                             } else if (controller
-                                .emailController.value.text.isEmpty) {
-                              ShowToastDialog.showToast(
-                                  "Please enter email".tr);
-                            } else if (controller
                                 .phoneNumberController.value.text.isEmpty) {
                               ShowToastDialog.showToast(
                                   "Please enter phone".tr);
-                            } else if (Constant.validateEmail(
-                                    controller.emailController.value.text) ==
-                                false) {
+                            } else if (email.isNotEmpty &&
+                                Constant.validateEmail(email) == false) {
                               ShowToastDialog.showToast(
                                   "Please enter valid email".tr);
                             } else {
@@ -203,8 +200,7 @@ class InformationScreen extends StatelessWidget {
                                         controller.userModel.value;
                                     userModel.fullName = controller
                                         .fullNameController.value.text;
-                                    userModel.email =
-                                        controller.emailController.value.text;
+                                    userModel.email = email;
                                     userModel.countryCode =
                                         controller.countryCode.value;
                                     userModel.phoneNumber = controller
@@ -258,8 +254,7 @@ class InformationScreen extends StatelessWidget {
                                     controller.userModel.value;
                                 userModel.fullName =
                                     controller.fullNameController.value.text;
-                                userModel.email =
-                                    controller.emailController.value.text;
+                                userModel.email = email;
                                 userModel.countryCode =
                                     controller.countryCode.value;
                                 userModel.phoneNumber =

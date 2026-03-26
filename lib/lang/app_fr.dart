@@ -13,6 +13,7 @@ final Map<String, String> trFr = {
   "Full name": "Nom et prÃ©nom",
   "Phone number": "NumÃ©ro de tÃ©lÃ©phone",
   "Email": "E-mail",
+  "Email (Optional)": "E-mail (facultatif)",
   "Coupon Code (Optional)": "Code promo (facultatif)",
   "Create account": "CrÃ©er un compte",
   "Please enter full name": "Veuillez entrer votre nom complet",
@@ -319,9 +320,17 @@ final Map<String, String> trFr = {
   'Address': 'Adresse',
   'Website': 'Site web',
   'Follow Us': 'Suivez-nous',
+  'Tell driver': 'Informer le chauffeur',
+  'Start ride without destination': 'Commencer un trajet sans destination',
   'Warning': 'Avertissement',
   'You are not able book new ride please complete previous ride payment':
       'Vous ne pouvez pas réserver un nouveau trajet, veuillez compléter le paiement du trajet précédent',
   'Recommended Price': 'Prix recommandé',
   'Approx time': 'Temps approximatif',
+  // Expiration de course
+  'No driver found':
+      'Nous n\'avons pas trouvé de conducteur. Veuillez réessayer.',
+  'Ride Canceled by Driver': 'Course annulée par le conducteur',
+  'Your ride has been canceled by the driver. Please request a new ride.':
+      'Votre course a été annulée par le conducteur. Veuillez demander une nouvelle course.',
 };
