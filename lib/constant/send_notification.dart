@@ -13,6 +13,7 @@ class SendNotification {
       required String body,
       required Map<String, dynamic> payload,
       bool dataOnly = false,
+      String? androidChannelId,
       String? titleAr,
       String? bodyAr,
       String? recipientId,
@@ -24,12 +25,20 @@ class SendNotification {
 
     try {
       final callable = _functions.httpsCallable('sendNotification');
+      final String payloadType = (payload['type'] ?? '').toString();
+      final bool isRideRequest =
+          payloadType == 'city_order' || payloadType == 'intercity_order';
+      final String resolvedChannelId = androidChannelId ??
+          (isRideRequest ? 'ride_request_alert_v2' : 'goRide-driver');
+
       final Map<String, dynamic> callData = {
         'token': token,
         'title': title,
         'body': body,
         'payload': payload.map((key, value) => MapEntry(key, value.toString())),
-        'dataOnly': dataOnly,
+        'dataOnly': dataOnly || isRideRequest,
+        'androidChannelId': resolvedChannelId,
+        'priority': 'high',
       };
       if (titleAr != null) callData['titleAr'] = titleAr;
       if (bodyAr != null) callData['bodyAr'] = bodyAr;

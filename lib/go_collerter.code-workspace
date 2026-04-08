@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../goride-driver"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "automatic"
+	}
+}
