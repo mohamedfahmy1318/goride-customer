@@ -332,6 +332,19 @@ final Map<String, String> enUS = {
       'You are not able book new ride please complete previous ride payment',
   'Recommended Price': 'Recommended Price',
   'Approx time': 'Approx time',
+  'Dispatch Progress': 'Dispatch Progress',
+  'Dispatch wave': 'Dispatch wave',
+  'Drivers notified': 'Drivers notified',
+  'Time left': 'Time left',
+  'smart_dispatch_stage_matching_title': 'Matching nearby drivers',
+  'smart_dispatch_stage_matching_subtitle':
+      'We start with top nearby drivers based on smart priority.',
+  'smart_dispatch_stage_expanding_title': 'Expanding search',
+  'smart_dispatch_stage_expanding_subtitle':
+      'More drivers are being notified to improve acceptance.',
+  'smart_dispatch_stage_final_title': 'Final escalation',
+  'smart_dispatch_stage_final_subtitle':
+      'Last retry wave is running before automatic cancellation.',
   // Ride Expiration
   'No driver found': 'We could not find a driver. Please try again.',
   'Ride Canceled by Driver': 'Ride Canceled by Driver',

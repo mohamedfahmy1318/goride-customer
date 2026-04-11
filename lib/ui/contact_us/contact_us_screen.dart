@@ -58,13 +58,13 @@ class ContactUsScreen extends StatelessWidget {
                                     ),
                                     InkWell(
                                       onTap: () {
-                                        Constant.makePhoneCall('+966542883129');
+                                        Constant.makePhoneCall('+22222245004');
                                       },
                                       child: Row(
                                         children: [
                                           const Icon(Icons.call, size: 28),
                                           const SizedBox(width: 20),
-                                          Text('+966542883129',
+                                          Text('+22222245004',
                                               style: GoogleFonts.poppins(
                                                   fontSize: 16)),
                                         ],
@@ -76,7 +76,7 @@ class ContactUsScreen extends StatelessWidget {
                                     InkWell(
                                       onTap: () async {
                                         final Uri url = Uri.parse(
-                                            'https://wa.me/966542883129');
+                                            'https://wa.me/22222245004');
                                         if (!await launchUrl(url,
                                             mode: LaunchMode
                                                 .externalApplication)) {

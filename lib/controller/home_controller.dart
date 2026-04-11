@@ -55,6 +55,8 @@ class HomeController extends GetxController {
   RxString activeOrderId = ''.obs;
   final PageController pageController =
       PageController(viewportFraction: 0.96, keepPage: true);
+  Timer? _bannerAutoScrollTimer;
+  static const Duration _bannerAutoScrollInterval = Duration(seconds: 10);
 
   var colors = [
     AppColors.serviceColor1,
@@ -158,6 +160,7 @@ class HomeController extends GetxController {
 
     await FireStoreUtils.getBanner().then((value) {
       bannerList.value = value;
+      _startBannerAutoScroll();
     });
 
     await FireStoreUtils().getTaxList().then((value) {
@@ -382,12 +385,12 @@ class HomeController extends GetxController {
     }
   }
 
-  /// Start a 3-minute expiration timer for the ride request
+  /// Start a 2-minute expiration timer for the ride request
   void startRideExpirationTimer(String orderId) {
     cancelRideExpirationTimer();
     _activeOrderId = orderId;
     activeOrderId.value = orderId;
-    _rideExpirationTimer = Timer(const Duration(minutes: 3), () async {
+    _rideExpirationTimer = Timer(const Duration(minutes: 2), () async {
       try {
         // Re-fetch the order to check if a driver accepted
         DocumentSnapshot orderDoc = await FirebaseFirestore.instance
@@ -428,10 +431,37 @@ class HomeController extends GetxController {
     activeOrderId.value = '';
   }
 
+  void _startBannerAutoScroll() {
+    _bannerAutoScrollTimer?.cancel();
+
+    if (bannerList.length <= 1) {
+      return;
+    }
+
+    _bannerAutoScrollTimer = Timer.periodic(_bannerAutoScrollInterval, (_) {
+      if (!pageController.hasClients || bannerList.isEmpty) {
+        return;
+      }
+
+      final int currentPage =
+          (pageController.page ?? pageController.initialPage.toDouble())
+              .round();
+      final int nextPage = (currentPage + 1) % bannerList.length;
+
+      pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
   @override
   void onClose() {
     // Keep expiration timer alive even if HomeScreen is disposed after booking.
     activeOrderId.value = _activeOrderId;
+    _bannerAutoScrollTimer?.cancel();
+    pageController.dispose();
     super.onClose();
   }
 }

@@ -34,7 +34,6 @@ target 'Runner' do
   pod 'Firebase/Core', :modular_headers => true
   pod 'Firebase/Auth', :modular_headers => true
   pod 'Firebase/Firestore', :modular_headers => true
-  pod 'Firebase/AppCheck', :modular_headers => true
   pod 'Firebase/Analytics', :modular_headers => true
   pod 'Firebase/Database', :modular_headers => true
 

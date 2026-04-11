@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/constant.dart';
-import 'package:customer/constant/send_notification.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/controller/home_controller.dart';
 import 'package:customer/model/airport_model.dart';
@@ -50,48 +49,58 @@ class HomeScreen extends StatelessWidget {
                 ? Constant.loader()
                 : Column(
                     children: [
-                      SizedBox(
-                        height: Responsive.width(22, context),
-                        width: Responsive.width(100, context),
+                      SafeArea(
+                        bottom: false,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                  controller.userModel.value.fullName
-                                      .toString(),
-                                  style: GoogleFonts.poppins(
-                                      color: themeChange.getThem()
-                                          ? Colors.white
-                                          : Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 18,
-                                      letterSpacing: 1)),
+                                controller.userModel.value.fullName.toString(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  color: themeChange.getThem()
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 18,
+                                  letterSpacing: 1,
+                                ),
+                              ),
                               const SizedBox(
                                 height: 4,
                               ),
                               Row(
                                 children: [
                                   SvgPicture.asset(
-                                      'assets/icons/ic_location.svg',
-                                      width: 16,
-                                      colorFilter: ColorFilter.mode(
-                                          themeChange.getThem()
-                                              ? Colors.white
-                                              : Colors.black,
-                                          BlendMode.srcIn)),
+                                    'assets/icons/ic_location.svg',
+                                    width: 16,
+                                    colorFilter: ColorFilter.mode(
+                                      themeChange.getThem()
+                                          ? Colors.white
+                                          : Colors.black,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
                                   const SizedBox(
                                     width: 10,
                                   ),
                                   Expanded(
-                                      child: Text(
-                                          controller.currentLocation.value,
-                                          style: GoogleFonts.poppins(
-                                              color: themeChange.getThem()
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                              fontWeight: FontWeight.w400))),
+                                    child: Text(
+                                      controller.currentLocation.value,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.poppins(
+                                        color: themeChange.getThem()
+                                            ? Colors.white
+                                            : Colors.black,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
@@ -1681,32 +1690,10 @@ class HomeScreen extends StatelessWidget {
         controller.selectedZone.value = controller.zoneList[i];
         orderModel.zoneId = controller.selectedZone.value.id;
         orderModel.zone = controller.selectedZone.value;
-        await FireStoreUtils()
-            .sendOrderDataFuture(orderModel)
-            .then((eventData) async {
-          for (var driver in eventData) {
-            if (driver.fcmToken != null) {
-              Map<String, dynamic> playLoad = <String, dynamic>{
-                "type": "city_order",
-                "orderId": orderModel.id
-              };
-              await SendNotification.sendOneNotification(
-                  token: driver.fcmToken.toString(),
-                  title: 'New Ride Available',
-                  titleAr: 'رحلة جديدة متاحة',
-                  body: 'A customer has placed a ride near your location.',
-                  bodyAr: 'عميل حجز رحلة بالقرب من موقعك.',
-                  payload: playLoad,
-                  recipientId: driver.id,
-                  recipientType: 'driver',
-                  dataOnly:
-                      true); // data-only: prevents Firebase from auto-showing a duplicate system notification
-            }
-          }
-        });
+        orderModel.dispatchMode = 'smart_escalation';
+        orderModel.notifiedDriverIds = [];
         await FireStoreUtils.setOrder(orderModel).then((value) {
           ShowToastDialog.showToast("Ride Placed successfully".tr);
-          controller.startRideExpirationTimer(orderModel.id!);
           controller.dashboardController.selectedDrawerIndex(2);
           ShowToastDialog.closeLoader();
           controller.isBookingInProgress.value = false;
@@ -1866,31 +1853,10 @@ class HomeScreen extends StatelessWidget {
         controller.selectedZone.value = controller.zoneList[i];
         orderModel.zoneId = controller.selectedZone.value.id;
         orderModel.zone = controller.selectedZone.value;
-        await FireStoreUtils()
-            .sendOrderDataFuture(orderModel)
-            .then((eventData) async {
-          for (var driver in eventData) {
-            if (driver.fcmToken != null) {
-              Map<String, dynamic> playLoad = <String, dynamic>{
-                "type": "city_order",
-                "orderId": orderModel.id
-              };
-              await SendNotification.sendOneNotification(
-                  token: driver.fcmToken.toString(),
-                  title: 'Metered Ride Request',
-                  titleAr: 'طلب رحلة بالعداد',
-                  body: 'A customer nearby needs a metered ride.',
-                  bodyAr: 'عميل قريب منك يحتاج رحلة بالعداد.',
-                  payload: playLoad,
-                  recipientId: driver.id,
-                  recipientType: 'driver',
-                  dataOnly: true);
-            }
-          }
-        });
+        orderModel.dispatchMode = 'smart_escalation';
+        orderModel.notifiedDriverIds = [];
         await FireStoreUtils.setOrder(orderModel).then((value) {
           ShowToastDialog.showToast("تم حجز الرحلة بنجاح".tr);
-          controller.startRideExpirationTimer(orderModel.id!);
           controller.dashboardController.selectedDrawerIndex(2);
           ShowToastDialog.closeLoader();
           controller.isBookingInProgress.value = false;

@@ -78,8 +78,51 @@ class OrderDetailsScreen extends StatelessWidget {
                             return Constant.loader();
                           }
 
-                          OrderModel orderModel =
-                              OrderModel.fromJson(snapshot.data!.data()!);
+                          final Map<String, dynamic> orderRaw =
+                              _asMap(snapshot.data!.data());
+
+                          OrderModel orderModel = OrderModel.fromJson(orderRaw);
+
+                          final Map<String, dynamic> smartDispatch =
+                              _asMap(orderRaw['smartDispatch']);
+                          final Map<String, dynamic> dispatchConfig =
+                              _asMap(orderRaw['dispatchConfig']);
+
+                          final String stageKey =
+                              (orderRaw['dispatchStageKey'] ??
+                                      smartDispatch['stageKey'] ??
+                                      'smart_dispatch_stage_matching')
+                                  .toString();
+
+                          final int stageIndex = _resolveStageIndex(stageKey);
+                          final int dispatchedWaves = _toInt(
+                              smartDispatch['wave'] ??
+                                  orderRaw['dispatchWave']);
+                          final int dispatchAttempts = _toInt(
+                              smartDispatch['attempt'] ??
+                                  orderRaw['dispatchAttempt']);
+                          final int totalWaves = _toInt(
+                              smartDispatch['totalWaves'] ??
+                                  dispatchConfig['totalWaves']);
+                          final int notifiedDrivers = _toInt(
+                              smartDispatch['notifiedDrivers'] ??
+                                  dispatchConfig['notifiedDrivers']);
+                          final int timeoutSeconds = _toInt(
+                              smartDispatch['timeoutSeconds'] ??
+                                  dispatchConfig['timeoutSeconds']);
+
+                          int remainingSeconds = 0;
+                          if (timeoutSeconds > 0 &&
+                              orderModel.createdDate != null) {
+                            final int elapsedSeconds =
+                                ((DateTime.now().millisecondsSinceEpoch -
+                                            orderModel.createdDate!
+                                                .millisecondsSinceEpoch) /
+                                        1000)
+                                    .floor();
+                            remainingSeconds = (timeoutSeconds - elapsedSeconds)
+                                .clamp(0, timeoutSeconds);
+                          }
 
                           // If ride was cancelled, go back
                           if (orderModel.status == Constant.rideCanceled) {
@@ -178,6 +221,97 @@ class OrderDetailsScreen extends StatelessWidget {
                                         )),
                                   ),
                                   const SizedBox(height: 20),
+                                  Container(
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: themeChange.getThem()
+                                          ? AppColors.darkContainerBorder
+                                          : Colors.white,
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(12)),
+                                      border: Border.all(
+                                        color: themeChange.getThem()
+                                            ? AppColors.darkContainerBackground
+                                            : AppColors.containerBorder,
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Dispatch Progress".tr,
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        _buildDispatchStep(
+                                          title:
+                                              'smart_dispatch_stage_matching_title'
+                                                  .tr,
+                                          subtitle:
+                                              'smart_dispatch_stage_matching_subtitle'
+                                                  .tr,
+                                          isCompleted: stageIndex > 0,
+                                          isActive: stageIndex == 0,
+                                          darkMode: themeChange.getThem(),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        _buildDispatchStep(
+                                          title:
+                                              'smart_dispatch_stage_expanding_title'
+                                                  .tr,
+                                          subtitle:
+                                              'smart_dispatch_stage_expanding_subtitle'
+                                                  .tr,
+                                          isCompleted: stageIndex > 1,
+                                          isActive: stageIndex == 1,
+                                          darkMode: themeChange.getThem(),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        _buildDispatchStep(
+                                          title:
+                                              'smart_dispatch_stage_final_title'
+                                                  .tr,
+                                          subtitle:
+                                              'smart_dispatch_stage_final_subtitle'
+                                                  .tr,
+                                          isCompleted: stageIndex > 2,
+                                          isActive: stageIndex == 2,
+                                          darkMode: themeChange.getThem(),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Wrap(
+                                          spacing: 10,
+                                          runSpacing: 8,
+                                          children: [
+                                            Text(
+                                              '${"Dispatch wave".tr}: ${dispatchedWaves > 0 ? dispatchedWaves : dispatchAttempts}${totalWaves > 0 ? '/$totalWaves' : ''}',
+                                              style: GoogleFonts.poppins(
+                                                  fontSize: 12,
+                                                  color: Colors.grey[700]),
+                                            ),
+                                            Text(
+                                              '${"Drivers notified".tr}: $notifiedDrivers',
+                                              style: GoogleFonts.poppins(
+                                                  fontSize: 12,
+                                                  color: Colors.grey[700]),
+                                            ),
+                                            if (timeoutSeconds > 0)
+                                              Text(
+                                                '${"Time left".tr}: ${remainingSeconds}s',
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    color: Colors.grey[700]),
+                                              ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
                                   // Waiting for driver animation
                                   Center(
                                     child: Column(
@@ -232,5 +366,97 @@ class OrderDetailsScreen extends StatelessWidget {
             ),
           );
         });
+  }
+
+  Map<String, dynamic> _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+
+    return <String, dynamic>{};
+  }
+
+  int _toInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+
+    if (value is num) {
+      return value.toInt();
+    }
+
+    if (value is String) {
+      return int.tryParse(value) ?? 0;
+    }
+
+    return 0;
+  }
+
+  int _resolveStageIndex(String stageKey) {
+    switch (stageKey) {
+      case 'smart_dispatch_stage_expanding':
+        return 1;
+      case 'smart_dispatch_stage_final':
+        return 2;
+      default:
+        return 0;
+    }
+  }
+
+  Widget _buildDispatchStep({
+    required String title,
+    required String subtitle,
+    required bool isCompleted,
+    required bool isActive,
+    required bool darkMode,
+  }) {
+    final Color indicatorColor = isCompleted || isActive
+        ? AppColors.primary
+        : (darkMode ? AppColors.darkContainerBackground : Colors.grey.shade300);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 2),
+          height: 18,
+          width: 18,
+          decoration: BoxDecoration(
+            color: indicatorColor,
+            shape: BoxShape.circle,
+          ),
+          child: isCompleted
+              ? const Icon(Icons.check, size: 12, color: Colors.white)
+              : null,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

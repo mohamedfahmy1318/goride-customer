@@ -26,6 +26,12 @@ class IntercityCompleteOrderScreen extends StatelessWidget {
 
     return GetX<IntercityCompleteOrderController>(
         init: IntercityCompleteOrderController(),
+        autoRemove: false,
+        dispose: (_) {
+          if (Get.isRegistered<IntercityCompleteOrderController>()) {
+            Get.delete<IntercityCompleteOrderController>();
+          }
+        },
         builder: (controller) {
           return Scaffold(
               backgroundColor: themeChange.getThem()

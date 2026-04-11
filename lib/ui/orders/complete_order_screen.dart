@@ -26,6 +26,12 @@ class CompleteOrderScreen extends StatelessWidget {
 
     return GetX<CompleteOrderController>(
         init: CompleteOrderController(),
+        autoRemove: false,
+        dispose: (_) {
+          if (Get.isRegistered<CompleteOrderController>()) {
+            Get.delete<CompleteOrderController>();
+          }
+        },
         builder: (controller) {
           return Scaffold(
               backgroundColor: themeChange.getThem()

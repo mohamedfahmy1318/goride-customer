@@ -327,6 +327,20 @@ final Map<String, String> trFr = {
       'Vous ne pouvez pas réserver un nouveau trajet, veuillez compléter le paiement du trajet précédent',
   'Recommended Price': 'Prix recommandé',
   'Approx time': 'Temps approximatif',
+  'Dispatch Progress': 'Progression de la répartition',
+  'Dispatch wave': 'Vague de répartition',
+  'Drivers notified': 'Conducteurs notifiés',
+  'Time left': 'Temps restant',
+  'smart_dispatch_stage_matching_title':
+      'Correspondance des conducteurs proches',
+  'smart_dispatch_stage_matching_subtitle':
+      'Nous commençons par les conducteurs proches selon une priorité intelligente.',
+  'smart_dispatch_stage_expanding_title': 'Extension de la recherche',
+  'smart_dispatch_stage_expanding_subtitle':
+      'Plus de conducteurs sont notifiés pour améliorer l\'acceptation.',
+  'smart_dispatch_stage_final_title': 'Escalade finale',
+  'smart_dispatch_stage_final_subtitle':
+      'Dernière vague avant l\'annulation automatique.',
   // Expiration de course
   'No driver found':
       'Nous n\'avons pas trouvé de conducteur. Veuillez réessayer.',

@@ -31,6 +31,7 @@ class OrderModel {
   String? rideHoldTimeMinutes;
   List<dynamic>? acceptedDriverId;
   List<dynamic>? rejectedDriverId;
+  List<dynamic>? notifiedDriverIds;
   Positions? position;
   Timestamp? createdDate;
   Timestamp? updateDate;
@@ -44,6 +45,8 @@ class OrderModel {
   AdminCommission? adminCommission;
   ZoneModel? zone;
   String? zoneId;
+  String? dispatchMode;
+  Map<String, dynamic>? dispatchConfig;
   VehicleInformation? vehicleInformation;
   bool? destinationless;
   String? actualDistance;
@@ -69,6 +72,7 @@ class OrderModel {
       this.totalHoldingCharges,
       this.acNonAcCharges,
       this.rideHoldTimeMinutes,
+      this.notifiedDriverIds,
       this.offerRate,
       this.finalRate,
       this.paymentStatus,
@@ -84,6 +88,8 @@ class OrderModel {
       this.zone,
       this.vehicleInformation,
       this.zoneId,
+      this.dispatchMode,
+      this.dispatchConfig,
       this.destinationless,
       this.actualDistance,
       this.actualDuration,
@@ -126,9 +132,14 @@ class OrderModel {
     acceptHoldTime = json['acceptHoldTime'];
     acceptedDriverId = json['acceptedDriverId'];
     rejectedDriverId = json['rejectedDriverId'];
+    notifiedDriverIds = json['notifiedDriverIds'];
     paymentStatus = json['paymentStatus'];
     isAcSelected = json['isAcSelected'];
     destinationless = json['destinationless'] ?? false;
+    dispatchMode = json['dispatchMode'];
+    dispatchConfig = json['dispatchConfig'] != null
+        ? Map<String, dynamic>.from(json['dispatchConfig'])
+        : null;
     actualDistance = json['actualDistance'];
     actualDuration = json['actualDuration'];
     rideStartTime = json['rideStartTime'];
@@ -198,9 +209,14 @@ class OrderModel {
     data['acceptHoldTime'] = acceptHoldTime;
     data['acceptedDriverId'] = acceptedDriverId;
     data['rejectedDriverId'] = rejectedDriverId;
+    data['notifiedDriverIds'] = notifiedDriverIds;
     data['paymentStatus'] = paymentStatus;
     data['isAcSelected'] = isAcSelected;
     data['destinationless'] = destinationless ?? false;
+    data['dispatchMode'] = dispatchMode;
+    if (dispatchConfig != null) {
+      data['dispatchConfig'] = dispatchConfig;
+    }
     if (actualDistance != null) data['actualDistance'] = actualDistance;
     if (actualDuration != null) data['actualDuration'] = actualDuration;
     if (rideStartTime != null) data['rideStartTime'] = rideStartTime;

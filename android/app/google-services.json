@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "202123276886-f7cgmo8sk2qscgv67jo428h9jgtjtlsa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cloud.goride.customer",
+            "certificate_hash": "7b42343d5a72739b1501ecae5da622e40570e79a"
+          }
+        },
+        {
           "client_id": "202123276886-p50n6cvs819083g3p3gui5qiui5sa1g7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

@@ -317,6 +317,19 @@ final Map<String, String> arAR = {
       'لا يمكنك حجز رحلة جديدة، يرجى إكمال دفع الرحلة السابقة',
   'Recommended Price': 'السعر المقترح',
   'Approx time': 'الوقت التقريبي',
+  'Dispatch Progress': 'تقدم التوزيع',
+  'Dispatch wave': 'موجة التوزيع',
+  'Drivers notified': 'السائقون الذين تم إشعارهم',
+  'Time left': 'الوقت المتبقي',
+  'smart_dispatch_stage_matching_title': 'مطابقة السائقين القريبين',
+  'smart_dispatch_stage_matching_subtitle':
+      'نبدأ بإشعار أقرب السائقين حسب أولوية ذكية.',
+  'smart_dispatch_stage_expanding_title': 'توسيع نطاق البحث',
+  'smart_dispatch_stage_expanding_subtitle':
+      'يتم إشعار سائقين إضافيين لرفع فرصة القبول.',
+  'smart_dispatch_stage_final_title': 'مرحلة التصعيد الأخيرة',
+  'smart_dispatch_stage_final_subtitle':
+      'يتم تنفيذ آخر محاولة قبل الإلغاء التلقائي.',
   // انتهاء صلاحية الرحلة
   'No driver found': 'لم نتمكن من إيجاد سائق. يرجى المحاولة مرة أخرى.',
   'Ride Canceled by Driver': 'تم إلغاء الرحلة من قبل السائق',

@@ -149,7 +149,7 @@ class SettingScreen extends StatelessWidget {
                                         child: InkWell(
                                           onTap: () async {
                                             final Uri url = Uri.parse(
-                                                'https://wa.me/966542883129');
+                                                'https://wa.me/22222245004');
                                             if (!await launchUrl(url,
                                                 mode: LaunchMode
                                                     .externalApplication)) {
@@ -225,7 +225,7 @@ class SettingScreen extends StatelessWidget {
         Get.back();
         final String rawSupport = Constant.supportURL ?? '';
         final String supportLink =
-            rawSupport.isNotEmpty ? rawSupport : 'https://wa.me/966542883129';
+            rawSupport.isNotEmpty ? rawSupport : 'https://wa.me/22222245004';
         final Uri url = Uri.parse(supportLink);
         if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
           ShowToastDialog.showToast("Please contact to administrator".tr);
