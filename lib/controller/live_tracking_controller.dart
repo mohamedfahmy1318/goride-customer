@@ -164,8 +164,7 @@ class LiveTrackingController extends GetxController {
     });
   }
 
-  void _listenToDriverUpdates(String? driverId,
-      {required bool isIntercity}) {
+  void _listenToDriverUpdates(String? driverId, {required bool isIntercity}) {
     if (_isControllerClosed) {
       return;
     }
@@ -217,7 +216,8 @@ class LiveTrackingController extends GetxController {
       return;
     }
 
-    final bool isInProgress = orderModel.value.status == Constant.rideInProgress;
+    final bool isInProgress =
+        orderModel.value.status == Constant.rideInProgress;
     final double? targetLat = isInProgress
         ? orderModel.value.destinationLocationLAtLng?.latitude
         : orderModel.value.sourceLocationLAtLng?.latitude;
@@ -290,10 +290,10 @@ class LiveTrackingController extends GetxController {
     }
 
     final GeoPoint departure = GeoPoint(
-        latitude: intercityOrderModel.value.sourceLocationLAtLng?.latitude ??
-            0.0,
-        longitude: intercityOrderModel.value.sourceLocationLAtLng?.longitude ??
-            0.0);
+        latitude:
+            intercityOrderModel.value.sourceLocationLAtLng?.latitude ?? 0.0,
+        longitude:
+            intercityOrderModel.value.sourceLocationLAtLng?.longitude ?? 0.0);
     final GeoPoint destination = GeoPoint(
         latitude:
             intercityOrderModel.value.destinationLocationLAtLng?.latitude ??
