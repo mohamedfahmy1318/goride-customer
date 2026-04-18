@@ -23,7 +23,6 @@ import 'package:customer/widget/geoflutterfire/src/models/point.dart';
 import 'package:customer/widget/place_picker_osm.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dash/flutter_dash.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:flutter_svg/flutter_svg.dart';

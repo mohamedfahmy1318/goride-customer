@@ -1,7 +1,6 @@
 import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/ui/auth_screen/login_screen.dart';
 import 'package:customer/ui/chat_screen/inbox_screen.dart';
-import 'package:customer/ui/about_us/about_us_screen.dart';
 import 'package:customer/ui/contact_us/contact_us_screen.dart';
 import 'package:customer/ui/faq/faq_screen.dart';
 import 'package:customer/ui/home_screens/home_screen.dart';
