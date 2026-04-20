@@ -258,21 +258,26 @@ class HomeController extends GetxController {
                 LatLng(destinationLocationLAtLng.value.latitude!,
                     destinationLocationLAtLng.value.longitude!))
             .then((value) {
-          if (value != null) {
-            duration.value =
-                value.rows!.first.elements!.first.duration!.text.toString();
+          final element = (value?.rows?.isNotEmpty == true &&
+                  value!.rows!.first.elements?.isNotEmpty == true)
+              ? value.rows!.first.elements!.first
+              : null;
+          final hasRoute = element?.duration?.text != null &&
+              element?.distance?.value != null;
+          if (hasRoute) {
+            duration.value = element!.duration!.text.toString();
             log("duration :: 00 :: ${duration.value}");
             if (Constant.distanceType == "Km") {
               distance.value =
-                  (value.rows!.first.elements!.first.distance!.value!.toInt() /
-                          1000)
-                      .toString();
+                  (element.distance!.value!.toInt() / 1000).toString();
             } else {
               distance.value =
-                  (value.rows!.first.elements!.first.distance!.value!.toInt() /
-                          1609.34)
-                      .toString();
+                  (element.distance!.value!.toInt() / 1609.34).toString();
             }
+          } else {
+            duration.value = "0";
+            distance.value = "0";
+            ShowToastDialog.showToast("Path not found".tr);
           }
           update();
         });

@@ -20,6 +20,8 @@ import 'package:customer/utils/DarkThemeProvider.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:customer/widget/geoflutterfire/src/geoflutterfire.dart';
 import 'package:customer/widget/geoflutterfire/src/models/point.dart';
+import 'package:customer/model/place_picker_model.dart';
+import 'package:customer/widget/google_map_search_place.dart';
 import 'package:customer/widget/place_picker_osm.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +31,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -271,66 +272,49 @@ class HomeScreen extends StatelessWidget {
                                                               }
                                                             });
                                                           } else {
-                                                            await Navigator
-                                                                .push(
-                                                              context,
-                                                              MaterialPageRoute(
-                                                                builder:
-                                                                    (context) =>
-                                                                        PlacePicker(
-                                                                  apiKey: Constant
-                                                                      .mapAPIKey,
-                                                                  pinBuilder: (context,
-                                                                          state) =>
-                                                                      const SizedBox
-                                                                          .shrink(),
-                                                                  onPlacePicked:
-                                                                      (result) async {
-                                                                    Get.back();
-                                                                    controller
-                                                                            .destinationLocationController
-                                                                            .value
-                                                                            .text =
-                                                                        result
-                                                                            .formattedAddress
-                                                                            .toString();
-                                                                    controller.destinationLocationLAtLng.value = LocationLatLng(
-                                                                        latitude: result
-                                                                            .geometry!
-                                                                            .location
-                                                                            .lat,
-                                                                        longitude: result
-                                                                            .geometry!
-                                                                            .location
-                                                                            .lng);
-                                                                    await controller
-                                                                        .calculateDurationAndDistance();
-                                                                    controller
-                                                                        .calculateAmount();
-                                                                  },
-                                                                  // Global search - no region restriction
-                                                                  initialPosition:
-                                                                      const LatLng(
-                                                                          -33.8567844,
-                                                                          151.213108),
-                                                                  useCurrentLocation:
-                                                                      true,
-                                                                  autocompleteComponents: [],
-                                                                  selectInitialPosition:
-                                                                      true,
-                                                                  usePinPointingSearch:
-                                                                      false,
-                                                                  usePlaceDetailSearch:
-                                                                      true,
-                                                                  zoomGesturesEnabled:
-                                                                      true,
-                                                                  zoomControlsEnabled:
-                                                                      true,
-                                                                  resizeToAvoidBottomInset:
-                                                                      false, // only works in page mode, less flickery, remove if wrong offsets
-                                                                ),
-                                                              ),
+                                                            final result =
+                                                                await Get.to(
+                                                              () =>
+                                                                  const GoogleMapSearchPlacesApi(),
+                                                              transition: Transition
+                                                                  .rightToLeft,
                                                             );
+                                                            if (result
+                                                                    is PlaceDetailsModel &&
+                                                                result.result
+                                                                        ?.geometry?.location?.lat !=
+                                                                    null &&
+                                                                result.result
+                                                                        ?.geometry?.location?.lng !=
+                                                                    null) {
+                                                              controller
+                                                                      .destinationLocationController
+                                                                      .value
+                                                                      .text =
+                                                                  result.result!
+                                                                          .formattedAddress
+                                                                          ?.toString() ??
+                                                                      '';
+                                                              controller
+                                                                      .destinationLocationLAtLng
+                                                                      .value =
+                                                                  LocationLatLng(
+                                                                latitude: result
+                                                                    .result!
+                                                                    .geometry!
+                                                                    .location!
+                                                                    .lat,
+                                                                longitude: result
+                                                                    .result!
+                                                                    .geometry!
+                                                                    .location!
+                                                                    .lng,
+                                                              );
+                                                              await controller
+                                                                  .calculateDurationAndDistance();
+                                                              controller
+                                                                  .calculateAmount();
+                                                            }
                                                           }
                                                         },
                                                         child: Row(

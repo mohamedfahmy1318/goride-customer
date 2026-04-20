@@ -49,6 +49,7 @@ class OrderModel {
   Map<String, dynamic>? dispatchConfig;
   VehicleInformation? vehicleInformation;
   bool? destinationless;
+  bool? isAdminCreated;
   String? actualDistance;
   String? actualDuration;
   Timestamp? rideStartTime;
@@ -91,6 +92,7 @@ class OrderModel {
       this.dispatchMode,
       this.dispatchConfig,
       this.destinationless,
+      this.isAdminCreated,
       this.actualDistance,
       this.actualDuration,
       this.rideStartTime});
@@ -136,6 +138,7 @@ class OrderModel {
     paymentStatus = json['paymentStatus'];
     isAcSelected = json['isAcSelected'];
     destinationless = json['destinationless'] ?? false;
+    isAdminCreated = json['isAdminCreated'] ?? false;
     dispatchMode = json['dispatchMode'];
     dispatchConfig = json['dispatchConfig'] != null
         ? Map<String, dynamic>.from(json['dispatchConfig'])
@@ -213,6 +216,7 @@ class OrderModel {
     data['paymentStatus'] = paymentStatus;
     data['isAcSelected'] = isAcSelected;
     data['destinationless'] = destinationless ?? false;
+    data['isAdminCreated'] = isAdminCreated ?? false;
     data['dispatchMode'] = dispatchMode;
     if (dispatchConfig != null) {
       data['dispatchConfig'] = dispatchConfig;

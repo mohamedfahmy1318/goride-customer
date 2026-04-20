@@ -28,6 +28,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 import 'package:get_thumbnail_video/index.dart';
 import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -266,7 +267,12 @@ class Constant {
         mapModel.rows!.first.elements!.first.status == "OK") {
       return mapModel;
     } else {
-      ShowToastDialog.showToast(mapModel.errorMessage);
+      final elementStatus =
+          mapModel.rows?.first.elements?.first.status ?? mapModel.status;
+      ShowToastDialog.showToast(mapModel.errorMessage ??
+          (elementStatus == "ZERO_RESULTS"
+              ? "No driving route found between these locations.".tr
+              : "Could not calculate distance. Please try again.".tr));
     }
     return null;
   }

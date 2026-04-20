@@ -665,86 +665,14 @@ class CompleteOrderScreen extends StatelessWidget {
                                                   const Divider(
                                                     thickness: 1,
                                                   ),
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          "Ride Amount".tr,
-                                                          style: GoogleFonts.poppins(
-                                                              color: AppColors
-                                                                  .subTitleColor),
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        Constant.amountShow(
-                                                            amount: controller
-                                                                .amount.value
-                                                                .toString()),
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          "Minute charge".tr,
-                                                          style: GoogleFonts.poppins(
-                                                              color: AppColors
-                                                                  .subTitleColor),
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        Constant.amountShow(
-                                                            amount: controller
-                                                                .totalChargeOfMinute
-                                                                .value
-                                                                .toString()),
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          "Meter Start".tr,
-                                                          style: GoogleFonts.poppins(
-                                                              color: AppColors
-                                                                  .subTitleColor),
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        Constant.amountShow(
-                                                            amount: controller
-                                                                .meterStartCharge
-                                                                .value
-                                                                .toString()),
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  if (controller
-                                                          .holdingCharge.value >
-                                                      0)
+                                                  if (controller.orderModel
+                                                          .value.isAdminCreated !=
+                                                      true) ...[
                                                     Row(
                                                       children: [
                                                         Expanded(
                                                           child: Text(
-                                                            "Holding Charge (${controller.orderModel.value.rideHoldTimeMinutes} Minutes)"
-                                                                .tr,
+                                                            "Ride Amount".tr,
                                                             style: GoogleFonts.poppins(
                                                                 color: AppColors
                                                                     .subTitleColor),
@@ -753,7 +681,30 @@ class CompleteOrderScreen extends StatelessWidget {
                                                         Text(
                                                           Constant.amountShow(
                                                               amount: controller
-                                                                  .holdingCharge
+                                                                  .amount.value
+                                                                  .toString()),
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            "Minute charge".tr,
+                                                            style: GoogleFonts.poppins(
+                                                                color: AppColors
+                                                                    .subTitleColor),
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          Constant.amountShow(
+                                                              amount: controller
+                                                                  .totalChargeOfMinute
                                                                   .value
                                                                   .toString()),
                                                           style: GoogleFonts
@@ -764,12 +715,69 @@ class CompleteOrderScreen extends StatelessWidget {
                                                         ),
                                                       ],
                                                     ),
-                                                  const Divider(
-                                                    thickness: 1,
-                                                  ),
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            "Meter Start".tr,
+                                                            style: GoogleFonts.poppins(
+                                                                color: AppColors
+                                                                    .subTitleColor),
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          Constant.amountShow(
+                                                              amount: controller
+                                                                  .meterStartCharge
+                                                                  .value
+                                                                  .toString()),
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    if (controller.holdingCharge
+                                                            .value >
+                                                        0)
+                                                      Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: Text(
+                                                              "Holding Charge (${controller.orderModel.value.rideHoldTimeMinutes} Minutes)"
+                                                                  .tr,
+                                                              style: GoogleFonts.poppins(
+                                                                  color: AppColors
+                                                                      .subTitleColor),
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            Constant.amountShow(
+                                                                amount: controller
+                                                                    .holdingCharge
+                                                                    .value
+                                                                    .toString()),
+                                                            style: GoogleFonts
+                                                                .poppins(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    const Divider(
+                                                      thickness: 1,
+                                                    ),
+                                                  ],
                                                   controller.orderModel.value
-                                                              .taxList ==
-                                                          null
+                                                                  .taxList ==
+                                                              null ||
+                                                          controller.orderModel
+                                                                  .value
+                                                                  .isAdminCreated ==
+                                                              true
                                                       ? const SizedBox()
                                                       : ListView.builder(
                                                           itemCount: controller
@@ -818,35 +826,38 @@ class CompleteOrderScreen extends StatelessWidget {
                                                             );
                                                           },
                                                         ),
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          "Discount".tr,
-                                                          style: GoogleFonts.poppins(
-                                                              color: AppColors
-                                                                  .subTitleColor),
-                                                        ),
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Text(
-                                                            "(-${controller.couponAmount.value == "0.0" ? Constant.amountShow(amount: "0.0") : Constant.amountShow(amount: controller.couponAmount.value)})",
-                                                            style: GoogleFonts
-                                                                .poppins(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                    color: Colors
-                                                                        .red),
+                                                  if (controller.orderModel
+                                                          .value.isAdminCreated !=
+                                                      true) ...[
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            "Discount".tr,
+                                                            style: GoogleFonts.poppins(
+                                                                color: AppColors
+                                                                    .subTitleColor),
                                                           ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  const Divider(
-                                                    thickness: 1,
-                                                  ),
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Text(
+                                                              "(-${controller.couponAmount.value == "0.0" ? Constant.amountShow(amount: "0.0") : Constant.amountShow(amount: controller.couponAmount.value)})",
+                                                              style: GoogleFonts.poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: Colors
+                                                                      .red),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    const Divider(
+                                                      thickness: 1,
+                                                    ),
+                                                  ],
                                                   Row(
                                                     children: [
                                                       Expanded(

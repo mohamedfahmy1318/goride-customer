@@ -21,8 +21,9 @@ import 'package:customer/utils/DarkThemeProvider.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:customer/widget/geoflutterfire/src/geoflutterfire.dart';
 import 'package:customer/widget/geoflutterfire/src/models/point.dart';
+import 'package:customer/model/place_picker_model.dart';
+import 'package:customer/widget/google_map_search_place.dart';
 import 'package:customer/widget/place_picker_osm.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -98,51 +99,36 @@ class InterCityScreen extends StatelessWidget {
                                             }
                                           });
                                         } else {
-                                          await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => PlacePicker(
-                                                apiKey: Constant.mapAPIKey,
-                                                onPlacePicked: (result) async {
-                                                  Get.back();
-                                                  controller
-                                                          .sourceCityController
-                                                          .value
-                                                          .text =
-                                                      result.formattedAddress
-                                                          .toString();
-                                                  controller
-                                                          .sourceLocationController
-                                                          .value
-                                                          .text =
-                                                      result.formattedAddress
-                                                          .toString();
-                                                  controller
-                                                          .sourceLocationLAtLng
-                                                          .value =
-                                                      LocationLatLng(
-                                                          latitude: result
-                                                              .geometry!
-                                                              .location
-                                                              .lat,
-                                                          longitude: result
-                                                              .geometry!
-                                                              .location
-                                                              .lng);
-                                                  controller.calculateAmount();
-                                                },
-                                                initialPosition: const LatLng(
-                                                    -33.8567844, 151.213108),
-                                                useCurrentLocation: true,
-                                                selectInitialPosition: true,
-                                                usePinPointingSearch: true,
-                                                usePlaceDetailSearch: true,
-                                                zoomGesturesEnabled: true,
-                                                zoomControlsEnabled: true,
-                                                resizeToAvoidBottomInset: false,
-                                              ),
-                                            ),
+                                          final result = await Get.to(
+                                            () =>
+                                                const GoogleMapSearchPlacesApi(),
+                                            transition:
+                                                Transition.rightToLeft,
                                           );
+                                          if (result is PlaceDetailsModel &&
+                                              result.result?.geometry?.location
+                                                      ?.lat !=
+                                                  null &&
+                                              result.result?.geometry?.location
+                                                      ?.lng !=
+                                                  null) {
+                                            final addr = result.result!
+                                                    .formattedAddress
+                                                    ?.toString() ??
+                                                '';
+                                            controller.sourceCityController
+                                                .value.text = addr;
+                                            controller.sourceLocationController
+                                                .value.text = addr;
+                                            controller.sourceLocationLAtLng
+                                                .value = LocationLatLng(
+                                              latitude: result.result!.geometry!
+                                                  .location!.lat,
+                                              longitude: result.result!
+                                                  .geometry!.location!.lng,
+                                            );
+                                            controller.calculateAmount();
+                                          }
                                         }
                                       },
                                       child: TextFieldThem.buildTextFiled(
@@ -179,51 +165,40 @@ class InterCityScreen extends StatelessWidget {
                                             }
                                           });
                                         } else {
-                                          await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => PlacePicker(
-                                                apiKey: Constant.mapAPIKey,
-                                                onPlacePicked: (result) async {
-                                                  Get.back();
-                                                  controller
-                                                          .destinationCityController
-                                                          .value
-                                                          .text =
-                                                      result.formattedAddress
-                                                          .toString();
-                                                  controller
-                                                          .destinationLocationController
-                                                          .value
-                                                          .text =
-                                                      result.formattedAddress
-                                                          .toString();
-                                                  controller
-                                                          .destinationLocationLAtLng
-                                                          .value =
-                                                      LocationLatLng(
-                                                          latitude: result
-                                                              .geometry!
-                                                              .location
-                                                              .lat,
-                                                          longitude: result
-                                                              .geometry!
-                                                              .location
-                                                              .lng);
-                                                  controller.calculateAmount();
-                                                },
-                                                initialPosition: const LatLng(
-                                                    -33.8567844, 151.213108),
-                                                useCurrentLocation: true,
-                                                selectInitialPosition: true,
-                                                usePinPointingSearch: true,
-                                                usePlaceDetailSearch: true,
-                                                zoomGesturesEnabled: true,
-                                                zoomControlsEnabled: true,
-                                                resizeToAvoidBottomInset: false,
-                                              ),
-                                            ),
+                                          final result = await Get.to(
+                                            () =>
+                                                const GoogleMapSearchPlacesApi(),
+                                            transition:
+                                                Transition.rightToLeft,
                                           );
+                                          if (result is PlaceDetailsModel &&
+                                              result.result?.geometry?.location
+                                                      ?.lat !=
+                                                  null &&
+                                              result.result?.geometry?.location
+                                                      ?.lng !=
+                                                  null) {
+                                            final addr = result.result!
+                                                    .formattedAddress
+                                                    ?.toString() ??
+                                                '';
+                                            controller.destinationCityController
+                                                .value.text = addr;
+                                            controller
+                                                .destinationLocationController
+                                                .value
+                                                .text = addr;
+                                            controller
+                                                    .destinationLocationLAtLng
+                                                    .value =
+                                                LocationLatLng(
+                                              latitude: result.result!.geometry!
+                                                  .location!.lat,
+                                              longitude: result.result!
+                                                  .geometry!.location!.lng,
+                                            );
+                                            controller.calculateAmount();
+                                          }
                                         }
                                       },
                                       child: TextFieldThem.buildTextFiled(
