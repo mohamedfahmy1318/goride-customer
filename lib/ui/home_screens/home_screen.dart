@@ -770,6 +770,12 @@ class HomeScreen extends StatelessWidget {
                                     const SizedBox(
                                       height: 10,
                                     ),
+                                    _buildPromoCodeRow(context, controller),
+                                    const SizedBox(height: 10),
+                                    _buildFareBreakdown(context, controller),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
                                     ButtonThem.buildButton(
                                       context,
                                       title: "Book Ride".tr,
@@ -831,10 +837,11 @@ class HomeScreen extends StatelessWidget {
                                         } else if (controller
                                                 .selectedPaymentMethod.value ==
                                             "Wallet") {
-                                          // Wallet: check balance >= trip amount
-                                          double tripAmount = double.tryParse(
-                                                  controller.amount.value) ??
-                                              0.0;
+                                          // Wallet: check balance against what the customer actually pays
+                                          // (post-coupon). Matches the amount the payment controller will
+                                          // debit on completion.
+                                          double tripAmount =
+                                              controller.finalPayable;
                                           double walletBalance =
                                               double.tryParse(controller
                                                           .userModel
@@ -1615,6 +1622,171 @@ class HomeScreen extends StatelessWidget {
 //   );
 // }
 
+  /// Promo-code input row: text field + Apply / Remove button. Shown in the
+  /// booking sheet between the payment picker and the "Book Ride" button.
+  /// Auto-uppercases input and clears internal state via HomeController.
+  Widget _buildPromoCodeRow(BuildContext context, HomeController controller) {
+    return Obx(() {
+      final applied = controller.appliedCoupon.value;
+      final busy = controller.isApplyingCoupon.value;
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(4)),
+          border: Border.all(color: AppColors.textFieldBorder, width: 1),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Row(
+          children: [
+            Icon(Icons.local_offer_outlined,
+                size: 22, color: Colors.grey[700]),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextField(
+                controller: controller.promoCodeController,
+                enabled: applied == null && !busy,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                  hintText: applied != null
+                      ? "${"Applied".tr}: ${applied.code ?? ''}"
+                      : "Enter promo code".tr,
+                  hintStyle: GoogleFonts.poppins(
+                    color: applied != null
+                        ? (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.greenAccent
+                            : Colors.green[700])
+                        : Colors.grey[500],
+                    fontWeight:
+                        applied != null ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+                style: GoogleFonts.poppins(),
+              ),
+            ),
+            if (busy)
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else if (applied != null)
+              TextButton(
+                onPressed: controller.clearPromoCode,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                  minimumSize: const Size(0, 0),
+                ),
+                child: Text(
+                  "Remove".tr,
+                  style: GoogleFonts.poppins(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )
+            else
+              TextButton(
+                onPressed: () {
+                  FocusScope.of(context).unfocus();
+                  controller
+                      .applyPromoCode(controller.promoCodeController.text);
+                },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                  minimumSize: const Size(0, 0),
+                ),
+                child: Text(
+                  "Apply".tr,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    });
+  }
+
+  /// Compact price breakdown shown beneath the promo row when a fare has
+  /// been calculated. Hidden for zero/invalid subtotals (e.g. before the
+  /// customer picks a destination) and skips the discount line when no
+  /// coupon is applied.
+  Widget _buildFareBreakdown(BuildContext context, HomeController controller) {
+    return Obx(() {
+      final double subTotal = double.tryParse(controller.amount.value) ?? 0;
+      if (subTotal <= 0) return const SizedBox.shrink();
+      final double discount = controller.discountAmount.value;
+      final double payable = controller.finalPayable;
+      final bool hasDiscount = discount > 0;
+      if (!hasDiscount) return const SizedBox.shrink();
+
+      TextStyle labelStyle() => GoogleFonts.poppins(
+            fontSize: 13,
+            color: Colors.grey[700],
+          );
+      TextStyle valueStyle({bool bold = false, Color? color}) =>
+          GoogleFonts.poppins(
+            fontSize: bold ? 14 : 13,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+            color: color ?? Colors.black87,
+          );
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text("Subtotal".tr, style: labelStyle())),
+                Text(
+                  Constant.amountShow(amount: subTotal.toStringAsFixed(2)),
+                  style: valueStyle(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                    child: Text("Discount Applied".tr,
+                        style: labelStyle().copyWith(color: Colors.green[700]))),
+                Text(
+                  "- ${Constant.amountShow(amount: discount.toStringAsFixed(2))}",
+                  style: valueStyle(color: Colors.green[700]),
+                ),
+              ],
+            ),
+            const Divider(height: 14),
+            Row(
+              children: [
+                Expanded(
+                    child: Text("Total Payable".tr,
+                        style: labelStyle().copyWith(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w700))),
+                Text(
+                  Constant.amountShow(amount: payable.toStringAsFixed(2)),
+                  style: valueStyle(bold: true, color: AppColors.primary),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
   /// Extracted booking logic used by all payment methods
   Future<void> _proceedWithBooking(
       BuildContext context, HomeController controller) async {
@@ -1651,6 +1823,44 @@ class HomeScreen extends StatelessWidget {
         controller.selectedType.value.adminCommission!.isEnabled == false
             ? controller.selectedType.value.adminCommission!
             : Constant.adminCommission;
+
+    final double computedTotalFare =
+        double.tryParse(orderModel.offerRate ?? '0') ?? 0;
+    final double computedCommission =
+        (orderModel.adminCommission?.isEnabled == true)
+            ? Constant.calculateOrderAdminCommission(
+                amount: orderModel.offerRate,
+                adminCommission: orderModel.adminCommission,
+              )
+            : 0.0;
+    final double computedDriverEarnings =
+        (computedTotalFare - computedCommission).clamp(0, double.infinity);
+    orderModel.totalFare = computedTotalFare.toStringAsFixed(2);
+    orderModel.adminCommissionAmount = computedCommission.toStringAsFixed(2);
+    orderModel.driverEarnings = computedDriverEarnings.toStringAsFixed(2);
+
+    // Company-absorbs coupon model: the discount reduces what the customer
+    // pays but does NOT touch adminCommissionAmount or driverEarnings above
+    // — those stay pegged to the gross totalFare so the driver's take is
+    // unaffected by promos. The platform's net commission capture shrinks
+    // instead (adminCommission − discount).
+    final appliedCoupon = controller.appliedCoupon.value;
+    final double discount = (appliedCoupon != null &&
+            controller.discountAmount.value > 0 &&
+            orderModel.destinationless != true)
+        ? Constant.calculateCouponDiscount(
+            subTotal: computedTotalFare,
+            coupon: appliedCoupon,
+          )
+        : 0.0;
+    final double finalPayable =
+        (computedTotalFare - discount).clamp(0, double.infinity).toDouble();
+    orderModel.discountAmount = discount.toStringAsFixed(2);
+    orderModel.finalPayableAmount = finalPayable.toStringAsFixed(2);
+    if (appliedCoupon != null && discount > 0) {
+      orderModel.coupon = appliedCoupon;
+    }
+
     orderModel.otp = Constant.getReferralCode();
     orderModel.isAcSelected = controller.selectedType.value.isAcNonAc == true
         ? controller.isAcSelected.value
@@ -1680,6 +1890,9 @@ class HomeScreen extends StatelessWidget {
           controller.dashboardController.selectedDrawerIndex(2);
           ShowToastDialog.closeLoader();
           controller.isBookingInProgress.value = false;
+          // Coupon was redeemed atomically inside setOrder's transaction.
+          // Reset local state so the next booking starts without a stale promo.
+          controller.clearPromoCode();
         }).catchError((e) {
           ShowToastDialog.closeLoader();
           controller.isBookingInProgress.value = false;
@@ -1816,6 +2029,44 @@ class HomeScreen extends StatelessWidget {
         controller.selectedType.value.adminCommission!.isEnabled == false
             ? controller.selectedType.value.adminCommission!
             : Constant.adminCommission;
+
+    final double computedTotalFare =
+        double.tryParse(orderModel.offerRate ?? '0') ?? 0;
+    final double computedCommission =
+        (orderModel.adminCommission?.isEnabled == true)
+            ? Constant.calculateOrderAdminCommission(
+                amount: orderModel.offerRate,
+                adminCommission: orderModel.adminCommission,
+              )
+            : 0.0;
+    final double computedDriverEarnings =
+        (computedTotalFare - computedCommission).clamp(0, double.infinity);
+    orderModel.totalFare = computedTotalFare.toStringAsFixed(2);
+    orderModel.adminCommissionAmount = computedCommission.toStringAsFixed(2);
+    orderModel.driverEarnings = computedDriverEarnings.toStringAsFixed(2);
+
+    // Company-absorbs coupon model: the discount reduces what the customer
+    // pays but does NOT touch adminCommissionAmount or driverEarnings above
+    // — those stay pegged to the gross totalFare so the driver's take is
+    // unaffected by promos. The platform's net commission capture shrinks
+    // instead (adminCommission − discount).
+    final appliedCoupon = controller.appliedCoupon.value;
+    final double discount = (appliedCoupon != null &&
+            controller.discountAmount.value > 0 &&
+            orderModel.destinationless != true)
+        ? Constant.calculateCouponDiscount(
+            subTotal: computedTotalFare,
+            coupon: appliedCoupon,
+          )
+        : 0.0;
+    final double finalPayable =
+        (computedTotalFare - discount).clamp(0, double.infinity).toDouble();
+    orderModel.discountAmount = discount.toStringAsFixed(2);
+    orderModel.finalPayableAmount = finalPayable.toStringAsFixed(2);
+    if (appliedCoupon != null && discount > 0) {
+      orderModel.coupon = appliedCoupon;
+    }
+
     orderModel.otp = Constant.getReferralCode();
     orderModel.isAcSelected = false;
     orderModel.taxList = Constant.taxList;

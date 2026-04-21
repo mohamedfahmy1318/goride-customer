@@ -87,6 +87,24 @@ final Map<String, String> trFr = {
   "Your Price is": "Le prix de la course est",
   "Enter your offer rate": "Entrez le prix de la course",
   "Select Payment type": "SÃ©lectionnez le type de paiement",
+  "Remove": "Retirer",
+  "Applied": "Appliqué",
+  "Enter promo code": "Entrez le code promo",
+  "Subtotal": "Sous-total",
+  "Discount Applied": "Remise appliquée",
+  "Total Payable": "Total à payer",
+  "Discount applied": "Remise appliquée",
+  "Please enter a promo code": "Veuillez entrer un code promo",
+  "Promo code already applied": "Code promo déjà appliqué",
+  "Select a destination before applying a promo code":
+      "Sélectionnez une destination avant d'appliquer un code promo",
+  "Invalid or expired promo code": "Code promo invalide ou expiré",
+  "This promo code has reached its usage limit":
+      "Ce code promo a atteint sa limite d'utilisation",
+  "Minimum bill for this coupon is": "Facture minimum pour ce coupon",
+  "Promo code could not be applied": "Impossible d'appliquer le code promo",
+  "Coupon removed: fare is below the minimum bill amount":
+      "Coupon retiré : le tarif est inférieur au minimum requis",
   "Book Ride": "Tour de livre",
   "Please select Payment Method": "Veuillez sÃ©lectionner le mode de paiement",
   "Please select source location":

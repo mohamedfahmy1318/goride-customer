@@ -37,6 +37,9 @@ class DriverUserModel {
   String? licenseImage; // صورة الرخصة
   bool? isApproved; // الموافقة على فتح الحساب من الإدارة
   Timestamp? approvedAt; // تاريخ الموافقة
+  bool? isBanned; // permanent admin ban — excluded from customer dispatch
+  String? currentOrderId; // set when driver is on an active trip — excluded
+  //                        from the dispatch pool until the order terminates
   String? language;
 
   DriverUserModel(
@@ -110,6 +113,8 @@ class DriverUserModel {
     identityImage = json['identityImage'];
     licenseImage = json['licenseImage'];
     isApproved = json['isApproved'] ?? false;
+    isBanned = json['isBanned'] == true;
+    currentOrderId = json['currentOrderId']?.toString();
     approvedAt = json['approvedAt'];
     language = json['language'] ?? 'ar';
   }
@@ -151,6 +156,8 @@ class DriverUserModel {
     data['identityImage'] = identityImage;
     data['licenseImage'] = licenseImage;
     data['isApproved'] = isApproved;
+    if (isBanned != null) data['isBanned'] = isBanned;
+    if (currentOrderId != null) data['currentOrderId'] = currentOrderId;
     data['approvedAt'] = approvedAt;
     data['language'] = language;
     return data;

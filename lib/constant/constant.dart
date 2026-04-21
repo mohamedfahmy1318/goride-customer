@@ -13,6 +13,7 @@ import 'package:customer/model/ChatVideoContainer.dart';
 import 'package:customer/model/admin_commission.dart';
 import 'package:customer/model/airport_model.dart';
 import 'package:customer/model/conversation_model.dart';
+import 'package:customer/model/coupon_model.dart';
 import 'package:customer/model/currency_model.dart';
 import 'package:customer/model/language_description.dart';
 import 'package:customer/model/language_model.dart';
@@ -357,6 +358,23 @@ class Constant {
       }
     }
     return taxAmount;
+  }
+
+  /// Returns the absolute discount amount (never negative, never greater than
+  /// [subTotal]) implied by a coupon applied to a subtotal. Shared by the
+  /// booking sheet preview, the placement-time persistence, and any receipt
+  /// screens that re-derive from OrderModel — single source of truth.
+  static double calculateCouponDiscount({
+    required double subTotal,
+    required CouponModel coupon,
+  }) {
+    if (coupon.enable != true) return 0;
+    final double raw = double.tryParse(coupon.amount?.toString() ?? '0') ?? 0;
+    if (raw <= 0) return 0;
+    final double discount = coupon.type == 'fix' ? raw : (subTotal * raw) / 100;
+    if (discount.isNaN || discount.isInfinite) return 0;
+    // Cap at subtotal so the final payable never goes negative.
+    return discount.clamp(0, subTotal).toDouble();
   }
 
   static String calculateReview({

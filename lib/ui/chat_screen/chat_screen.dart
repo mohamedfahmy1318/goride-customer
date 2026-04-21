@@ -298,20 +298,7 @@ class _ChatScreensState extends State<ChatScreens> {
                                       ),
                                     ]),
                               ))
-                          : FloatingActionButton(
-                              mini: true,
-                              heroTag: data.id,
-                              onPressed: () {
-                                Get.to(FullScreenVideoViewer(
-                                  heroTag: data.id.toString(),
-                                  videoUrl: data.url!.url,
-                                ));
-                              },
-                              child: const Icon(
-                                Icons.play_arrow,
-                                color: Colors.white,
-                              ),
-                            ),
+                          : _buildVideoPlayButton(data),
                   const SizedBox(
                     height: 2,
                   ),
@@ -391,19 +378,7 @@ class _ChatScreensState extends State<ChatScreens> {
                                         ),
                                       ]),
                                 ))
-                            : FloatingActionButton(
-                                mini: true,
-                                heroTag: data.id,
-                                onPressed: () {
-                                  Get.to(FullScreenVideoViewer(
-                                    heroTag: data.id.toString(),
-                                    videoUrl: data.url!.url,
-                                  ));
-                                },
-                                child: const Icon(
-                                  Icons.play_arrow,
-                                ),
-                              ),
+                            : _buildVideoPlayButton(data),
                   ],
                 ),
                 const SizedBox(
@@ -422,6 +397,34 @@ class _ChatScreensState extends State<ChatScreens> {
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _buildVideoPlayButton(ConversationModel data) {
+    final String heroTag =
+        data.id != null && data.id!.isNotEmpty ? data.id! : data.url!.url;
+
+    return SizedBox(
+      height: 36,
+      width: 36,
+      child: Material(
+        color: AppColors.primary,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () {
+            Get.to(FullScreenVideoViewer(
+              heroTag: heroTag,
+              videoUrl: data.url!.url,
+            ));
+          },
+          child: const Icon(
+            Icons.play_arrow,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+      ),
     );
   }
 

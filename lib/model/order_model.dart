@@ -53,6 +53,11 @@ class OrderModel {
   String? actualDistance;
   String? actualDuration;
   Timestamp? rideStartTime;
+  String? totalFare;
+  String? adminCommissionAmount;
+  String? driverEarnings;
+  String? discountAmount;
+  String? finalPayableAmount;
 
   OrderModel(
       {this.position,
@@ -95,7 +100,12 @@ class OrderModel {
       this.isAdminCreated,
       this.actualDistance,
       this.actualDuration,
-      this.rideStartTime});
+      this.rideStartTime,
+      this.totalFare,
+      this.adminCommissionAmount,
+      this.driverEarnings,
+      this.discountAmount,
+      this.finalPayableAmount});
 
   OrderModel.fromJson(Map<String, dynamic> json) {
     serviceId = json['serviceId'];
@@ -146,6 +156,11 @@ class OrderModel {
     actualDistance = json['actualDistance'];
     actualDuration = json['actualDuration'];
     rideStartTime = json['rideStartTime'];
+    totalFare = json['totalFare']?.toString();
+    adminCommissionAmount = json['adminCommissionAmount']?.toString();
+    driverEarnings = json['driverEarnings']?.toString();
+    discountAmount = json['discountAmount']?.toString();
+    finalPayableAmount = json['finalPayableAmount']?.toString();
     position =
         json['position'] != null ? Positions.fromJson(json['position']) : null;
     service =
@@ -224,6 +239,15 @@ class OrderModel {
     if (actualDistance != null) data['actualDistance'] = actualDistance;
     if (actualDuration != null) data['actualDuration'] = actualDuration;
     if (rideStartTime != null) data['rideStartTime'] = rideStartTime;
+    if (totalFare != null) data['totalFare'] = totalFare;
+    if (adminCommissionAmount != null) {
+      data['adminCommissionAmount'] = adminCommissionAmount;
+    }
+    if (driverEarnings != null) data['driverEarnings'] = driverEarnings;
+    if (discountAmount != null) data['discountAmount'] = discountAmount;
+    if (finalPayableAmount != null) {
+      data['finalPayableAmount'] = finalPayableAmount;
+    }
     if (taxList != null) {
       data['taxList'] = taxList!.map((v) => v.toJson()).toList();
     }

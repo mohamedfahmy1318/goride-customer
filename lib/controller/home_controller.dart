@@ -10,6 +10,7 @@ import 'package:customer/controller/dash_board_controller.dart';
 import 'package:customer/model/airport_model.dart';
 import 'package:customer/model/banner_model.dart';
 import 'package:customer/model/contact_model.dart';
+import 'package:customer/model/coupon_model.dart';
 import 'package:customer/model/order/location_lat_lng.dart';
 import 'package:customer/model/payment_model.dart';
 import 'package:customer/model/service_model.dart';
@@ -75,6 +76,11 @@ class HomeController extends GetxController {
     getServiceType();
     getPaymentData();
     getContact();
+    // Keep the coupon discount in sync with the live fare — if the customer
+    // switches service or distance shifts, a percentage coupon's absolute
+    // value moves with it, and a fare below the min-bill auto-drops the
+    // coupon (see _recalculateDiscount).
+    ever<String>(amount, (_) => _recalculateDiscount());
     super.onInit();
   }
 
@@ -190,6 +196,129 @@ class HomeController extends GetxController {
   RxString distance = "".obs;
   RxString amount = "".obs;
   RxDouble totalAmount = 0.0.obs;
+
+  // ── Promo / coupon state ────────────────────────────────────────────────
+  // The booking sheet binds its input + breakdown to these. Company-absorbs
+  // model: the discount reduces what the customer pays but does NOT touch
+  // the driver's earnings — commission is still computed on the gross fare
+  // at placement time (see _proceedWithBooking in home_screen.dart).
+  final Rxn<CouponModel> appliedCoupon = Rxn<CouponModel>();
+  final RxDouble discountAmount = 0.0.obs;
+  final RxBool isApplyingCoupon = false.obs;
+  final TextEditingController promoCodeController = TextEditingController();
+
+  /// Computed: what the customer actually pays (subtotal − discount). Read
+  /// this at placement time and via Obx in the breakdown widget.
+  double get finalPayable {
+    final double subTotal = double.tryParse(amount.value) ?? 0;
+    return (subTotal - discountAmount.value).clamp(0, double.infinity).toDouble();
+  }
+
+  /// Recompute the discount against the current [amount]. Called when the
+  /// customer picks a different service or distance changes while a coupon
+  /// is already applied — the discount magnitude may shift (percentage
+  /// coupons) or the min-bill floor may now be unmet.
+  void _recalculateDiscount() {
+    final coupon = appliedCoupon.value;
+    if (coupon == null) {
+      discountAmount.value = 0;
+      return;
+    }
+    final double subTotal = double.tryParse(amount.value) ?? 0;
+    final double minBill =
+        double.tryParse(coupon.minBillAmount?.toString() ?? '0') ?? 0;
+    if (subTotal < minBill) {
+      // Auto-drop the coupon when the fare falls below the minimum — the
+      // user will see the breakdown row disappear and can re-apply later.
+      appliedCoupon.value = null;
+      discountAmount.value = 0;
+      promoCodeController.clear();
+      ShowToastDialog.showToast(
+          "Coupon removed: fare is below the minimum bill amount".tr);
+      return;
+    }
+    discountAmount.value = Constant.calculateCouponDiscount(
+      subTotal: subTotal,
+      coupon: coupon,
+    );
+  }
+
+  /// Validate + apply a promo code. Surfaces errors via ShowToastDialog and
+  /// returns true on success so the caller can dismiss the input keyboard.
+  Future<bool> applyPromoCode(String code) async {
+    if (isApplyingCoupon.value) return false;
+    final normalized = code.trim().toUpperCase();
+    if (normalized.isEmpty) {
+      ShowToastDialog.showToast("Please enter a promo code".tr);
+      return false;
+    }
+    if (appliedCoupon.value?.code == normalized) {
+      ShowToastDialog.showToast("Promo code already applied".tr);
+      return true;
+    }
+    final double subTotal = double.tryParse(amount.value) ?? 0;
+    if (subTotal <= 0) {
+      ShowToastDialog.showToast(
+          "Select a destination before applying a promo code".tr);
+      return false;
+    }
+
+    isApplyingCoupon.value = true;
+    try {
+      final coupon = await FireStoreUtils.getCouponByCode(normalized);
+      if (coupon == null) {
+        ShowToastDialog.showToast("Invalid or expired promo code".tr);
+        return false;
+      }
+
+      // Usage-limit check is advisory here — the Firestore transaction in
+      // FireStoreUtils.setOrder re-checks atomically at placement so we can
+      // never over-redeem even under concurrent bookings.
+      if (coupon.usageLimit != null &&
+          coupon.usageLimit! > 0 &&
+          (coupon.usedCount ?? 0) >= coupon.usageLimit!) {
+        ShowToastDialog.showToast(
+            "This promo code has reached its usage limit".tr);
+        return false;
+      }
+
+      final double minBill =
+          double.tryParse(coupon.minBillAmount?.toString() ?? '0') ?? 0;
+      if (subTotal < minBill) {
+        ShowToastDialog.showToast(
+            "${"Minimum bill for this coupon is".tr} ${Constant.amountShow(amount: minBill.toStringAsFixed(2))}");
+        return false;
+      }
+
+      final double discount = Constant.calculateCouponDiscount(
+        subTotal: subTotal,
+        coupon: coupon,
+      );
+      if (discount <= 0) {
+        ShowToastDialog.showToast("Promo code could not be applied".tr);
+        return false;
+      }
+
+      appliedCoupon.value = coupon;
+      discountAmount.value = discount;
+      ShowToastDialog.showToast(
+          "${"Discount applied".tr}: ${Constant.amountShow(amount: discount.toStringAsFixed(2))}");
+      return true;
+    } catch (e) {
+      log('applyPromoCode error: $e');
+      ShowToastDialog.showToast("Something went wrong, please try again".tr);
+      return false;
+    } finally {
+      isApplyingCoupon.value = false;
+    }
+  }
+
+  /// Drop the currently-applied coupon and reset the breakdown.
+  void clearPromoCode() {
+    appliedCoupon.value = null;
+    discountAmount.value = 0;
+    promoCodeController.clear();
+  }
   DateTime currentTime = DateTime.now();
   DateTime currentDate = DateTime.now();
 
@@ -390,12 +519,13 @@ class HomeController extends GetxController {
     }
   }
 
-  /// Start a 2-minute expiration timer for the ride request
+  /// Start a 6-minute expiration timer for the ride request.
+  /// Matches the server-side `autoCancelStaleRideRequests` window in Cloud Functions.
   void startRideExpirationTimer(String orderId) {
     cancelRideExpirationTimer();
     _activeOrderId = orderId;
     activeOrderId.value = orderId;
-    _rideExpirationTimer = Timer(const Duration(minutes: 2), () async {
+    _rideExpirationTimer = Timer(const Duration(minutes: 6), () async {
       try {
         // Re-fetch the order to check if a driver accepted
         DocumentSnapshot orderDoc = await FirebaseFirestore.instance

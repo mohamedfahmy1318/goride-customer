@@ -1768,11 +1768,36 @@ void _notifyDriversForIntercityOrder(InterCityOrderModel orderModel) async {
   try {
     List drivers =
         await FireStoreUtils.getDriversInZoneForIntercity(orderModel.zoneId!);
+
+    // Compute the same fare breakdown the city_order Cloud Functions path
+    // produces via computeFareBreakdown — keeps driver-side UX consistent
+    // across city and intercity dispatch, even when the callable's silent
+    // enrichment catch fires.
+    final double intercityTotalFare =
+        double.tryParse(orderModel.offerRate ?? '0') ?? 0;
+    double intercityCommission = 0;
+    final intercityCfg = orderModel.adminCommission;
+    if (intercityCfg != null && intercityCfg.isEnabled == true) {
+      final double cfgAmount =
+          double.tryParse(intercityCfg.amount?.toString() ?? '0') ?? 0;
+      intercityCommission = intercityCfg.type == 'fix'
+          ? cfgAmount
+          : (intercityTotalFare * cfgAmount) / 100;
+    }
+    final double intercityEarnings =
+        (intercityTotalFare - intercityCommission)
+            .clamp(0, double.infinity)
+            .toDouble();
+
     for (var driver in drivers) {
       if (driver.fcmToken != null && driver.fcmToken!.isNotEmpty) {
         Map<String, dynamic> payload = {
           "type": "intercity_order",
           "orderId": orderModel.id,
+          "total_fare": intercityTotalFare.toStringAsFixed(2),
+          "admin_commission": intercityCommission.toStringAsFixed(2),
+          "driver_earnings": intercityEarnings.toStringAsFixed(2),
+          "trip_distance": orderModel.distance ?? '',
         };
         await SendNotification.sendOneNotification(
           token: driver.fcmToken!,

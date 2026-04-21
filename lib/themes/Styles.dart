@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 class Styles {
   static ThemeData themeData(bool isDarkTheme, BuildContext context) {
     return ThemeData(
-      primarySwatch: Colors.red,
+      primarySwatch: Colors.green,
       useMaterial3: false,
       colorScheme: ColorScheme(
           brightness: isDarkTheme ? Brightness.dark : Brightness.light,

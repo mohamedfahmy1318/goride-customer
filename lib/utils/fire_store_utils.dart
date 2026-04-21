@@ -522,18 +522,65 @@ class FireStoreUtils {
   }
 
   static Future<bool?> setOrder(OrderModel orderModel) async {
-    bool isAdded = false;
-    await fireStore
-        .collection(CollectionName.orders)
-        .doc(orderModel.id)
-        .set(orderModel.toJson())
-        .then((value) {
-      isAdded = true;
-    }).catchError((error) {
-      log("Failed to update user: $error");
-      isAdded = false;
-    });
-    return isAdded;
+    try {
+      // No coupon → plain write, no transaction needed. Fast path.
+      final couponId = orderModel.coupon?.id;
+      if (couponId == null || couponId.isEmpty) {
+        await fireStore
+            .collection(CollectionName.orders)
+            .doc(orderModel.id)
+            .set(orderModel.toJson());
+        return true;
+      }
+
+      // With coupon → write the order AND increment `usedCount` atomically.
+      // If the transaction fails (e.g. coupon was disabled or deleted between
+      // validation and placement), neither write lands, so we never leave the
+      // order doc pointing at a coupon we didn't successfully redeem.
+      await fireStore.runTransaction((transaction) async {
+        final couponRef =
+            fireStore.collection(CollectionName.coupon).doc(couponId);
+        final orderRef =
+            fireStore.collection(CollectionName.orders).doc(orderModel.id);
+
+        final couponSnap = await transaction.get(couponRef);
+        if (!couponSnap.exists) {
+          throw StateError('coupon_vanished');
+        }
+        final data = couponSnap.data();
+        if (data == null) {
+          throw StateError('coupon_empty');
+        }
+        if (data['isDeleted'] == true || data['enable'] != true) {
+          throw StateError('coupon_inactive');
+        }
+        // Enforce usage limit inside the transaction. The check here races
+        // with other concurrent redemptions — Firestore resolves by retrying
+        // the transaction until usedCount reflects the latest state.
+        final int usedCount = (data['usedCount'] is int)
+            ? data['usedCount'] as int
+            : int.tryParse(data['usedCount']?.toString() ?? '') ?? 0;
+        final usageLimitRaw = data['usageLimit'];
+        final int? usageLimit = usageLimitRaw is int
+            ? usageLimitRaw
+            : int.tryParse(usageLimitRaw?.toString() ?? '');
+        if (usageLimit != null &&
+            usageLimit > 0 &&
+            usedCount >= usageLimit) {
+          throw StateError('coupon_exhausted');
+        }
+
+        transaction.set(orderRef, orderModel.toJson());
+        transaction.update(couponRef, {'usedCount': FieldValue.increment(1)});
+      });
+      return true;
+    } on StateError catch (e) {
+      log('setOrder coupon transaction rejected: ${e.message}');
+      return false;
+    } catch (error) {
+      log('Failed to set order: $error');
+      return false;
+    }
   }
 
   StreamController<List<DriverUserModel>>? getNearestOrderRequestController;
@@ -611,6 +658,18 @@ class FireStoreUtils {
 
     for (var document in documentList) {
       final data = document.data() as Map<String, dynamic>;
+      // Client-side ban filter — can't use `.where('isBanned', isEqualTo: false)`
+      // server-side because Firestore `==` queries skip docs where the field
+      // is missing, and legacy driver docs don't have `isBanned` yet.
+      // Treating null/missing as "not banned" keeps old drivers in the pool.
+      if (data['isBanned'] == true) continue;
+      // Single-ride enforcement: exclude drivers currently on an active
+      // trip. `currentOrderId` is set by the driver's `acceptOrderDirectly`
+      // transaction and cleared by the `syncDriverCurrentOrderId` Cloud
+      // Function on terminal status.
+      final currentOrderId =
+          (data['currentOrderId'] ?? '').toString().trim();
+      if (currentOrderId.isNotEmpty) continue;
       DriverUserModel orderModel = DriverUserModel.fromJson(data);
       ordersList.add(orderModel);
     }
@@ -653,6 +712,15 @@ class FireStoreUtils {
           .get();
 
       for (var doc in snapshot.docs) {
+        // Drop banned drivers before adding to the candidate pool. See
+        // sendOrderDataFuture for why this is client-side instead of a
+        // `.where('isBanned', isEqualTo: false)` clause.
+        if (doc.data()['isBanned'] == true) continue;
+        // Drop drivers who are already on an active trip — single-ride
+        // enforcement mirrors the Cloud Functions dispatch filter.
+        final currentOrderId =
+            (doc.data()['currentOrderId'] ?? '').toString().trim();
+        if (currentOrderId.isNotEmpty) continue;
         DriverUserModel driver = DriverUserModel.fromJson(doc.data());
         drivers.add(driver);
       }
@@ -800,6 +868,38 @@ class FireStoreUtils {
       log(error.toString());
     });
     return couponModel;
+  }
+
+  /// Look up a coupon by its exact code. Codes are stored uppercase in
+  /// Firestore (enforced by the Laravel controller); we uppercase the input
+  /// too so the lookup is case-insensitive from the driver's perspective.
+  /// Returns the coupon if it's enabled, not deleted, and not yet expired.
+  /// Returns null if the code is unknown, disabled, deleted, or expired.
+  static Future<CouponModel?> getCouponByCode(String code) async {
+    final String normalized = code.trim().toUpperCase();
+    if (normalized.isEmpty) return null;
+    try {
+      final snap = await fireStore
+          .collection(CollectionName.coupon)
+          .where('code', isEqualTo: normalized)
+          .where('enable', isEqualTo: true)
+          .where('isDeleted', isEqualTo: false)
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) return null;
+      final coupon = CouponModel.fromJson(snap.docs.first.data());
+      // Server-side time comparison is safest but expiry is only precise to
+      // the day boundary (admin picks a date). Double-check here so a stale
+      // cache can't serve a just-expired coupon.
+      if (coupon.validity != null &&
+          coupon.validity!.toDate().isBefore(DateTime.now())) {
+        return null;
+      }
+      return coupon;
+    } catch (e) {
+      log('getCouponByCode failed: $e');
+      return null;
+    }
   }
 
   static Future<bool?> setReview(ReviewModel reviewModel) async {
