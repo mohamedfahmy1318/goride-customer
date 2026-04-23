@@ -21,6 +21,21 @@ final Map<String, String> arAR = {
   "Please enter phone": "الرجاء إدخال الهاتف",
   "Please enter valid email": "الرجاء إدخال بريد إلكتروني صالح",
   "Please wait": "انتظر من فضلك",
+  "Please enter a valid phone number": "يرجى إدخال رقم هاتف صحيح",
+  "Phone number must be": "يجب أن يتكون رقم الهاتف من",
+  "digits for": "أرقام للدولة",
+  "Too many attempts. Please wait a minute and try again.":
+      "محاولات كثيرة. الرجاء الانتظار دقيقة والمحاولة لاحقًا.",
+  "App verification failed. Please reinstall and try again, or contact support if it keeps happening.":
+      "فشل التحقق من التطبيق. يرجى إعادة تثبيت التطبيق أو التواصل مع الدعم.",
+  "Service is busy. Please try again in a few minutes.":
+      "الخدمة مشغولة حاليًا. يرجى المحاولة بعد قليل.",
+  "Verification check failed. Please try again.":
+      "فشل التحقق. يرجى المحاولة مرة أخرى.",
+  "No internet connection. Please check your network.":
+      "لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.",
+  "Something went wrong. Please try again.":
+      "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
   "Referral code Invalid": "رمز الإحالة غير صالح",
   "Login": "تسجيل الدخول",
   "Welcome Back! We are happy to have \n you back":

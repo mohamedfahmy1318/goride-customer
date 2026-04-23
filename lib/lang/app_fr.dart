@@ -21,6 +21,22 @@ final Map<String, String> trFr = {
   "Please enter phone": "Veuillez entrer le tÃ©lÃ©phone",
   "Please enter valid email": "Veuillez entrer une adresse e-mail valide",
   "Please wait": "S'il vous plaÃ®t, attendez",
+  "Please enter a valid phone number":
+      "Veuillez entrer un numéro de téléphone valide",
+  "Phone number must be": "Le numéro doit comporter",
+  "digits for": "chiffres pour",
+  "Too many attempts. Please wait a minute and try again.":
+      "Trop de tentatives. Veuillez patienter une minute et réessayer.",
+  "App verification failed. Please reinstall and try again, or contact support if it keeps happening.":
+      "La vérification de l'application a échoué. Veuillez réinstaller l'application ou contacter le support.",
+  "Service is busy. Please try again in a few minutes.":
+      "Le service est occupé. Veuillez réessayer dans quelques minutes.",
+  "Verification check failed. Please try again.":
+      "La vérification a échoué. Veuillez réessayer.",
+  "No internet connection. Please check your network.":
+      "Pas de connexion Internet. Veuillez vérifier votre réseau.",
+  "Something went wrong. Please try again.":
+      "Une erreur s'est produite. Veuillez réessayer.",
   "Referral code Invalid": "Code de parrainage invalide",
   "Login": "Se connecter",
   "Welcome Back! We are happy to have \n you back":

@@ -21,6 +21,21 @@ final Map<String, String> enUS = {
   "Please enter phone": "Please enter phone",
   "Please enter valid email": "Please enter valid email",
   "Please wait": "Please wait",
+  "Please enter a valid phone number": "Please enter a valid phone number",
+  "Phone number must be": "Phone number must be",
+  "digits for": "digits for",
+  "Too many attempts. Please wait a minute and try again.":
+      "Too many attempts. Please wait a minute and try again.",
+  "App verification failed. Please reinstall and try again, or contact support if it keeps happening.":
+      "App verification failed. Please reinstall and try again, or contact support if it keeps happening.",
+  "Service is busy. Please try again in a few minutes.":
+      "Service is busy. Please try again in a few minutes.",
+  "Verification check failed. Please try again.":
+      "Verification check failed. Please try again.",
+  "No internet connection. Please check your network.":
+      "No internet connection. Please check your network.",
+  "Something went wrong. Please try again.":
+      "Something went wrong. Please try again.",
   "Referral code Invalid": "Referral code Invalid",
   "Login": "Login",
   "Welcome Back! We are happy to have \n you back":

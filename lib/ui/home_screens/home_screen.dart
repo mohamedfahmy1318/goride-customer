@@ -1333,12 +1333,27 @@ class HomeScreen extends StatelessWidget {
                             try {
                               final FlutterNativeContactPicker contactPicker =
                                   FlutterNativeContactPicker();
-                              Contact? contact =
+                              // selectContact() returns Contact? — the user
+                              // cancelling the native picker makes it null.
+                              // The old code did `contact!.fullName` which
+                              // crashed in that case. Bail silently instead.
+                              final Contact? contact =
                                   await contactPicker.selectContact();
-                              ContactModel contactModel = ContactModel();
-                              contactModel.fullName = contact!.fullName ?? "";
-                              contactModel.contactNumber =
-                                  contact.selectedPhoneNumber;
+                              if (contact == null) return;
+
+                              final ContactModel contactModel = ContactModel()
+                                ..fullName = contact.fullName ?? ''
+                                ..contactNumber =
+                                    contact.selectedPhoneNumber ?? '';
+
+                              // A contact with no phone number is unusable for
+                              // the ride-placement flow — skip it rather than
+                              // adding a blank row to the saved-contacts list.
+                              if ((contactModel.contactNumber ?? '')
+                                  .trim()
+                                  .isEmpty) {
+                                return;
+                              }
 
                               if (!controller.contactList
                                   .contains(contactModel)) {
@@ -1346,7 +1361,11 @@ class HomeScreen extends StatelessWidget {
                                 controller.setContact();
                               }
                             } catch (e) {
-                              rethrow;
+                              // Swallow — the contact picker sometimes throws
+                              // when the user denies the runtime permission
+                              // from the native picker. Letting the exception
+                              // propagate crashed the whole dialog tree.
+                              debugPrint('Contact picker failed: $e');
                             }
                           },
                           child: Padding(

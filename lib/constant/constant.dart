@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/model/ChatVideoContainer.dart';
@@ -25,6 +26,7 @@ import 'package:customer/model/map_model.dart';
 import 'package:customer/model/tax_model.dart';
 import 'package:customer/themes/app_colors.dart';
 import 'package:customer/utils/Preferences.dart';
+import 'package:customer/utils/url_launcher_utils.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,7 +37,6 @@ import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 class Constant {
@@ -75,20 +76,37 @@ class Constant {
 
   static const globalUrl =
       "https://goride.sisا ف الفاير استور مع اني بحطwebapp.com/";
+
+  /// Legacy Firebase Storage URL for the user placeholder image. Kept as a
+  /// string for backward compatibility with any external caller, but DO NOT
+  /// use it — the object is missing in `goride-a9d8f` (404s). Use
+  /// [safeImageUrl] + [buildUserAvatar] / [placeholderWidget] instead.
+  @Deprecated('Missing in Firebase Storage; use buildUserAvatar() instead')
   static const userPlaceHolder =
       "https://firebasestorage.googleapis.com/v0/b/goride-a9d8f.firebasestorage.app/o/placeholderImages%2Fuser-placeholder.jpeg?alt=media";
 
-  /// Returns a safe image URL. If the input is null, empty, or "null",
-  /// returns the placeholder image URL instead.
+  /// Returns a safe image URL. Null / empty / the literal string "null" all
+  /// collapse to an empty string so callers never attempt a network request
+  /// for a placeholder that isn't there. The broken Firebase Storage URL
+  /// used to be returned here — every missing-avatar render 404'd against
+  /// Storage and spammed Crashlytics. Pair with CachedNetworkImage's
+  /// `errorWidget` (or the [buildUserAvatar] helper) to get a local
+  /// placeholder without any network call.
   static String safeImageUrl(String? url) {
     if (url == null || url.isEmpty || url == 'null') {
-      return userPlaceHolder;
+      return '';
     }
     return url;
   }
 
-  /// Local placeholder widget for user profile images.
-  /// Use this instead of Image.network(userPlaceHolder) to avoid 403 errors.
+  /// Local placeholder widget for user profile images. Pure Flutter, no
+  /// network. Size adapts to the [height]/[width] passed in, and renders
+  /// a circular avatar when the two match.
+  ///
+  /// If you drop `assets/images/user_placeholder.png` into the project, you
+  /// can swap the Icon below for `Image.asset` with an `errorBuilder` that
+  /// falls back to the Icon — that keeps this helper crash-safe even if the
+  /// asset is ever missing from the bundle.
   static Widget placeholderWidget({
     double? height,
     double? width,
@@ -106,6 +124,36 @@ class Constant {
         size: (height ?? 50) * 0.6,
         color: Colors.grey[600],
       ),
+    );
+  }
+
+  /// One-stop user avatar. Short-circuits to [placeholderWidget] when the
+  /// URL is missing — NO network call, no 404 spam. Otherwise renders a
+  /// [CachedNetworkImage] whose `errorWidget` is also [placeholderWidget],
+  /// so any transient HTTP failure (including the legacy 404 placeholder
+  /// URL that still lives on some user docs) degrades gracefully.
+  ///
+  /// Use this instead of hand-rolling CachedNetworkImage + safeImageUrl at
+  /// every call site.
+  static Widget buildUserAvatar({
+    String? url,
+    double? height,
+    double? width,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    final resolved = safeImageUrl(url);
+    if (resolved.isEmpty) {
+      return placeholderWidget(height: height, width: width, fit: fit);
+    }
+    return CachedNetworkImage(
+      imageUrl: resolved,
+      height: height,
+      width: width,
+      fit: fit,
+      placeholder: (_, __) =>
+          placeholderWidget(height: height, width: width, fit: fit),
+      errorWidget: (_, __, ___) =>
+          placeholderWidget(height: height, width: width, fit: fit),
     );
   }
 
@@ -199,21 +247,11 @@ class Constant {
   }
 
   static Future<void> makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
-    await launchUrl(launchUri);
+    await UrlLauncherUtils.launchPhoneCall(phoneNumber);
   }
 
   static Future<void> openWhatsApp(String phoneNumber) async {
-    String cleaned = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
-    if (cleaned.startsWith('+')) {
-      cleaned = cleaned.substring(1);
-    }
-    final Uri uri = Uri.parse('https://wa.me/$cleaned');
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (e) {
-      debugPrint('Could not open WhatsApp: $e');
-    }
+    await UrlLauncherUtils.launchWhatsApp(phoneNumber);
   }
 
   static bool? validateEmail(String? value) {
