@@ -7,6 +7,7 @@ class Preferences {
   static const themKey = "themKey";
   static const isFinishOnBoardingKey = "isFinishOnBoardingKey";
   static const contactList = "contactList";
+  static const chatEulaAcceptedKey = "chatEulaAcceptedKey";
 
   static late SharedPreferences pref;
 

@@ -1158,18 +1158,36 @@ class FireStoreUtils {
   static Future<bool?> deleteUser() async {
     bool? isDelete;
     try {
-      // IMPORTANT: Delete Firebase Auth user FIRST, then Firestore data.
-      // If Auth deletion fails (e.g. requires-recent-login), we don't lose user data.
       final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        final uid = currentUser.uid;
-        await currentUser.delete();
+      if (currentUser == null) return false;
+      final uid = currentUser.uid;
 
-        // Auth deletion succeeded — now safe to delete Firestore data
-        await fireStore.collection(CollectionName.users).doc(uid).delete();
-
-        isDelete = true;
+      // Best-effort PII scrub on chat inbox docs the rider shows up in.
+      // Done while still authenticated so security rules allow the writes.
+      // Per Apple 5.1.1(v): linked PII must be deleted/anonymized.
+      try {
+        final inboxDocs = await fireStore
+            .collection("chat")
+            .where('customerId', isEqualTo: uid)
+            .get();
+        for (final doc in inboxDocs.docs) {
+          await doc.reference.update({
+            'customerName': '[deleted]',
+            'customerProfileImage': '',
+            'lastMessage': '',
+          });
+        }
+      } catch (e) {
+        log('FireStoreUtils.deleteUser inbox scrub failed (non-fatal): $e');
       }
+
+      // Auth deletion can fail with requires-recent-login; if so, abort
+      // before touching the user doc so a retry after re-auth still works.
+      await currentUser.delete();
+
+      await fireStore.collection(CollectionName.users).doc(uid).delete();
+
+      isDelete = true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
         log('FireStoreUtils.deleteUser requires recent login - user needs to re-authenticate');
@@ -1182,6 +1200,84 @@ class FireStoreUtils {
       return false;
     }
     return isDelete;
+  }
+
+  /// Writes a report doc that the support team triages within 24h.
+  /// Required for Apple App Review Guideline 1.2 (UGC moderation).
+  static Future<bool> reportContent({
+    required String reportedUserId,
+    required String reportedUserType, // "driver" or "customer"
+    String? orderId,
+    String? messageId,
+    String? messageSnapshot,
+    required String reason,
+  }) async {
+    try {
+      final reporterId = getCurrentUid();
+      if (reporterId.isEmpty) return false;
+      final docRef = fireStore.collection("reports").doc();
+      await docRef.set({
+        'id': docRef.id,
+        'reporterId': reporterId,
+        'reporterType': 'customer',
+        'reportedUserId': reportedUserId,
+        'reportedUserType': reportedUserType,
+        'orderId': orderId,
+        'messageId': messageId,
+        'messageSnapshot': messageSnapshot,
+        'reason': reason,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e, s) {
+      log('FireStoreUtils.reportContent $e $s');
+      return false;
+    }
+  }
+
+  /// Marks [blockedUserId] as blocked under the current user.
+  /// Server-side enforcement (Cloud Functions / security rules) is expected
+  /// to drop chat writes and notifications between blocked pairings.
+  static Future<bool> blockUser({
+    required String blockedUserId,
+    required String blockedUserType,
+  }) async {
+    try {
+      final uid = getCurrentUid();
+      if (uid.isEmpty) return false;
+      await fireStore
+          .collection(CollectionName.users)
+          .doc(uid)
+          .collection('blocked')
+          .doc(blockedUserId)
+          .set({
+        'blockedUserId': blockedUserId,
+        'blockedUserType': blockedUserType,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e, s) {
+      log('FireStoreUtils.blockUser $e $s');
+      return false;
+    }
+  }
+
+  static Future<bool> isUserBlocked(String otherUserId) async {
+    try {
+      final uid = getCurrentUid();
+      if (uid.isEmpty || otherUserId.isEmpty) return false;
+      final snap = await fireStore
+          .collection(CollectionName.users)
+          .doc(uid)
+          .collection('blocked')
+          .doc(otherUserId)
+          .get();
+      return snap.exists;
+    } catch (e) {
+      log('FireStoreUtils.isUserBlocked $e');
+      return false;
+    }
   }
 
   static Future<bool?> setSOS(SosModel sosModel) async {

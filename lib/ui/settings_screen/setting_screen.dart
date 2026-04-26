@@ -5,9 +5,11 @@ import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/services/localization_service.dart';
 import 'package:customer/themes/app_colors.dart';
 import 'package:customer/themes/responsive.dart';
+import 'package:customer/ui/auth_screen/login_screen.dart';
 import 'package:customer/utils/DarkThemeProvider.dart';
 import 'package:customer/utils/Preferences.dart';
 import 'package:customer/utils/fire_store_utils.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -218,18 +220,14 @@ class SettingScreen extends StatelessWidget {
   }
 
   showAlertDialog(BuildContext context) {
-    // set up the button
     Widget okButton = TextButton(
-      child: Text("OK".tr),
+      child: Text(
+        "Delete".tr,
+        style: const TextStyle(color: Colors.red),
+      ),
       onPressed: () async {
         Get.back();
-        final String rawSupport = Constant.supportURL ?? '';
-        final String supportLink =
-            rawSupport.isNotEmpty ? rawSupport : 'https://wa.me/22222245004';
-        final Uri url = Uri.parse(supportLink);
-        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-          ShowToastDialog.showToast("Please contact to administrator".tr);
-        }
+        await _performDelete();
       },
     );
     Widget cancel = TextButton(
@@ -239,22 +237,42 @@ class SettingScreen extends StatelessWidget {
       },
     );
 
-    // set up the AlertDialog
     AlertDialog alert = AlertDialog(
-      title: Text("Account delete".tr),
-      content: Text("Are you sure want to delete Account.".tr),
+      title: Text("Delete account".tr),
+      content: Text(
+          "This will permanently delete your account, profile, and chat history. Ride records may be retained for legal and tax purposes. This action cannot be undone."
+              .tr),
       actions: [
-        okButton,
         cancel,
+        okButton,
       ],
     );
 
-    // show the dialog
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return alert;
       },
     );
+  }
+
+  Future<void> _performDelete() async {
+    ShowToastDialog.showLoader("Deleting account...".tr);
+    final bool? result = await FireStoreUtils.deleteUser();
+    ShowToastDialog.closeLoader();
+
+    if (result == true) {
+      ShowToastDialog.showToast("Account deleted".tr);
+      Get.offAll(const LoginScreen());
+      return;
+    }
+
+    // requires-recent-login or other failure: sign out so the user can
+    // re-authenticate and retry deletion.
+    await FirebaseAuth.instance.signOut();
+    ShowToastDialog.showToast(
+        "For security, please sign in again and retry deleting your account."
+            .tr);
+    Get.offAll(const LoginScreen());
   }
 }

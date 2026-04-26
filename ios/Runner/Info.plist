@@ -22,17 +22,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.202123276886-vp8nv1gsolu0142qivimd8lq8l48g1qn</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
@@ -61,16 +50,10 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>GoRide needs your location to show you on the map, find nearby drivers, and track your ongoing ride.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>GoRide needs background location access to keep tracking your trip, update driver and rider positions, and support ride safety while the app is not in the foreground.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>GoRide needs microphone access to make voice calls with your driver during active rides.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>GoRide needs photo library access to upload your profile photo.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>GoRide needs contacts access so you can quickly select a person when booking a ride for someone else.</string>
-	<key>SERVER_CLIENT_ID</key>
-	<string>703618062340-ghqeo2t2cv66e16jth0l72f8kki0aj6d.apps.googleusercontent.com</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
