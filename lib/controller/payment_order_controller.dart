@@ -12,6 +12,7 @@ import 'package:customer/model/user_model.dart';
 import 'package:customer/model/wallet_transaction_model.dart';
 import 'package:customer/ui/dashboard_screen.dart';
 import 'package:customer/utils/fire_store_utils.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PaymentOrderController extends GetxController {
@@ -104,7 +105,7 @@ class PaymentOrderController extends GetxController {
       }
     });
 
-    if (driverUserModel.value.subscriptionPlan!.id ==
+    if (driverUserModel.value.subscriptionPlan?.id ==
         Constant.commissionSubscriptionID) {
       // Commission is computed on the GROSS fare under company-absorbs —
       // promos don't shrink the platform's take here; they shrink it via
@@ -194,7 +195,16 @@ class PaymentOrderController extends GetxController {
 
   completeWalletOrder() async {
     ShowToastDialog.showLoader("Please wait");
+    try {
+      await _completeWalletOrderInternal();
+    } catch (e, st) {
+      log('completeWalletOrder failed: $e\n$st');
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast("Payment failed. Please contact support.");
+    }
+  }
 
+  Future<void> _completeWalletOrderInternal() async {
     // Check wallet balance
     double walletBalance =
         double.tryParse(userModel.value.walletAmount?.toString() ?? '0') ?? 0;
@@ -253,7 +263,7 @@ class PaymentOrderController extends GetxController {
     });
 
     // Admin commission — on gross fare under company-absorbs.
-    if (driverUserModel.value.subscriptionPlan!.id ==
+    if (driverUserModel.value.subscriptionPlan?.id ==
         Constant.commissionSubscriptionID) {
       final double commissionAmount = _commissionForSettlement();
 
@@ -305,13 +315,42 @@ class PaymentOrderController extends GetxController {
       }
     });
 
-    await FireStoreUtils.setOrder(orderModel.value).then((value) {
-      if (value == true) {
-        ShowToastDialog.closeLoader();
-        ShowToastDialog.showToast("Ride Complete successfully");
-        Get.offAll(() => const DashBoardScreen());
-      }
-    });
+    final bool orderSaved =
+        (await FireStoreUtils.setOrder(orderModel.value)) ?? false;
+    ShowToastDialog.closeLoader();
+    if (!orderSaved) {
+      ShowToastDialog.showToast(
+          "Payment was sent but the order failed to update. Please contact support.");
+      return;
+    }
+    await _showWalletPaymentSuccessDialog();
+    Get.offAll(() => const DashBoardScreen());
+  }
+
+  Future<void> _showWalletPaymentSuccessDialog() async {
+    await Get.dialog<void>(
+      AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Row(
+          children: const [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            SizedBox(width: 8),
+            Text('Payment Successful'),
+          ],
+        ),
+        content: Text(
+          'Paid ${Constant.amountShow(amount: total.value.toString())} from your wallet. The ride is now complete.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
   }
 
   Rx<CouponModel> selectedCouponModel = CouponModel().obs;
@@ -430,15 +469,6 @@ class PaymentOrderController extends GetxController {
           ? (double.tryParse(orderModel.value.totalHoldingCharges.toString()) ??
               0.0)
           : 0.0;
-
-      // If finalRate is set by driver, use it and derive km-charge portion for display
-      if (orderModel.value.finalRate != null &&
-          orderModel.value.finalRate != '0.0') {
-        amount.value = double.parse(orderModel.value.finalRate.toString()) -
-            meterStartCharge.value -
-            totalChargeOfMinute.value -
-            holdingCharge.value;
-      }
 
       subTotal.value = amount.value +
           meterStartCharge.value +
