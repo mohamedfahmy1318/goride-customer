@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>202123276886-vp8nv1gsolu0142qivimd8lq8l48g1qn.apps.googleusercontent.com</string>
+	<string>202123276886-uqspjtofo3jrutruklss89jkh4ig8ign.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.202123276886-vp8nv1gsolu0142qivimd8lq8l48g1qn</string>
+	<string>com.googleusercontent.apps.202123276886-uqspjtofo3jrutruklss89jkh4ig8ign</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>202123276886-11ikgqtvqn4lgb86b9gn7a819lat6pa8.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>cloud.goride.customer</string>
+	<string>cloud.gorid.customer</string>
 	<key>PROJECT_ID</key>
 	<string>goride-a9d8f</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:202123276886:ios:05d07e02190a886f4181f7</string>
+	<string>1:202123276886:ios:f3391e215f391fc44181f7</string>
 </dict>
 </plist>

@@ -43,6 +43,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>GoRide needs camera access to take a profile photo for your account.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>GoRide needs contacts access so you can quickly select a person when booking a ride for someone else.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>RiderLocationAccess</key>
@@ -52,8 +54,6 @@
 	<string>GoRide needs your location to show you on the map, find nearby drivers, and track your ongoing ride.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>GoRide needs photo library access to upload your profile photo.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>GoRide needs contacts access so you can quickly select a person when booking a ride for someone else.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
