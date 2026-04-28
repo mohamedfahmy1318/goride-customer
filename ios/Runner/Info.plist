@@ -2,6 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.202123276886-uqspjtofo3jrutruklss89jkh4ig8ign</string>
+			</array>
+		</dict>
+	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -52,6 +63,8 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>GoRide needs your location to show you on the map, find nearby drivers, and track your ongoing ride.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>GoRide may access your location during active trips to keep pickup and ride progress accurate and improve safety-related ride updates.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>GoRide needs photo library access to upload your profile photo.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

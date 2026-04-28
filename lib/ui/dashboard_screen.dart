@@ -223,40 +223,56 @@ class DashBoardScreen extends StatelessWidget {
                         return Text(snapshot.error.toString());
                       } else {
                         UserModel driverModel = snapshot.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(60),
-                              child: CachedNetworkImage(
-                                height: Responsive.width(20, context),
-                                width: Responsive.width(20, context),
-                                imageUrl: Constant.safeImageUrl(
-                                    driverModel.profilePic),
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) =>
-                                    Constant.loader(),
-                                errorWidget: (context, url, error) =>
-                                    Constant.placeholderWidget(
-                                  height: Responsive.width(20, context),
-                                  width: Responsive.width(20, context),
+                        return ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 120),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(56),
+                                child: CachedNetworkImage(
+                                  height: Responsive.width(18, context),
+                                  width: Responsive.width(18, context),
+                                  imageUrl: Constant.safeImageUrl(
+                                      driverModel.profilePic),
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) =>
+                                      Constant.loader(),
+                                  errorWidget: (context, url, error) =>
+                                      Constant.placeholderWidget(
+                                    height: Responsive.width(20, context),
+                                    width: Responsive.width(20, context),
+                                  ),
                                 ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Text(driverModel.fullName.toString(),
-                                  style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w500)),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(
-                                driverModel.email.toString(),
-                                style: GoogleFonts.poppins(),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    driverModel.fullName.toString(),
+                                    style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w500),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ),
-                            )
-                          ],
+                              Padding(
+                                padding: const EdgeInsets.only(top: 1),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    driverModel.email.toString(),
+                                    style: GoogleFonts.poppins(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
                         );
                       }
                     default:

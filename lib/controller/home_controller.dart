@@ -154,42 +154,42 @@ class HomeController extends GetxController {
   }
 
   getServiceType() async {
-    await FireStoreUtils.getService().then((value) {
-      // ترتيب المركبات حسب حقل position اللي بيتحدد من لوحة التحكم
-      List<ServiceModel> sortedList = List.from(value);
+    try {
+      final services = await FireStoreUtils.getService();
+      List<ServiceModel> sortedList = List.from(services);
       sortedList.sort((a, b) => a.position.compareTo(b.position));
       serviceList.value = sortedList;
-      if (serviceList.isNotEmpty) {
-        selectedType.value = serviceList.first;
-      }
-    });
+      if (serviceList.isNotEmpty) selectedType.value = serviceList.first;
 
-    await FireStoreUtils.getBanner().then((value) {
-      bannerList.value = value;
+      final banners = await FireStoreUtils.getBanner();
+      bannerList.value = banners;
       _startBannerAutoScroll();
-    });
 
-    await FireStoreUtils().getTaxList().then((value) {
-      if (value != null) {
-        Constant.taxList = value;
+      final taxes = await FireStoreUtils().getTaxList();
+      if (taxes != null) Constant.taxList = taxes;
+
+      final airports = await FireStoreUtils().getAirports();
+      if (airports != null) Constant.airaPortList = airports;
+
+      String? token = await NotificationService.getToken();
+      final profile =
+          await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid());
+      if (profile != null) {
+        userModel.value = profile;
+        if (token != null) {
+          userModel.value.fcmToken = token;
+          FireStoreUtils.updateUser(userModel.value);
+        }
+      } else {
+        // Log but don't keep the screen loading indefinitely
+        log('HomeController.getServiceType: user profile is null');
       }
-    });
-
-    await FireStoreUtils().getAirports().then((value) {
-      if (value != null) {
-        Constant.airaPortList = value;
-      }
-    });
-
-    String token = await NotificationService.getToken();
-    await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid())
-        .then((value) {
-      userModel.value = value!;
-      userModel.value.fcmToken = token;
-      FireStoreUtils.updateUser(userModel.value);
-    });
-
-    isLoading.value = false;
+    } catch (e, s) {
+      log('Error in getServiceType: $e');
+      log(s.toString());
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   RxString duration = "".obs;
@@ -211,7 +211,9 @@ class HomeController extends GetxController {
   /// this at placement time and via Obx in the breakdown widget.
   double get finalPayable {
     final double subTotal = double.tryParse(amount.value) ?? 0;
-    return (subTotal - discountAmount.value).clamp(0, double.infinity).toDouble();
+    return (subTotal - discountAmount.value)
+        .clamp(0, double.infinity)
+        .toDouble();
   }
 
   /// Recompute the discount against the current [amount]. Called when the
@@ -319,6 +321,7 @@ class HomeController extends GetxController {
     discountAmount.value = 0;
     promoCodeController.clear();
   }
+
   DateTime currentTime = DateTime.now();
   DateTime currentDate = DateTime.now();
 

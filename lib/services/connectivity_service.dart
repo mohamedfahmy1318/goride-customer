@@ -44,31 +44,37 @@ class ConnectivityService extends GetxService {
     } else if (isConnected.value && !wasConnected) {
       // Just came back online
       _dismissOfflineBanner();
-      Get.snackbar(
-        'متصل بالإنترنت',
-        'تم استعادة الاتصال بالإنترنت',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.withValues(alpha: 0.9),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 2),
-        icon: const Icon(Icons.wifi, color: Colors.white),
-      );
+      // Only show a GetX snackbar if Get has been initialized (GetMaterialApp built)
+      if (Get.context != null) {
+        Get.snackbar(
+          'متصل بالإنترنت',
+          'تم استعادة الاتصال بالإنترنت',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green.withOpacity(0.9),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+          icon: const Icon(Icons.wifi, color: Colors.white),
+        );
+      }
     }
   }
 
   void _showOfflineBanner() {
+    if (Get.context == null)
+      return; // avoid calling Get.* before GetMaterialApp exists
+
     Get.snackbar(
       'لا يوجد اتصال بالإنترنت',
       'تحقق من اتصالك بالإنترنت وحاول مرة أخرى',
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red.withValues(alpha: 0.9),
+      backgroundColor: Colors.red.withOpacity(0.9),
       colorText: Colors.white,
       duration: const Duration(seconds: 30),
       isDismissible: true,
       icon: const Icon(Icons.wifi_off, color: Colors.white),
       mainButton: TextButton(
         onPressed: () async {
-          Get.closeCurrentSnackbar();
+          if (Get.context != null) Get.closeCurrentSnackbar();
           final results = await _connectivity.checkConnectivity();
           _updateStatus(results);
         },
@@ -79,7 +85,7 @@ class ConnectivityService extends GetxService {
   }
 
   void _dismissOfflineBanner() {
-    if (Get.isSnackbarOpen) {
+    if (Get.context != null && Get.isSnackbarOpen) {
       Get.closeCurrentSnackbar();
     }
   }

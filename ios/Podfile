@@ -31,6 +31,9 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  # Firebase Auth reCAPTCHA fallback dependency
+  pod 'RecaptchaEnterprise'
+
   pod 'Firebase/Core', :modular_headers => true
   pod 'Firebase/Auth', :modular_headers => true
   pod 'Firebase/Firestore', :modular_headers => true
