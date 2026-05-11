@@ -128,13 +128,13 @@ class DashBoardScreen extends StatelessWidget {
       'OutStation',
       'Rides',
       'OutStation Rides',
-      'My Wallet',
       'Settings',
       'Referral a friends',
       'Inbox',
       'Profile',
       'Contact us',
       'FAQs',
+      'Admin Support',
       'Log out',
     ];
     if (index >= 0 && index < keys.length) {
@@ -149,13 +149,13 @@ class DashBoardScreen extends StatelessWidget {
       DrawerItem('OutStation'.tr, "assets/icons/ic_intercity.svg"),
       DrawerItem('Rides'.tr, "assets/icons/ic_order.svg"),
       DrawerItem('OutStation Rides'.tr, "assets/icons/ic_order.svg"),
-      DrawerItem('My Wallet'.tr, "assets/images/logo_bankily.png"),
       DrawerItem('Settings'.tr, "assets/icons/ic_settings.svg"),
       DrawerItem('Referral a friends'.tr, "assets/icons/ic_referral.svg"),
       DrawerItem('Inbox'.tr, "assets/icons/ic_inbox.svg"),
       DrawerItem('Profile'.tr, "assets/icons/ic_profile.svg"),
       DrawerItem('Contact us'.tr, "assets/icons/ic_contact_us.svg"),
       DrawerItem('FAQs'.tr, "assets/icons/ic_faq.svg"),
+      DrawerItem('Admin Support'.tr, "assets/icons/ic_support.svg"),
       DrawerItem('Log out'.tr, "assets/icons/ic_logout.svg"),
     ].obs;
     var drawerOptions = <Widget>[];

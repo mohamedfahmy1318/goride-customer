@@ -1,4 +1,5 @@
 import 'package:customer/constant/show_toast_dialog.dart';
+import 'package:customer/ui/admin_chat/admin_chat_screen.dart';
 import 'package:customer/ui/auth_screen/login_screen.dart';
 import 'package:customer/ui/chat_screen/inbox_screen.dart';
 import 'package:customer/ui/contact_us/contact_us_screen.dart';
@@ -10,7 +11,6 @@ import 'package:customer/ui/orders/order_screen.dart';
 import 'package:customer/ui/profile_screen/profile_screen.dart';
 import 'package:customer/ui/referral_screen/referral_screen.dart';
 import 'package:customer/ui/settings_screen/setting_screen.dart';
-import 'package:customer/ui/wallet/wallet_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,13 +22,13 @@ class DashBoardController extends GetxController {
     DrawerItem('OutStation'.tr, "assets/icons/ic_intercity.svg"),
     DrawerItem('Rides'.tr, "assets/icons/ic_order.svg"),
     DrawerItem('OutStation Rides'.tr, "assets/icons/ic_order.svg"),
-    DrawerItem('My Wallet'.tr, "assets/images/logo_bankily.png"),
     DrawerItem('Settings'.tr, "assets/icons/ic_settings.svg"),
     DrawerItem('Referral a friends'.tr, "assets/icons/ic_referral.svg"),
     DrawerItem('Inbox'.tr, "assets/icons/ic_inbox.svg"),
     DrawerItem('Profile'.tr, "assets/icons/ic_profile.svg"),
     DrawerItem('Contact us'.tr, "assets/icons/ic_contact_us.svg"),
     DrawerItem('FAQs'.tr, "assets/icons/ic_faq.svg"),
+    DrawerItem('Admin Support'.tr, "assets/icons/ic_support.svg"),
     DrawerItem('Log out'.tr, "assets/icons/ic_logout.svg"),
   ].obs;
 
@@ -43,19 +43,19 @@ class DashBoardController extends GetxController {
       case 3:
         return const InterCityOrderScreen();
       case 4:
-        return const WalletScreen();
-      case 5:
         return const SettingScreen();
-      case 6:
+      case 5:
         return const ReferralScreen();
-      case 7:
+      case 6:
         return const InboxScreen();
-      case 8:
+      case 7:
         return const ProfileScreen();
-      case 9:
+      case 8:
         return const ContactUsScreen();
-      case 10:
+      case 9:
         return const FaqScreen();
+      case 10:
+        return const AdminChatScreen();
       default:
         return const Text("Error");
     }

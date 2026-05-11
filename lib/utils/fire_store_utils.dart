@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/collection_name.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
+import 'package:customer/model/admin_chat_model.dart';
 import 'package:customer/model/admin_commission.dart';
 import 'package:customer/model/airport_model.dart';
 import 'package:customer/model/banner_model.dart';
@@ -1379,6 +1380,34 @@ class FireStoreUtils {
       }
     });
     return isFirst;
+  }
+
+  static Future addAdminChatMessage(
+      String userId, AdminChatMessageModel messageModel) async {
+    return await fireStore
+        .collection(CollectionName.clientAdminChat)
+        .doc(userId)
+        .collection("thread")
+        .doc(messageModel.id)
+        .set(messageModel.toJson())
+        .then((document) {
+      return messageModel;
+    });
+  }
+
+  static Future updateAdminChatInbox(
+      String userId, Map<String, dynamic> data) async {
+    return await fireStore
+        .collection(CollectionName.clientAdminChat)
+        .doc(userId)
+        .set(data, SetOptions(merge: true));
+  }
+
+  static Future resetUserUnreadCount(String userId) async {
+    return await fireStore
+        .collection(CollectionName.clientAdminChat)
+        .doc(userId)
+        .set({'userUnreadCount': 0}, SetOptions(merge: true));
   }
 
   Future<List<ZoneModel>?> getZone() async {

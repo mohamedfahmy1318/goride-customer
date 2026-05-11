@@ -23,6 +23,7 @@ class CollectionName {
   static const String airPorts = "airports";
   static const String zone = "zone";
   static const String chat = "chat";
+  static const String clientAdminChat = "client_admin_chat";
 
   // Collections جديدة
   static const String driverLocation = "driver_location";

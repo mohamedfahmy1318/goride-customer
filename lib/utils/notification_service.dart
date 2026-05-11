@@ -5,6 +5,7 @@ import 'package:customer/model/driver_user_model.dart';
 import 'package:customer/model/intercity_order_model.dart';
 import 'package:customer/model/order_model.dart';
 import 'package:customer/model/user_model.dart';
+import 'package:customer/ui/admin_chat/admin_chat_screen.dart';
 import 'package:customer/ui/chat_screen/chat_screen.dart';
 import 'package:customer/ui/intercityOrders/intercity_payment_order_screen.dart';
 import 'package:customer/ui/orders/payment_order_screen.dart';
@@ -122,6 +123,8 @@ class NotificationService {
           Get.to(const InterCityPaymentOrderScreen(), arguments: {
             "orderModel": orderModel,
           });
+        } else if (message.data['type'] == "admin_chat") {
+          Get.to(() => const AdminChatScreen());
         }
       }
     });

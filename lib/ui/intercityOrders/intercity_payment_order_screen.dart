@@ -701,17 +701,10 @@ class InterCityPaymentOrderScreen extends StatelessWidget {
                                               context,
                                               title: "تأكيد الدفع نقداً".tr,
                                               onPress: () async {
-                                                controller.completeCashOrder();
-                                              },
-                                            ),
-                                            const SizedBox(height: 10),
-                                            ButtonThem.buildButton(
-                                              context,
-                                              title:
-                                                  "ادفع من المحفظة (${Constant.amountShow(amount: controller.userModel.value.walletAmount?.toString() ?? '0')})",
-                                              onPress: () async {
                                                 controller
-                                                    .completeWalletOrder();
+                                                    .selectedPaymentMethod
+                                                    .value = "Cash";
+                                                controller.completeCashOrder();
                                               },
                                             ),
                                           ],
