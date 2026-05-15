@@ -368,4 +368,5 @@ final Map<String, String> arAR = {
   'Ride Canceled by Driver': 'تم إلغاء الرحلة من قبل السائق',
   'Your ride has been canceled by the driver. Please request a new ride.':
       'تم إلغاء رحلتك من قبل السائق. يرجى طلب رحلة جديدة.',
+  'Meter Ride - Live': 'العداد - مباشر',
 };

@@ -80,12 +80,8 @@ class LiveTrackingScreen extends StatelessWidget {
                     initialCameraPosition: CameraPosition(
                       zoom: 15,
                       target: LatLng(
-                          Constant.currentLocation != null
-                              ? Constant.currentLocation!.latitude
-                              : 45.521563,
-                          Constant.currentLocation != null
-                              ? Constant.currentLocation!.longitude
-                              : -122.677433),
+                          Constant.currentLocation?.latitude ?? 18.0735,
+                          Constant.currentLocation?.longitude ?? -15.9582),
                     ),
                   ),
                 ),

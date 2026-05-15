@@ -106,8 +106,23 @@ class HomeController extends GetxController {
           if (placeMarks.isNotEmpty) {
             Constant.country = placeMarks.first.country;
             Constant.city = placeMarks.first.locality;
-            address =
-                "${placeMarks.first.name}, ${placeMarks.first.subLocality}, ${placeMarks.first.locality}, ${placeMarks.first.administrativeArea}, ${placeMarks.first.postalCode}, ${placeMarks.first.country}";
+            // Build parts list — `placemark.name` is often a Plus Code (Open
+            // Location Code) when there's no friendly street/business name on
+            // iOS/Android. Drop those before joining; the rest of the chain
+            // still goes through `_cleanAddress` as a second line of defense.
+            final pm = placeMarks.first;
+            final String rawName = (pm.name ?? '').trim();
+            final bool nameIsPlusCode =
+                RegExp(r'^[A-Z0-9]{2,}\+[A-Z0-9]{2,}').hasMatch(rawName);
+            final parts = <String>[
+              if (!nameIsPlusCode) rawName,
+              (pm.subLocality ?? '').trim(),
+              (pm.locality ?? '').trim(),
+              (pm.administrativeArea ?? '').trim(),
+              (pm.postalCode ?? '').trim(),
+              (pm.country ?? '').trim(),
+            ].where((p) => p.isNotEmpty).toList();
+            address = _cleanAddress(parts.join(', '));
             geocoded = true;
           }
         } catch (_) {}
@@ -124,7 +139,7 @@ class HomeController extends GetxController {
             extraTags: true,
             nameDetails: true,
           );
-          address = place.displayName.toString();
+          address = _cleanAddress(place.displayName.toString());
           Constant.country = place.address?['country'] ?? '';
           Constant.city = place.address?['city'] ?? '';
           geocoded = true;
@@ -151,6 +166,32 @@ class HomeController extends GetxController {
         duration: const Duration(seconds: 3),
       );
     }
+  }
+
+  /// Drop Plus-Code-looking parts and highly-numeric segments from an
+  /// address string, then collapse consecutive duplicates. Used after
+  /// reverse geocoding to keep the customer-facing source address (and the
+  /// `sourceLocationName` we ship to drivers) free of strings like
+  /// `322R+6P2` that the native geocoder emits when there is no friendly
+  /// street/business name.
+  String _cleanAddress(String address) {
+    if (address.isEmpty) return address;
+    final parts = address
+        .split(RegExp(r'[,،]'))
+        .map((p) => p.trim())
+        .where((p) {
+          if (p.isEmpty) return false;
+          if (RegExp(r'[A-Z0-9]{2,}\+[A-Z0-9]{2,}').hasMatch(p)) return false;
+          final digits = RegExp(r'\d').allMatches(p).length;
+          if (digits > 0 && digits / p.length >= 0.5) return false;
+          return true;
+        })
+        .toList();
+    final dedup = <String>[];
+    for (final p in parts) {
+      if (dedup.isEmpty || dedup.last != p) dedup.add(p);
+    }
+    return dedup.isEmpty ? address : dedup.join(', ');
   }
 
   getServiceType() async {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:customer/controller/login_controller.dart';
@@ -198,6 +199,79 @@ class LoginScreen extends StatelessWidget {
                             controller.sendCode();
                           },
                         ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                                child: Divider(
+                                    color: themeChange.getThem()
+                                        ? AppColors.darkTextFieldBorder
+                                        : AppColors.textFieldBorder)),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Text("or".tr,
+                                  style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w500)),
+                            ),
+                            Expanded(
+                                child: Divider(
+                                    color: themeChange.getThem()
+                                        ? AppColors.darkTextFieldBorder
+                                        : AppColors.textFieldBorder)),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        OutlinedButton.icon(
+                          onPressed: () => controller.signInWithGoogle(),
+                          icon: Image.asset(
+                            'assets/icons/ic_google.png',
+                            width: 22,
+                            height: 22,
+                          ),
+                          label: Text(
+                            "Continue with Google".tr,
+                            style: GoogleFonts.poppins(
+                                fontSize: 15, fontWeight: FontWeight.w600),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4)),
+                            side: BorderSide(
+                                color: themeChange.getThem()
+                                    ? AppColors.darkTextFieldBorder
+                                    : AppColors.textFieldBorder),
+                          ),
+                        ),
+                        if (Platform.isIOS) ...[
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: () => controller.signInWithApple(),
+                            icon: Image.asset(
+                              'assets/icons/ic_apple.png',
+                              width: 22,
+                              height: 22,
+                              color: themeChange.getThem()
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                            label: Text(
+                              "Continue with Apple".tr,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 15, fontWeight: FontWeight.w600),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4)),
+                              side: BorderSide(
+                                  color: themeChange.getThem()
+                                      ? AppColors.darkTextFieldBorder
+                                      : AppColors.textFieldBorder),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   )

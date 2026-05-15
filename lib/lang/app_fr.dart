@@ -381,4 +381,5 @@ final Map<String, String> trFr = {
   'Ride Canceled by Driver': 'Course annulée par le conducteur',
   'Your ride has been canceled by the driver. Please request a new ride.':
       'Votre course a été annulée par le conducteur. Veuillez demander une nouvelle course.',
+  'Meter Ride - Live': 'Compteur - En direct',
 };

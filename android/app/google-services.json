@@ -74,6 +74,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "202123276886-2vohp2u95vsih25u06isetodmkci00dc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cloud.goride.driver",
+            "certificate_hash": "7f2c726ab7d9fd83ec10dd73b5fb664cbc837392"
+          }
+        },
+        {
           "client_id": "202123276886-6jsim8kou3d9g5ft710faljqcm47rasc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

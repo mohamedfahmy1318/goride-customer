@@ -9,6 +9,7 @@ import 'package:customer/themes/responsive.dart';
 import 'package:customer/utils/DarkThemeProvider.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:customer/widget/driver_view.dart';
+import 'package:customer/widget/live_fare_banner.dart';
 import 'package:customer/widget/location_view.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +59,15 @@ class CompleteOrderScreen extends StatelessWidget {
               ),
               body: Column(
                 children: [
+                  // Live meter banner sits above the scroll content so the
+                  // running fare stays visible while the customer scrolls
+                  // through ride details. The widget gates itself on
+                  // status/destinationless via its Firestore stream, so it's
+                  // safe to mount unconditionally as long as we have an id.
+                  if ((controller.orderModel.value.id ?? '').isNotEmpty &&
+                      controller.orderModel.value.destinationless == true)
+                    LiveFareBanner(
+                        orderId: controller.orderModel.value.id!),
                   Container(
                     height: Responsive.width(10, context),
                     width: Responsive.width(100, context),

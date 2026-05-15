@@ -383,4 +383,5 @@ final Map<String, String> enUS = {
   'Ride Canceled by Driver': 'Ride Canceled by Driver',
   'Your ride has been canceled by the driver. Please request a new ride.':
       'Your ride has been canceled by the driver. Please request a new ride.',
+  'Meter Ride - Live': 'Meter - Live',
 };

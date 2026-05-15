@@ -1,7 +1,15 @@
 import 'dart:async';
+import 'dart:developer';
 
+import 'package:customer/constant/constant.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
+import 'package:customer/model/user_model.dart';
+import 'package:customer/services/apple_sign_in_service.dart';
+import 'package:customer/services/google_sign_in_service.dart';
+import 'package:customer/ui/auth_screen/information_screen.dart';
 import 'package:customer/ui/auth_screen/otp_screen.dart';
+import 'package:customer/ui/dashboard_screen.dart';
+import 'package:customer/utils/fire_store_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -184,5 +192,114 @@ class LoginController extends GetxController {
           );
           _startCooldown();
         });
+  }
+
+  signInWithApple() async {
+    ShowToastDialog.showLoader("Please wait".tr);
+
+    final result = await AppleSignInService.signIn();
+
+    if (result.cancelled) {
+      ShowToastDialog.closeLoader();
+      return;
+    }
+
+    if (!result.isSuccess || result.credential?.user == null) {
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast(
+          result.errorMessage ?? "Apple sign-in failed.".tr);
+      return;
+    }
+
+    final user = result.credential!.user!;
+
+    try {
+      final userExit = await FireStoreUtils.userExitOrNot(user.uid);
+      ShowToastDialog.closeLoader();
+
+      if (userExit == true) {
+        log("----->existing apple user");
+        UserModel? userModel = await FireStoreUtils.getUserProfile(user.uid);
+        if (userModel != null) {
+          if (userModel.isActive == true) {
+            Get.offAll(const DashBoardScreen());
+          } else {
+            await FirebaseAuth.instance.signOut();
+            ShowToastDialog.showToast(
+                "This user is disable please contact administrator".tr);
+          }
+        }
+      } else {
+        log("----->new apple user");
+        UserModel userModel = UserModel();
+        userModel.id = user.uid;
+        userModel.email = user.email;
+        userModel.fullName = user.displayName;
+        userModel.profilePic = user.photoURL;
+        userModel.loginType = Constant.appleLoginType;
+
+        Get.to(const InformationScreen(), arguments: {
+          "userModel": userModel,
+        });
+      }
+    } catch (e) {
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast("Failed to load profile. Try again.".tr);
+    }
+  }
+
+  signInWithGoogle() async {
+    ShowToastDialog.showLoader("Please wait".tr);
+
+    final result = await GoogleSignInService.signIn();
+
+    if (result.cancelled) {
+      ShowToastDialog.closeLoader();
+      return;
+    }
+
+    if (!result.isSuccess || result.credential?.user == null) {
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast(
+          result.errorMessage ?? "Google sign-in failed.".tr);
+      return;
+    }
+
+    final user = result.credential!.user!;
+
+    try {
+      final userExit = await FireStoreUtils.userExitOrNot(user.uid);
+      ShowToastDialog.closeLoader();
+
+      if (userExit == true) {
+        log("----->existing google user");
+        UserModel? userModel = await FireStoreUtils.getUserProfile(user.uid);
+        if (userModel != null) {
+          if (userModel.isActive == true) {
+            Get.offAll(const DashBoardScreen());
+          } else {
+            await FirebaseAuth.instance.signOut();
+            await GoogleSignInService.signOut();
+            ShowToastDialog.showToast(
+                "This user is disable please contact administrator".tr);
+          }
+        }
+      } else {
+        log("----->new google user");
+        UserModel userModel = UserModel();
+        userModel.id = user.uid;
+        userModel.email = user.email;
+        userModel.fullName = user.displayName;
+        userModel.profilePic = user.photoURL;
+        userModel.loginType = Constant.googleLoginType;
+
+        Get.to(const InformationScreen(), arguments: {
+          "userModel": userModel,
+        });
+      }
+    } catch (e) {
+      ShowToastDialog.closeLoader();
+      ShowToastDialog.showToast("Failed to load profile. Try again.".tr);
+    }
   }
 }

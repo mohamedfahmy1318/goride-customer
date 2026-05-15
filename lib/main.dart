@@ -6,6 +6,7 @@ import 'package:customer/themes/Styles.dart';
 import 'package:customer/themes/app_colors.dart';
 import 'package:customer/ui/splash_screen.dart';
 import 'package:customer/utils/DarkThemeProvider.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -34,6 +35,11 @@ void main() async {
   } catch (e) {
     // Already initialized (e.g. on hot restart)
   }
+
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.playIntegrity,
+    appleProvider: AppleProvider.deviceCheck,
+  );
 
   // Initialize Firebase Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;

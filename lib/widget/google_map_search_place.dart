@@ -15,6 +15,12 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 
+class _GeoResult {
+  final List<AddressComponents> components;
+  final String formatted;
+  _GeoResult(this.components, this.formatted);
+}
+
 class GoogleMapSearchPlacesApi extends StatefulWidget {
   const GoogleMapSearchPlacesApi({super.key});
 
@@ -25,6 +31,14 @@ class GoogleMapSearchPlacesApi extends StatefulWidget {
 
 class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
   static const LatLng _fallbackLatLng = LatLng(18.0735, -15.9582); // Nouakchott
+
+  // Mauritania bounding box — constrains the map camera and search bias
+  static final LatLngBounds _mauritaniaBounds = LatLngBounds(
+    southwest: const LatLng(14.75, -17.10),
+    northeast: const LatLng(27.30, -4.75),
+  );
+  // Center of Mauritania (used as search bias when GPS is unavailable)
+  static const LatLng _mauritaniaCenter = LatLng(20.25, -10.95);
 
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
@@ -50,9 +64,7 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
     _sessionToken = _uuid.v4();
     _searchController.addListener(_onSearchChanged);
     _focusNode.addListener(() {
-      if (_focusNode.hasFocus) {
-        setState(() => _showSuggestions = true);
-      }
+      if (_focusNode.hasFocus) setState(() => _showSuggestions = true);
     });
     final loc = Constant.currentLocation;
     _pinLatLng = loc != null
@@ -85,20 +97,55 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
     });
   }
 
+  // ── Dual-language parallel search (Arabic + French) ──────────────────────
+  // Mauritania uses both Arabic and French for business names. Searching in
+  // both languages in parallel and merging results maximises place coverage.
   Future<void> _fetchSuggestions(String input) async {
     setState(() => _isSearching = true);
+    try {
+      final results = await Future.wait([
+        _fetchFromLanguage(input, 'ar'),
+        _fetchFromLanguage(input, 'fr'),
+      ]);
+
+      // Merge Arabic + French results, deduplicating by place_id.
+      // Arabic results come first so their display name wins on duplicates.
+      final seen = <String>{};
+      final merged = <dynamic>[];
+      for (final list in results) {
+        for (final p in list) {
+          final id = (p['place_id'] ?? '').toString();
+          if (id.isNotEmpty && seen.add(id)) merged.add(p);
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _suggestions = merged;
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      log('Suggestion error: $e');
+      if (mounted) setState(() => _isSearching = false);
+    }
+  }
+
+  Future<List<dynamic>> _fetchFromLanguage(String input, String lang) async {
     try {
       final url = StringBuffer(
           'https://maps.googleapis.com/maps/api/place/autocomplete/json');
       url.write('?input=${Uri.encodeComponent(input)}');
       url.write('&key=${Constant.mapAPIKey}');
       url.write('&sessiontoken=$_sessionToken');
-      url.write('&language=ar');
-      if (Constant.currentLocation != null) {
-        url.write(
-            '&location=${Constant.currentLocation!.latitude},${Constant.currentLocation!.longitude}');
-        url.write('&radius=100000');
-      }
+      url.write('&language=$lang');
+      // Bias by GPS location if available, otherwise use Mauritania's center.
+      // radius=1100000 covers the full country so all cities/streets are found.
+      final biasLat = Constant.currentLocation?.latitude ?? _mauritaniaCenter.latitude;
+      final biasLng = Constant.currentLocation?.longitude ?? _mauritaniaCenter.longitude;
+      url.write('&location=$biasLat,$biasLng');
+      url.write('&radius=1100000');
+      // Strict country restriction to Mauritania
       if (Constant.regionCode.isNotEmpty && Constant.regionCode != 'all') {
         url.write('&components=country:${Constant.regionCode}');
       }
@@ -106,25 +153,13 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
         if (data['status'] == 'OK' || data['status'] == 'ZERO_RESULTS') {
-          if (mounted) {
-            setState(() {
-              _suggestions = data['predictions'] ?? [];
-              _isSearching = false;
-            });
-          }
-          return;
+          return data['predictions'] ?? [];
         }
-        log('Places API error: ${data['status']}');
       }
     } catch (e) {
-      log('Suggestion error: $e');
+      log('[$lang] fetch error: $e');
     }
-    if (mounted) {
-      setState(() {
-        _suggestions = [];
-        _isSearching = false;
-      });
-    }
+    return [];
   }
 
   Future<void> _selectSuggestion(dynamic prediction) async {
@@ -135,7 +170,7 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
     });
     try {
       final url =
-          'https://maps.googleapis.com/maps/api/place/details/json?placeid=${prediction['place_id']}&key=${Constant.mapAPIKey}&language=ar';
+          'https://maps.googleapis.com/maps/api/place/details/json?placeid=${prediction['place_id']}&key=${Constant.mapAPIKey}&language=ar&fields=name,geometry,formatted_address,address_components';
       final res = await http.get(Uri.parse(url));
       if (res.statusCode == 200) {
         final body = json.decode(res.body);
@@ -147,13 +182,26 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
           final components = (result['address_components'] as List? ?? [])
               .map((c) => AddressComponents.fromJson(c))
               .toList();
-          final formatted = AddressFormatter.formatFromComponents(components,
-              fallback: result['formatted_address']);
+
+          // Preserve business/place name — it lives in result['name'], never
+          // in address_components (so AddressFormatter would strip it).
+          final placeName = (result['name'] ?? '').toString().trim();
+          final shortAddr = AddressFormatter.formatFromComponents(
+            components,
+            fallback: (result['formatted_address'] ?? '').toString(),
+          );
+          final displayAddress =
+              (placeName.isNotEmpty && !shortAddr.startsWith(placeName))
+                  ? (shortAddr.isNotEmpty ? '$placeName, $shortAddr' : placeName)
+                  : (shortAddr.isNotEmpty
+                      ? shortAddr
+                      : (result['formatted_address'] ?? '').toString());
+
           setState(() {
             _pinLatLng = LatLng(lat, lng);
             _resolvedComponents = components;
-            _resolvedAddress = formatted;
-            _searchController.text = formatted;
+            _resolvedAddress = displayAddress;
+            _searchController.text = displayAddress;
             _suggestions = [];
           });
           _sessionToken = _uuid.v4();
@@ -172,29 +220,34 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
       if (!mounted) return;
       setState(() => _isResolvingAddress = true);
       try {
-        final url =
-            'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&key=${Constant.mapAPIKey}&language=ar';
-        final res = await http.get(Uri.parse(url));
-        if (res.statusCode == 200) {
-          final body = json.decode(res.body);
-          if (body['status'] == 'OK' &&
-              (body['results'] as List).isNotEmpty) {
-            final first = body['results'][0];
-            final components =
-                (first['address_components'] as List? ?? [])
-                    .map((c) => AddressComponents.fromJson(c))
-                    .toList();
-            final formatted = AddressFormatter.formatFromComponents(components,
-                fallback: first['formatted_address']);
-            if (mounted) {
-              setState(() {
-                _resolvedComponents = components;
-                _resolvedAddress = formatted;
-              });
-            }
-            return;
-          }
+        // Run street-address geocoding + nearby place name in parallel
+        final geoFuture = _geocodeToAddress(latLng);
+        final nameFuture = _nearbyPlaceName(latLng);
+        final geo = await geoFuture;
+        final placeName = await nameFuture;
+
+        if (!mounted) return;
+
+        final components = geo?.components ?? <AddressComponents>[];
+        final shortAddr = geo?.formatted ??
+            '${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)}';
+
+        String displayAddress;
+        if (placeName != null && placeName.isNotEmpty) {
+          // Prepend the business name only if it's not already in the street address
+          displayAddress = shortAddr.isNotEmpty && !shortAddr.startsWith(placeName)
+              ? '$placeName، $shortAddr'
+              : placeName;
+        } else {
+          displayAddress = shortAddr;
         }
+
+        setState(() {
+          _resolvedComponents = components;
+          _resolvedAddress = displayAddress;
+        });
+      } catch (e) {
+        log('Reverse geocode error: $e');
         if (mounted) {
           setState(() {
             _resolvedComponents = [];
@@ -202,20 +255,76 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
                 '${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)}';
           });
         }
-      } catch (e) {
-        log('Reverse geocode error: $e');
       } finally {
         if (mounted) setState(() => _isResolvingAddress = false);
       }
     });
   }
 
+  // Returns street/neighborhood address from Google Geocoding API
+  Future<_GeoResult?> _geocodeToAddress(LatLng latLng) async {
+    try {
+      final url =
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&key=${Constant.mapAPIKey}&language=ar';
+      final res = await http.get(Uri.parse(url));
+      if (res.statusCode == 200) {
+        final body = json.decode(res.body);
+        if (body['status'] == 'OK' && (body['results'] as List).isNotEmpty) {
+          final first = body['results'][0];
+          final components = (first['address_components'] as List? ?? [])
+              .map((c) => AddressComponents.fromJson(c))
+              .toList();
+          final formatted = AddressFormatter.formatFromComponents(
+            components,
+            fallback: first['formatted_address'],
+          );
+          return _GeoResult(components, formatted);
+        }
+      }
+    } catch (e) {
+      log('Geocode error: $e');
+    }
+    return null;
+  }
+
+  // Returns the name of the nearest named establishment within 25 m of the pin
+  Future<String?> _nearbyPlaceName(LatLng latLng) async {
+    try {
+      final url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
+          '?location=${latLng.latitude},${latLng.longitude}'
+          '&radius=25'
+          '&key=${Constant.mapAPIKey}'
+          '&language=ar';
+      final res = await http.get(Uri.parse(url));
+      if (res.statusCode == 200) {
+        final body = json.decode(res.body);
+        final places = body['results'] as List? ?? [];
+        // Skip pure geographic/administrative types — we only want named venues
+        const geoTypes = {
+          'country', 'locality', 'sublocality', 'sublocality_level_1',
+          'neighborhood', 'route', 'street_address', 'intersection',
+          'administrative_area_level_1', 'administrative_area_level_2',
+          'administrative_area_level_3', 'political', 'postal_code',
+          'natural_feature', 'geocode',
+        };
+        for (final place in places) {
+          final types = (place['types'] as List?)?.cast<String>() ?? <String>[];
+          if (types.any((t) => !geoTypes.contains(t))) {
+            final name = (place['name'] ?? '').toString().trim();
+            if (name.isNotEmpty) return name;
+          }
+        }
+      }
+    } catch (e) {
+      log('Nearby search error: $e');
+    }
+    return null;
+  }
+
   Future<void> _animateTo(LatLng target) async {
     final controller = await _mapCompleter.future;
     await controller.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: target, zoom: 16),
-      ),
+      CameraUpdate.newCameraPosition(CameraPosition(target: target, zoom: 16)),
     );
   }
 
@@ -248,6 +357,43 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
     Get.back(result: details);
   }
 
+  // ── Place type → icon / colour mapping ───────────────────────────────────
+  static IconData _iconForTypes(dynamic types) {
+    final t = (types as List?)?.cast<String>() ?? <String>[];
+    if (t.any((x) => x == 'restaurant' || x == 'food')) return Icons.restaurant;
+    if (t.contains('cafe')) return Icons.coffee;
+    if (t.any((x) =>
+        x == 'grocery_or_supermarket' ||
+        x == 'supermarket' ||
+        x == 'convenience_store')) { return Icons.shopping_basket; }
+    if (t.any((x) => x == 'store' || x == 'shopping_mall')) return Icons.store;
+    if (t.any((x) => x == 'hospital' || x == 'pharmacy')) return Icons.local_hospital;
+    if (t.any((x) => x == 'school' || x == 'university')) return Icons.school;
+    if (t.any((x) => x == 'bank' || x == 'atm')) return Icons.account_balance;
+    if (t.contains('gas_station')) return Icons.local_gas_station;
+    if (t.any((x) => x == 'lodging' || x == 'hotel')) return Icons.hotel;
+    if (t.any((x) => x == 'mosque' || x == 'place_of_worship')) return Icons.account_balance;
+    if (t.any((x) => x == 'locality' || x == 'administrative_area_level_1')) return Icons.location_city;
+    if (t.any((x) => x == 'route' || x == 'street_address')) return Icons.alt_route;
+    return Icons.location_on;
+  }
+
+  static Color _colorForTypes(dynamic types) {
+    final t = (types as List?)?.cast<String>() ?? <String>[];
+    if (t.any((x) => x == 'restaurant' || x == 'food')) return Colors.orange;
+    if (t.contains('cafe')) return const Color(0xFF795548);
+    if (t.any((x) =>
+        x == 'grocery_or_supermarket' ||
+        x == 'supermarket' ||
+        x == 'convenience_store')) { return Colors.green; }
+    if (t.any((x) => x == 'hospital' || x == 'pharmacy')) return Colors.red;
+    if (t.any((x) => x == 'school' || x == 'university')) return Colors.blue;
+    if (t.any((x) => x == 'bank' || x == 'atm')) return Colors.indigo;
+    if (t.contains('gas_station')) return Colors.deepPurple;
+    if (t.any((x) => x == 'lodging' || x == 'hotel')) return Colors.teal;
+    return AppColors.darkModePrimary;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Provider.of<DarkThemeProvider>(context).getThem();
@@ -267,12 +413,12 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
             zoomControlsEnabled: false,
             compassEnabled: false,
             mapToolbarEnabled: false,
+            cameraTargetBounds: CameraTargetBounds(_mauritaniaBounds),
+            minMaxZoomPreference: const MinMaxZoomPreference(5, 20),
             onMapCreated: (c) {
               if (!_mapCompleter.isCompleted) _mapCompleter.complete(c);
             },
-            onCameraMove: (pos) {
-              _pinLatLng = pos.target;
-            },
+            onCameraMove: (pos) => _pinLatLng = pos.target,
             onCameraIdle: () {
               if (_pinLatLng != null) _reverseGeocode(_pinLatLng!);
             },
@@ -291,14 +437,12 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
       child: Center(
         child: Padding(
           padding: EdgeInsets.only(bottom: 36),
-          child: Icon(
-            Icons.location_pin,
-            color: AppColors.darkModePrimary,
-            size: 48,
-            shadows: [
-              Shadow(color: Colors.black38, blurRadius: 6, offset: Offset(0, 2)),
-            ],
-          ),
+          child: Icon(Icons.location_pin,
+              color: AppColors.darkModePrimary,
+              size: 48,
+              shadows: [
+                Shadow(color: Colors.black38, blurRadius: 6, offset: Offset(0, 2)),
+              ]),
         ),
       ),
     );
@@ -311,6 +455,7 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
         child: Column(
           children: [
+            // ── Search bar ──────────────────────────────────────────────────
             Material(
               color: cardColor,
               elevation: 6,
@@ -339,9 +484,7 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
                           border: InputBorder.none,
                           hintText: 'Search your location'.tr,
                           hintStyle: GoogleFonts.poppins(
-                            color: Colors.grey[500],
-                            fontSize: 14,
-                          ),
+                              color: Colors.grey[500], fontSize: 14),
                         ),
                       ),
                     ),
@@ -352,14 +495,12 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.darkModePrimary),
+                              strokeWidth: 2, color: AppColors.darkModePrimary),
                         ),
                       )
                     else if (_searchController.text.isNotEmpty)
                       IconButton(
-                        icon: const Icon(Icons.close,
-                            color: Colors.grey, size: 20),
+                        icon: const Icon(Icons.close, color: Colors.grey, size: 20),
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _suggestions = []);
@@ -369,12 +510,13 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
                 ),
               ),
             ),
+
+            // ── Suggestions list ─────────────────────────────────────────────
             if (_showSuggestions && _suggestions.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(top: 6),
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.4,
-                ),
+                constraints:
+                    BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.45),
                 decoration: BoxDecoration(
                   color: cardColor,
                   borderRadius: BorderRadius.circular(14),
@@ -388,20 +530,33 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
                 ),
                 child: ListView.separated(
                   shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 6),
                   itemCount: _suggestions.length,
                   separatorBuilder: (_, __) => Divider(
                       height: 1, color: Colors.grey.withValues(alpha: 0.15)),
                   itemBuilder: (context, i) {
                     final p = _suggestions[i];
+                    final types = p['types'];
                     final main =
                         p['structured_formatting']?['main_text'] ?? '';
                     final secondary =
                         p['structured_formatting']?['secondary_text'] ?? '';
+                    final icon = _iconForTypes(types);
+                    final color = _colorForTypes(types);
+
                     return ListTile(
                       dense: true,
-                      leading: const Icon(Icons.location_on_outlined,
-                          color: AppColors.darkModePrimary, size: 20),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                      leading: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(icon, size: 18, color: color),
+                      ),
                       title: Text(
                         main.isNotEmpty
                             ? main
@@ -415,17 +570,54 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: secondary.isNotEmpty
-                          ? Text(
-                              secondary,
+                          ? Text(secondary,
                               style: TextStyle(
                                   color: Colors.grey[600], fontSize: 11),
                               maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            )
+                              overflow: TextOverflow.ellipsis)
                           : null,
                       onTap: () => _selectSuggestion(p),
                     );
                   },
+                ),
+              ),
+
+            // ── Empty state ──────────────────────────────────────────────────
+            if (_showSuggestions &&
+                _suggestions.isEmpty &&
+                !_isSearching &&
+                _searchController.text.trim().length >= 2)
+              Container(
+                margin: const EdgeInsets.only(top: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline,
+                        size: 18, color: Colors.grey[500]),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'لم يُعثر على النتائج — حرّك الدبوس على الخريطة لاختيار الموقع يدوياً',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -464,8 +656,7 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
       child: Container(
         decoration: BoxDecoration(
           color: cardColor,
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.10),
@@ -497,13 +688,9 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: _isResolvingAddress
-                          ? Text(
-                              'Resolving address...'.tr,
+                          ? Text('Resolving address...'.tr,
                               style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                color: Colors.grey[600],
-                              ),
-                            )
+                                  fontSize: 13, color: Colors.grey[600]))
                           : Text(
                               _resolvedAddress.isEmpty
                                   ? 'Move the map to pick a location'.tr
@@ -531,16 +718,13 @@ class GoogleMapSearchPlacesApiState extends State<GoogleMapSearchPlacesApi> {
                     foregroundColor: Colors.white,
                     elevation: canConfirm ? 2 : 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                   onPressed: canConfirm ? _confirm : null,
                   child: Text(
                     'Confirm Location'.tr,
                     style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
+                        fontSize: 15, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
