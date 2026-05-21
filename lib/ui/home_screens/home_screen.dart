@@ -22,7 +22,7 @@ import 'package:customer/widget/geoflutterfire/src/geoflutterfire.dart';
 import 'package:customer/widget/geoflutterfire/src/models/point.dart';
 import 'package:customer/model/place_picker_model.dart';
 import 'package:customer/widget/google_map_search_place.dart';
-import 'package:customer/widget/place_picker_osm.dart';
+import 'package:customer/widget/osm_map_picker_page.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dash/flutter_dash.dart';
@@ -241,80 +241,49 @@ class HomeScreen extends StatelessWidget {
                                                     InkWell(
                                                         onTap: () async {
                                                           log("::::::::::11::::::::::::");
-                                                          if (Constant
-                                                                  .selectedMapType ==
-                                                              'osm') {
-                                                            Get.to(() =>
-                                                                    const LocationPicker())
-                                                                ?.then(
-                                                                    (value) async {
-                                                              if (value !=
+                                                          final result =
+                                                              await Get.to(
+                                                            () => Constant.selectedMapType == 'osm'
+                                                                ? const OsmMapPickerPage()
+                                                                : const GoogleMapSearchPlacesApi(),
+                                                            transition:
+                                                                Transition.rightToLeft,
+                                                          );
+                                                          if (result
+                                                                  is PlaceDetailsModel &&
+                                                              result.result
+                                                                      ?.geometry?.location?.lat !=
+                                                                  null &&
+                                                              result.result
+                                                                      ?.geometry?.location?.lng !=
                                                                   null) {
-                                                                controller
-                                                                        .destinationLocationController
-                                                                        .value
-                                                                        .text =
-                                                                    value
-                                                                        .displayName!;
-                                                                controller
-                                                                        .destinationLocationLAtLng
-                                                                        .value =
-                                                                    LocationLatLng(
-                                                                        latitude:
-                                                                            value
-                                                                                .lat,
-                                                                        longitude:
-                                                                            value.lon);
-                                                                await controller
-                                                                    .calculateDurationAndDistance();
-                                                                controller
-                                                                    .calculateAmount();
-                                                              }
-                                                            });
-                                                          } else {
-                                                            final result =
-                                                                await Get.to(
-                                                              () =>
-                                                                  const GoogleMapSearchPlacesApi(),
-                                                              transition: Transition
-                                                                  .rightToLeft,
+                                                            controller
+                                                                    .destinationLocationController
+                                                                    .value
+                                                                    .text =
+                                                                result.result!
+                                                                        .formattedAddress
+                                                                        ?.toString() ??
+                                                                    '';
+                                                            controller
+                                                                    .destinationLocationLAtLng
+                                                                    .value =
+                                                                LocationLatLng(
+                                                              latitude: result
+                                                                  .result!
+                                                                  .geometry!
+                                                                  .location!
+                                                                  .lat,
+                                                              longitude: result
+                                                                  .result!
+                                                                  .geometry!
+                                                                  .location!
+                                                                  .lng,
                                                             );
-                                                            if (result
-                                                                    is PlaceDetailsModel &&
-                                                                result.result
-                                                                        ?.geometry?.location?.lat !=
-                                                                    null &&
-                                                                result.result
-                                                                        ?.geometry?.location?.lng !=
-                                                                    null) {
-                                                              controller
-                                                                      .destinationLocationController
-                                                                      .value
-                                                                      .text =
-                                                                  result.result!
-                                                                          .formattedAddress
-                                                                          ?.toString() ??
-                                                                      '';
-                                                              controller
-                                                                      .destinationLocationLAtLng
-                                                                      .value =
-                                                                  LocationLatLng(
-                                                                latitude: result
-                                                                    .result!
-                                                                    .geometry!
-                                                                    .location!
-                                                                    .lat,
-                                                                longitude: result
-                                                                    .result!
-                                                                    .geometry!
-                                                                    .location!
-                                                                    .lng,
-                                                              );
-                                                              await controller
-                                                                  .calculateDurationAndDistance();
-                                                              controller
-                                                                  .calculateAmount();
-                                                            }
+                                                            await controller
+                                                                .calculateDurationAndDistance();
+                                                            controller
+                                                                .calculateAmount();
                                                           }
                                                         },
                                                         child: Row(
@@ -1040,99 +1009,6 @@ class HomeScreen extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                ),
-                              ),
-                              // ===== Wallet Payment Option =====
-                              Obx(
-                                () => Column(
-                                  children: [
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      onTap: () {
-                                        controller.selectedPaymentMethod.value =
-                                            "Wallet";
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(10)),
-                                          border: Border.all(
-                                              color: controller
-                                                          .selectedPaymentMethod
-                                                          .value ==
-                                                      "Wallet"
-                                                  ? themeChange.getThem()
-                                                      ? AppColors
-                                                          .darkModePrimary
-                                                      : AppColors.primary
-                                                  : AppColors.textFieldBorder,
-                                              width: 1),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10, vertical: 10),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                height: 40,
-                                                width: 80,
-                                                decoration: const BoxDecoration(
-                                                    color: AppColors.lightGray,
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                            Radius.circular(
-                                                                5))),
-                                                child: const Padding(
-                                                  padding: EdgeInsets.all(8.0),
-                                                  child: Icon(
-                                                      Icons
-                                                          .account_balance_wallet,
-                                                      color: Colors.black),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      "المحفظة",
-                                                      style:
-                                                          GoogleFonts.poppins(),
-                                                    ),
-                                                    Text(
-                                                      "الرصيد: ${Constant.amountShow(amount: controller.userModel.value.walletAmount?.toString() ?? '0')}",
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                        fontSize: 12,
-                                                        color: Colors.grey,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Radio(
-                                                value: "Wallet",
-                                                groupValue: controller
-                                                    .selectedPaymentMethod
-                                                    .value,
-                                                activeColor: themeChange
-                                                        .getThem()
-                                                    ? AppColors.darkModePrimary
-                                                    : AppColors.primary,
-                                                onChanged: (value) {
-                                                  controller
-                                                      .selectedPaymentMethod
-                                                      .value = "Wallet";
-                                                },
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ),
                               // Bankily removed (V1)

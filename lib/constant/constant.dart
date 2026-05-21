@@ -59,7 +59,7 @@ class Constant {
   static String appVersion = "";
 
   static String mapType = "google";
-  static String selectedMapType = 'google';
+  static String selectedMapType = 'osm';
   static String driverLocationUpdate = "10";
   static String regionCode = "MR";
   static String regionCountry = "Mauritania";
