@@ -46,7 +46,24 @@ class Constant {
   static String mapAPIKey = "";
   static String senderId = '';
   static String jsonNotificationFileURL = '';
-  static String radius = "10";
+  // Fallback when settings/globalValue is unreachable. Effective dispatch
+  // radius is clamped to a hard max in FireStoreUtils — see
+  // resolvedCityDispatchRadiusKm. Mirror the cap in index.js +
+  // AdminRideService.php.
+  static String radius = "4";
+
+  // Auto-cancel window for unaccepted rides. Loaded from
+  // settings/globalValue.autoCancelMinutes. MUST match the Cloud Functions
+  // `AUTO_CANCEL_AFTER_MS` (now derived from the same setting) — otherwise
+  // the client kicks the cancel before the server is ready, or vice versa.
+  static int autoCancelMinutes = 6;
+
+  // Max age (in minutes) of `driver_users.position.updatedAt` for a driver
+  // to remain in the dispatch pool. Older positions imply the driver lost
+  // tracking; filtering them out prevents fan-out to phantom-near drivers.
+  // Loaded from settings/globalValue.positionStaleAfterMinutes. Mirrored
+  // on the server in `index.js` and `AdminRideService.php`.
+  static int positionStaleAfterMinutes = 5;
   static String distanceType = "";
   static CurrencyModel? currencyModel;
   static AdminCommission? adminCommission;

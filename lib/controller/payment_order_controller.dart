@@ -105,8 +105,11 @@ class PaymentOrderController extends GetxController {
       }
     });
 
+    // See _completeWalletOrderInternal for the same `commissionDebitedAt`
+    // guard rationale — skip when the driver-side completion already debited.
     if (driverUserModel.value.subscriptionPlan?.id ==
-        Constant.commissionSubscriptionID) {
+            Constant.commissionSubscriptionID &&
+        orderModel.value.commissionDebitedAt == null) {
       // Commission is computed on the GROSS fare under company-absorbs —
       // promos don't shrink the platform's take here; they shrink it via
       // the discount absorbed below the line (delta = commission − discount).
@@ -263,8 +266,13 @@ class PaymentOrderController extends GetxController {
     });
 
     // Admin commission — on gross fare under company-absorbs.
+    // Skipped when the driver-side ride-completion flow already debited the
+    // commission (cash-settlement model). `commissionDebitedAt` is stamped
+    // by `ActiveOrderController.debitCommissionOnCompletion` — without this
+    // guard a wallet-paid ride that started before commit would double-debit.
     if (driverUserModel.value.subscriptionPlan?.id ==
-        Constant.commissionSubscriptionID) {
+            Constant.commissionSubscriptionID &&
+        orderModel.value.commissionDebitedAt == null) {
       final double commissionAmount = _commissionForSettlement();
 
       WalletTransactionModel adminCommissionWallet = WalletTransactionModel(

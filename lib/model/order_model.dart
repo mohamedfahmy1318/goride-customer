@@ -58,6 +58,7 @@ class OrderModel {
   String? driverEarnings;
   String? discountAmount;
   String? finalPayableAmount;
+  Timestamp? commissionDebitedAt;
 
   OrderModel(
       {this.position,
@@ -161,6 +162,7 @@ class OrderModel {
     driverEarnings = json['driverEarnings']?.toString();
     discountAmount = json['discountAmount']?.toString();
     finalPayableAmount = json['finalPayableAmount']?.toString();
+    commissionDebitedAt = json['commissionDebitedAt'];
     position =
         json['position'] != null ? Positions.fromJson(json['position']) : null;
     service =
@@ -247,6 +249,9 @@ class OrderModel {
     if (discountAmount != null) data['discountAmount'] = discountAmount;
     if (finalPayableAmount != null) {
       data['finalPayableAmount'] = finalPayableAmount;
+    }
+    if (commissionDebitedAt != null) {
+      data['commissionDebitedAt'] = commissionDebitedAt;
     }
     if (taxList != null) {
       data['taxList'] = taxList!.map((v) => v.toJson()).toList();

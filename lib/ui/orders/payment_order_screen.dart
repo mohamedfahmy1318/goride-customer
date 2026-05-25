@@ -775,16 +775,60 @@ class PaymentOrderScreen extends StatelessWidget {
                                                 ),
                                               ),
                                               const SizedBox(height: 20),
-                                              ButtonThem.buildButton(
-                                                context,
-                                                title: "تأكيد الدفع نقداً".tr,
-                                                onPress: () async {
-                                                  controller
-                                                      .selectedPaymentMethod
-                                                      .value = "Cash";
-                                                  controller.completeCashOrder();
-                                                },
-                                              ),
+                                              // Cash settlement now happens on
+                                              // the driver side at ride
+                                              // completion — hide the confirm
+                                              // button once paymentStatus is
+                                              // already true so we don't show a
+                                              // no-op CTA on already-paid rides.
+                                              if (orderModel.paymentStatus !=
+                                                  true)
+                                                ButtonThem.buildButton(
+                                                  context,
+                                                  title:
+                                                      "تأكيد الدفع نقداً".tr,
+                                                  onPress: () async {
+                                                    controller
+                                                            .selectedPaymentMethod
+                                                            .value =
+                                                        "Cash";
+                                                    controller
+                                                        .completeCashOrder();
+                                                  },
+                                                )
+                                              else
+                                                Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      vertical: 12,
+                                                      horizontal: 16),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.green
+                                                        .withOpacity(0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      const Icon(Icons
+                                                          .check_circle_outline,
+                                                          color: Colors.green),
+                                                      const SizedBox(width: 8),
+                                                      Expanded(
+                                                        child: Text(
+                                                          "تم تأكيد الدفع نقداً للسائق",
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color: Colors.green,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                             ],
                                           ),
                                         ),

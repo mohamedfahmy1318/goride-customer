@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/collection_name.dart';
@@ -38,6 +39,41 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class FireStoreUtils {
   static FirebaseFirestore fireStore = FirebaseFirestore.instance;
+
+  /// Hard cap on the city-ride dispatch radius. Mauritania's urban density
+  /// is low enough that a 10+ km fan-out reaches drivers nowhere near the
+  /// rider, which is noisy and wasteful. Mirrored on the server in
+  /// `index.js` (`MAX_DISPATCH_RADIUS_KM`) and `AdminRideService.php`
+  /// (`MAX_DISPATCH_RADIUS_KM`) — keep all three in lockstep.
+  static const double _maxDispatchRadiusKm = 4.0;
+
+  /// Resolved dispatch radius for city rides. Reads the configured value
+  /// from `settings/globalValue.radius` (loaded into `Constant.radius`)
+  /// and clamps to `[0.1, _maxDispatchRadiusKm]`. Used by both the
+  /// streaming and one-shot dispatch fan-outs.
+  static double resolvedCityDispatchRadiusKm() {
+    final double configured =
+        double.tryParse(Constant.radius) ?? _maxDispatchRadiusKm;
+    if (configured <= 0) return _maxDispatchRadiusKm;
+    return math.min(configured, _maxDispatchRadiusKm);
+  }
+
+  /// True when the driver's `position.updatedAt` is fresher than
+  /// `Constant.positionStaleAfterMinutes`. Drivers without an `updatedAt`
+  /// field (legacy docs that pre-date the freshness migration) are treated
+  /// as fresh — otherwise the rollout would empty the dispatch pool on day
+  /// one. Once all driver apps are updated, that fallback effectively
+  /// becomes unreachable.
+  static bool _isDriverPositionFresh(Map<String, dynamic> driverData) {
+    final raw = driverData['position'];
+    if (raw is! Map) return true;
+    final updatedAtRaw = raw['updatedAt'];
+    if (updatedAtRaw is! Timestamp) return true;
+    final ageMs =
+        DateTime.now().millisecondsSinceEpoch - updatedAtRaw.toDate().millisecondsSinceEpoch;
+    final maxAgeMs = Constant.positionStaleAfterMinutes * 60 * 1000;
+    return ageMs <= maxAgeMs;
+  }
 
   static Future<bool> isLogin() async {
     bool isLogin = false;
@@ -104,6 +140,21 @@ class FireStoreUtils {
         Constant.regionCode = value.data()!["regionCode"].toString().trim();
         Constant.regionCountry =
             value.data()!["regionCountry"].toString().trim();
+        // Dispatch-related timings — kept in lockstep with the matching
+        // constants in Cloud Functions (`AUTO_CANCEL_AFTER_MS`, position
+        // staleness check) and the AdminRideService dispatch filter. Bad
+        // values (≤0, NaN, missing) fall back to the in-code default.
+        final autoCancelRaw = value.data()!["autoCancelMinutes"];
+        final autoCancelParsed =
+            int.tryParse(autoCancelRaw?.toString() ?? '');
+        if (autoCancelParsed != null && autoCancelParsed > 0) {
+          Constant.autoCancelMinutes = autoCancelParsed;
+        }
+        final staleRaw = value.data()!["positionStaleAfterMinutes"];
+        final staleParsed = int.tryParse(staleRaw?.toString() ?? '');
+        if (staleParsed != null && staleParsed > 0) {
+          Constant.positionStaleAfterMinutes = staleParsed;
+        }
       }
     });
 
@@ -605,7 +656,7 @@ class FireStoreUtils {
         .collection(collectionRef: query)
         .within(
             center: center,
-            radius: double.parse(Constant.radius),
+            radius: resolvedCityDispatchRadiusKm(),
             field: 'position',
             strictMode: true);
 
@@ -651,7 +702,7 @@ class FireStoreUtils {
         .collection(collectionRef: query)
         .within(
           center: center,
-          radius: double.parse(Constant.radius),
+          radius: resolvedCityDispatchRadiusKm(),
           field: 'position',
           strictMode: true,
         )
@@ -671,6 +722,14 @@ class FireStoreUtils {
       final currentOrderId =
           (data['currentOrderId'] ?? '').toString().trim();
       if (currentOrderId.isNotEmpty) continue;
+      // Negative wallet: drop drivers who owe unsettled commission. Stored
+      // as a String on the driver doc — parse defensively. Missing/null
+      // treated as 0 (not blocked).
+      final walletBalance =
+          double.tryParse((data['walletAmount'] ?? '0').toString()) ?? 0.0;
+      if (walletBalance < 0) continue;
+      // Stale-position guard — see `_isDriverPositionFresh`.
+      if (!_isDriverPositionFresh(data)) continue;
       DriverUserModel orderModel = DriverUserModel.fromJson(data);
       ordersList.add(orderModel);
     }
@@ -722,6 +781,13 @@ class FireStoreUtils {
         final currentOrderId =
             (doc.data()['currentOrderId'] ?? '').toString().trim();
         if (currentOrderId.isNotEmpty) continue;
+        // Negative wallet: drop drivers who owe unsettled commission.
+        final walletBalance = double.tryParse(
+                (doc.data()['walletAmount'] ?? '0').toString()) ??
+            0.0;
+        if (walletBalance < 0) continue;
+        // Stale-position guard — see `_isDriverPositionFresh`.
+        if (!_isDriverPositionFresh(doc.data())) continue;
         DriverUserModel driver = DriverUserModel.fromJson(doc.data());
         drivers.add(driver);
       }

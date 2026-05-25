@@ -563,13 +563,17 @@ class HomeController extends GetxController {
     }
   }
 
-  /// Start a 6-minute expiration timer for the ride request.
-  /// Matches the server-side `autoCancelStaleRideRequests` window in Cloud Functions.
+  /// Start the ride-request expiration timer. Duration comes from
+  /// `Constant.autoCancelMinutes`, which is loaded from
+  /// `settings/globalValue.autoCancelMinutes` — Cloud Functions reads the
+  /// SAME field, so client and server stay in lockstep. If the field is
+  /// missing or invalid, falls back to the in-code default (6 min).
   void startRideExpirationTimer(String orderId) {
     cancelRideExpirationTimer();
     _activeOrderId = orderId;
     activeOrderId.value = orderId;
-    _rideExpirationTimer = Timer(const Duration(minutes: 6), () async {
+    _rideExpirationTimer =
+        Timer(Duration(minutes: Constant.autoCancelMinutes), () async {
       try {
         // Re-fetch the order to check if a driver accepted
         DocumentSnapshot orderDoc = await FirebaseFirestore.instance
