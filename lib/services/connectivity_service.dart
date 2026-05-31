@@ -60,8 +60,9 @@ class ConnectivityService extends GetxService {
   }
 
   void _showOfflineBanner() {
-    if (Get.context == null)
+    if (Get.context == null) {
       return; // avoid calling Get.* before GetMaterialApp exists
+    }
 
     Get.snackbar(
       'لا يوجد اتصال بالإنترنت',

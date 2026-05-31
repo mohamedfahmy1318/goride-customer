@@ -24,7 +24,9 @@ class ForceUpdateService {
     try {
       await _remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 10),
-        minimumFetchInterval: const Duration(hours: 1),
+        // Short interval so a published force-update reaches users on their
+        // next app open instead of waiting out a long cache window.
+        minimumFetchInterval: const Duration(minutes: 5),
       ));
 
       // Set defaults

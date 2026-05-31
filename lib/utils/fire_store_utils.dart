@@ -40,12 +40,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 class FireStoreUtils {
   static FirebaseFirestore fireStore = FirebaseFirestore.instance;
 
-  /// Hard cap on the city-ride dispatch radius. Mauritania's urban density
-  /// is low enough that a 10+ km fan-out reaches drivers nowhere near the
-  /// rider, which is noisy and wasteful. Mirrored on the server in
-  /// `index.js` (`MAX_DISPATCH_RADIUS_KM`) and `AdminRideService.php`
+  /// Hard ceiling on the city-ride dispatch radius. The effective value comes
+  /// from `settings/globalValue.radius` (admin-tunable), clamped to this.
+  /// Raised 4 → 15 so the configured radius (default 10) takes effect and
+  /// rides reach nearby drivers like mainstream apps. Mirrored on the server
+  /// in `index.js` (`MAX_DISPATCH_RADIUS_KM`) and `AdminRideService.php`
   /// (`MAX_DISPATCH_RADIUS_KM`) — keep all three in lockstep.
-  static const double _maxDispatchRadiusKm = 4.0;
+  static const double _maxDispatchRadiusKm = 15.0;
 
   /// Resolved dispatch radius for city rides. Reads the configured value
   /// from `settings/globalValue.radius` (loaded into `Constant.radius`)
