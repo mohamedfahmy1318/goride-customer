@@ -24,9 +24,19 @@ class SplashController extends GetxController {
 
     // Initialize Remote Config and check for force updates
     await ForceUpdateService.init();
-    await ForceUpdateService.checkForUpdate();
+    final mustUpdate = await ForceUpdateService.checkForUpdate();
+    if (mustUpdate) {
+      // A non-dismissible update dialog is up. Do NOT continue to
+      // redirectScreen() — its Get.offAll(...) would wipe the dialog off the
+      // navigation stack and let the outdated app through.
+      return;
+    }
 
     redirectScreen();
+
+    // Soft/optional "update available" prompt — shown (dismissible) over the
+    // landing screen after redirect, so it isn't wiped by the Get.offAll above.
+    ForceUpdateService.checkOptionalUpdate();
   }
 
   Future<void> _waitForSettings() async {

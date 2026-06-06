@@ -33,6 +33,12 @@ class ForceUpdateService {
       await _remoteConfig.setDefaults({
         'force_update_enabled': false,
         'force_update_customer_version': '1.0.0',
+        // Optional/soft update: newest available version. Users on a version
+        // below this (but at/above the forced minimum) get a DISMISSIBLE
+        // "update available" prompt. Default 0.0.0 = never prompt.
+        'latest_customer_version': '0.0.0',
+        'optional_update_message_ar':
+            'يتوفّر إصدار جديد من التطبيق. ننصح بالتحديث للحصول على آخر التحسينات.',
         'update_message_ar': 'يجب تحديث التطبيق للاستمرار في الاستخدام',
         'update_message_en':
             'Please update the app to continue using the service',
@@ -48,27 +54,61 @@ class ForceUpdateService {
   }
 
   /// Check if force update is needed. Call this on app start.
-  static Future<void> checkForUpdate() async {
+  ///
+  /// Returns `true` when a blocking update dialog has been shown — the caller
+  /// (splash) MUST then abort its normal redirect, otherwise the `Get.offAll`
+  /// navigation wipes the dialog off the stack and the stale app slips through
+  /// (the "dialog flashes then disappears" bug). Returns `false` when the app
+  /// is up to date / disabled / Remote Config is unavailable (fail-open).
+  static Future<bool> checkForUpdate() async {
     try {
       // Re-fetch to get latest values
       await _remoteConfig.fetchAndActivate();
 
       final enabled = _remoteConfig.getBool('force_update_enabled');
-      if (!enabled) return;
+      if (!enabled) return false;
 
       final minVersion =
           _remoteConfig.getString('force_update_customer_version');
-      if (minVersion.isEmpty) return;
+      if (minVersion.isEmpty) return false;
 
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
 
       if (_isUpdateRequired(currentVersion, minVersion)) {
         _showForceUpdateDialog();
+        return true;
       }
+      return false;
     } catch (e) {
       log('ForceUpdateService.checkForUpdate error: $e');
       // Don't block the app if remote config fails
+      return false;
+    }
+  }
+
+  static bool _optionalShown = false;
+
+  /// Soft/optional update prompt. Shows a DISMISSIBLE "update available" dialog
+  /// when a newer version (`latest_customer_version`) exists but the user is
+  /// not below the forced minimum. Call AFTER the splash has redirected (so the
+  /// dialog overlays the landing screen rather than being wiped by navigation).
+  /// Shown once per app launch.
+  static Future<void> checkOptionalUpdate() async {
+    try {
+      if (_optionalShown) return;
+      final latest = _remoteConfig.getString('latest_customer_version');
+      if (latest.isEmpty) return;
+
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (!_isUpdateRequired(packageInfo.version, latest)) return;
+
+      _optionalShown = true;
+      // Let the landing screen settle before overlaying the prompt.
+      await Future.delayed(const Duration(milliseconds: 1500));
+      _showOptionalUpdateDialog();
+    } catch (e) {
+      log('ForceUpdateService.checkOptionalUpdate error: $e');
     }
   }
 
@@ -148,6 +188,58 @@ class ForceUpdateService {
         ),
       ),
       barrierDismissible: false,
+    );
+  }
+
+  /// Dismissible "update available" prompt (soft update). User can tap
+  /// "لاحقاً" to keep using the app, or "تحديث الآن" to open the store.
+  static void _showOptionalUpdateDialog() {
+    final message = _remoteConfig.getString('optional_update_message_ar');
+    final playStoreUrl = _remoteConfig.getString('play_store_url');
+    final appStoreUrl = _remoteConfig.getString('app_store_url');
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text(
+          'تحديث جديد متاح',
+          style: TextStyle(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.system_update, size: 56, color: Colors.blue),
+            const SizedBox(height: 16),
+            Text(
+              message.isNotEmpty
+                  ? message
+                  : 'يتوفّر إصدار جديد من التطبيق. ننصح بالتحديث للحصول على آخر التحسينات.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 15),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('لاحقاً'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Get.back();
+              final url = GetPlatform.isIOS ? appStoreUrl : playStoreUrl;
+              if (url.isNotEmpty) {
+                final uri = Uri.parse(url);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              }
+            },
+            child: const Text('تحديث الآن'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
     );
   }
 }

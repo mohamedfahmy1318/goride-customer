@@ -41,12 +41,12 @@ class FireStoreUtils {
   static FirebaseFirestore fireStore = FirebaseFirestore.instance;
 
   /// Hard ceiling on the city-ride dispatch radius. The effective value comes
-  /// from `settings/globalValue.radius` (admin-tunable), clamped to this.
-  /// Raised 4 → 15 so the configured radius (default 10) takes effect and
-  /// rides reach nearby drivers like mainstream apps. Mirrored on the server
-  /// in `index.js` (`MAX_DISPATCH_RADIUS_KM`) and `AdminRideService.php`
-  /// (`MAX_DISPATCH_RADIUS_KM`) — keep all three in lockstep.
-  static const double _maxDispatchRadiusKm = 15.0;
+  /// from `settings/globalValue.radius` (admin-tunable), clamped DOWN to this.
+  /// A driver farther than this from the pickup is never dispatched. Mirrored
+  /// on the server in `dispatch_eligibility.js` (`MAX_DISPATCH_RADIUS_KM`),
+  /// `AdminRideService.php` (`MAX_DISPATCH_RADIUS_KM`), and the driver app
+  /// (`FireStoreUtils._maxDispatchRadiusKm`) — keep all in lockstep.
+  static const double _maxDispatchRadiusKm = 3.0;
 
   /// Resolved dispatch radius for city rides. Reads the configured value
   /// from `settings/globalValue.radius` (loaded into `Constant.radius`)
