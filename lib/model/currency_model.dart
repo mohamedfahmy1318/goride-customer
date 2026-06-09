@@ -20,7 +20,11 @@ class CurrencyModel {
     enable = json['enable'];
     symbolAtRight = json['symbolAtRight'];
     name = json['name'];
-    decimalDigits = json['decimalDigits'] != null ? int.parse(json['decimalDigits'].toString()) : 2;
+    // Tolerate bad Firestore values (NaN, empty, non-numeric). A raw int.parse
+    // on "NaN" throws FormatException, which previously aborted the whole
+    // settings load (getCurrency → getSettings never ran). Fall back to 2.
+    decimalDigits =
+        int.tryParse(json['decimalDigits']?.toString() ?? '') ?? 2;
     id = json['id'];
     updatedAt = json['updatedAt'];
   }

@@ -29,14 +29,17 @@ class SendNotification {
       final bool isRideRequest =
           payloadType == 'city_order' || payloadType == 'intercity_order';
       final String resolvedChannelId = androidChannelId ??
-          (isRideRequest ? 'ride_request_alert_v2' : 'goRide-driver');
+          (isRideRequest ? 'ride_request_alert_v3' : 'goRide-driver');
 
       final Map<String, dynamic> callData = {
         'token': token,
         'title': title,
         'body': body,
         'payload': payload.map((key, value) => MapEntry(key, value.toString())),
-        'dataOnly': dataOnly || isRideRequest,
+        // Ride requests are HYBRID now (the Cloud Function forces notification+data
+        // for ride types). The data wakes the app to present the takeover; the
+        // notification block is the last-resort cue only when the app is dead.
+        'dataOnly': dataOnly,
         'androidChannelId': resolvedChannelId,
         'priority': 'high',
       };

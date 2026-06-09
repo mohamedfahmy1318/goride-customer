@@ -81,60 +81,11 @@ class PaymentOrderController extends GetxController {
     }
     orderModel.value.updateDate = Timestamp.now();
 
-    // Driver wallet credit — gross fare + tax under company-absorbs so the
-    // net delta after the commission debit equals persisted driverEarnings.
-    final double driverCreditAmount = _driverWalletCreditAmount();
-
-    WalletTransactionModel transactionModel = WalletTransactionModel(
-        id: Constant.getUuid(),
-        amount: driverCreditAmount.toString(),
-        createdDate: Timestamp.now(),
-        paymentType: selectedPaymentMethod.value,
-        transactionId: orderModel.value.id,
-        userId: orderModel.value.driverId.toString(),
-        orderType: "city",
-        userType: "driver",
-        note: "Ride amount credited");
-
-    await FireStoreUtils.setWalletTransaction(transactionModel)
-        .then((value) async {
-      if (value == true) {
-        await FireStoreUtils.updateDriverWallet(
-            amount: driverCreditAmount.toString(),
-            driverId: orderModel.value.driverId.toString());
-      }
-    });
-
-    // See _completeWalletOrderInternal for the same `commissionDebitedAt`
-    // guard rationale — skip when the driver-side completion already debited.
-    if (driverUserModel.value.subscriptionPlan?.id ==
-            Constant.commissionSubscriptionID &&
-        orderModel.value.commissionDebitedAt == null) {
-      // Commission is computed on the GROSS fare under company-absorbs —
-      // promos don't shrink the platform's take here; they shrink it via
-      // the discount absorbed below the line (delta = commission − discount).
-      final double commissionAmount = _commissionForSettlement();
-
-      WalletTransactionModel adminCommissionWallet = WalletTransactionModel(
-          id: Constant.getUuid(),
-          amount: "-$commissionAmount",
-          createdDate: Timestamp.now(),
-          paymentType: selectedPaymentMethod.value,
-          transactionId: orderModel.value.id,
-          orderType: "city",
-          userType: "driver",
-          userId: orderModel.value.driverId.toString(),
-          note: "Admin commission debited");
-
-      await FireStoreUtils.setWalletTransaction(adminCommissionWallet)
-          .then((value) async {
-        if (value == true) {
-          await FireStoreUtils.updateDriverWallet(
-              amount: "-$commissionAmount",
-              driverId: orderModel.value.driverId.toString());
-        }
-      });
-    }
+    // Driver-wallet settlement is now SERVER-SIDE: the
+    // settleDriverCommissionOnCompletion Cloud Function debits the admin
+    // commission on the completion transition. The legacy client-side
+    // "Ride amount credited" and the commission debit are removed — all-cash
+    // deployment (the driver collects cash directly; no client wallet writes).
 
     if (driverUserModel.value.fcmToken != null) {
       Map<String, dynamic> playLoad = <String, dynamic>{
@@ -243,58 +194,11 @@ class PaymentOrderController extends GetxController {
     }
     orderModel.value.updateDate = Timestamp.now();
 
-    // Credit driver wallet — see completeOrder for the company-absorbs rationale.
-    final double driverCreditAmount = _driverWalletCreditAmount();
-    WalletTransactionModel transactionModel = WalletTransactionModel(
-        id: Constant.getUuid(),
-        amount: driverCreditAmount.toString(),
-        createdDate: Timestamp.now(),
-        paymentType: "Wallet",
-        transactionId: orderModel.value.id,
-        userId: orderModel.value.driverId.toString(),
-        orderType: "city",
-        userType: "driver",
-        note: "Ride amount credited");
-
-    await FireStoreUtils.setWalletTransaction(transactionModel)
-        .then((value) async {
-      if (value == true) {
-        await FireStoreUtils.updateDriverWallet(
-            amount: driverCreditAmount.toString(),
-            driverId: orderModel.value.driverId.toString());
-      }
-    });
-
-    // Admin commission — on gross fare under company-absorbs.
-    // Skipped when the driver-side ride-completion flow already debited the
-    // commission (cash-settlement model). `commissionDebitedAt` is stamped
-    // by `ActiveOrderController.debitCommissionOnCompletion` — without this
-    // guard a wallet-paid ride that started before commit would double-debit.
-    if (driverUserModel.value.subscriptionPlan?.id ==
-            Constant.commissionSubscriptionID &&
-        orderModel.value.commissionDebitedAt == null) {
-      final double commissionAmount = _commissionForSettlement();
-
-      WalletTransactionModel adminCommissionWallet = WalletTransactionModel(
-          id: Constant.getUuid(),
-          amount: "-$commissionAmount",
-          createdDate: Timestamp.now(),
-          paymentType: "Wallet",
-          transactionId: orderModel.value.id,
-          orderType: "city",
-          userType: "driver",
-          userId: orderModel.value.driverId.toString(),
-          note: "Admin commission debited");
-
-      await FireStoreUtils.setWalletTransaction(adminCommissionWallet)
-          .then((value) async {
-        if (value == true) {
-          await FireStoreUtils.updateDriverWallet(
-              amount: "-$commissionAmount",
-              driverId: orderModel.value.driverId.toString());
-        }
-      });
-    }
+    // Driver-wallet settlement (earnings credit + admin commission) is now
+    // SERVER-SIDE via the settleDriverCommissionOnCompletion Cloud Function.
+    // The legacy client-side credit + commission debit are removed. (Wallet/
+    // online payment is test-only/dead in this all-cash deployment; the
+    // customer-wallet deduction above is left untouched per scope.)
 
     // Notify driver
     if (driverUserModel.value.fcmToken != null) {
@@ -400,30 +304,10 @@ class PaymentOrderController extends GetxController {
   bool get hasPersistedBreakdown =>
       persistedTotalFare > 0 || persistedFinalPayable > 0;
 
-  /// Commission used for wallet settlement. Under company-absorbs the
-  /// driver's wallet is debited the commission computed on the GROSS fare
-  /// (persisted), not the discounted amount — so promos never reduce the
-  /// driver's take.
-  double _commissionForSettlement() {
-    if (hasPersistedBreakdown) return persistedAdminCommission;
-    // Legacy fallback — kept so older orders settle the way they were booked.
-    return Constant.calculateOrderAdminCommission(
-      amount: (subTotal.value - double.parse(couponAmount.value)).toString(),
-      adminCommission: orderModel.value.adminCommission,
-    );
-  }
-
-  /// Amount credited to the driver's wallet for the ride (before the
-  /// commission debit that's posted as a separate transaction). Under
-  /// company-absorbs this is the GROSS fare + tax so that the net wallet
-  /// delta after the commission debit equals the persisted driverEarnings,
-  /// independent of any coupon.
-  double _driverWalletCreditAmount() {
-    if (hasPersistedBreakdown) {
-      return persistedTotalFare + taxAmount.value;
-    }
-    return total.value; // legacy: subTotal − coupon + tax
-  }
+  // Driver-wallet credit/commission helpers were removed with the client-side
+  // settlement — commission is now computed + debited SERVER-SIDE by the
+  // settleDriverCommissionOnCompletion Cloud Function. (The public persisted*
+  // breakdown getters above remain for fare display / calculateAmount.)
 
   calculateAmount() async {
     taxAmount.value = 0.0;

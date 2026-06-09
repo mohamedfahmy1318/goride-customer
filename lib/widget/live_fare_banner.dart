@@ -9,7 +9,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-/// Live fare banner for the customer's view of a رحلة بالعداد.
+/// Live fare banner for the customer's view of a رحلة مفتوح.
 ///
 /// Subscribes to the ride doc and renders the running [finalRate] /
 /// [actualDistance] / [actualDuration] that the driver app writes every
@@ -55,8 +55,8 @@ class LiveFareBanner extends StatelessWidget {
         return Container(
           margin: EdgeInsets.symmetric(
               horizontal: compact ? 6 : 10, vertical: compact ? 4 : 8),
-          padding: EdgeInsets.symmetric(
-              horizontal: 14, vertical: compact ? 10 : 14),
+          padding:
+              EdgeInsets.symmetric(horizontal: 14, vertical: compact ? 10 : 14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: themeChange.getThem()

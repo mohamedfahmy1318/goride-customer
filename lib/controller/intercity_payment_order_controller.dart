@@ -70,47 +70,9 @@ class IntercityPaymentOrderController extends GetxController {
     orderModel.value.status = Constant.rideComplete;
     orderModel.value.coupon = selectedCouponModel.value;
 
-    WalletTransactionModel transactionModel = WalletTransactionModel(
-        id: Constant.getUuid(),
-        amount: calculateAmount().toString(),
-        createdDate: Timestamp.now(),
-        paymentType: "wallet",
-        transactionId: orderModel.value.id,
-        userId: orderModel.value.driverId.toString(),
-        orderType: "intercity",
-        userType: "driver",
-        note: "Ride amount credited");
-
-    await FireStoreUtils.setWalletTransaction(transactionModel)
-        .then((value) async {
-      if (value == true) {
-        await FireStoreUtils.updateDriverWallet(
-            amount: calculateAmount().toString(),
-            driverId: orderModel.value.driverId.toString());
-      }
-    });
-
-    WalletTransactionModel adminCommissionWallet = WalletTransactionModel(
-        id: Constant.getUuid(),
-        amount:
-            "-${Constant.calculateOrderAdminCommission(amount: (double.parse(orderModel.value.finalRate.toString()) - double.parse(couponAmount.value.toString())).toString(), adminCommission: orderModel.value.adminCommission)}",
-        createdDate: Timestamp.now(),
-        paymentType: "wallet",
-        transactionId: orderModel.value.id,
-        orderType: "intercity",
-        userType: "driver",
-        userId: orderModel.value.driverId.toString(),
-        note: "Admin commission debited");
-
-    await FireStoreUtils.setWalletTransaction(adminCommissionWallet)
-        .then((value) async {
-      if (value == true) {
-        await FireStoreUtils.updateDriverWallet(
-            amount:
-                "-${Constant.calculateOrderAdminCommission(amount: (double.parse(orderModel.value.finalRate.toString()) - double.parse(couponAmount.toString())).toString())}",
-            driverId: orderModel.value.driverId.toString());
-      }
-    });
+    // Driver-wallet settlement (earnings credit + admin commission) is now
+    // SERVER-SIDE via the settleIntercityCommissionOnCompletion Cloud Function.
+    // Legacy client-side credit + commission debit removed (all-cash).
 
     await FireStoreUtils.getIntercityFirstOrderOrNOt(orderModel.value)
         .then((value) async {
@@ -210,49 +172,9 @@ class IntercityPaymentOrderController extends GetxController {
     orderModel.value.status = Constant.rideComplete;
     orderModel.value.coupon = selectedCouponModel.value;
 
-    // Credit driver wallet
-    WalletTransactionModel transactionModel = WalletTransactionModel(
-        id: Constant.getUuid(),
-        amount: totalAmount.toString(),
-        createdDate: Timestamp.now(),
-        paymentType: "Wallet",
-        transactionId: orderModel.value.id,
-        userId: orderModel.value.driverId.toString(),
-        orderType: "intercity",
-        userType: "driver",
-        note: "Ride amount credited");
-
-    await FireStoreUtils.setWalletTransaction(transactionModel)
-        .then((value) async {
-      if (value == true) {
-        await FireStoreUtils.updateDriverWallet(
-            amount: totalAmount.toString(),
-            driverId: orderModel.value.driverId.toString());
-      }
-    });
-
-    // Admin commission
-    WalletTransactionModel adminCommissionWallet = WalletTransactionModel(
-        id: Constant.getUuid(),
-        amount:
-            "-${Constant.calculateOrderAdminCommission(amount: (double.parse(orderModel.value.finalRate.toString()) - double.parse(couponAmount.value.toString())).toString(), adminCommission: orderModel.value.adminCommission)}",
-        createdDate: Timestamp.now(),
-        paymentType: "Wallet",
-        transactionId: orderModel.value.id,
-        orderType: "intercity",
-        userType: "driver",
-        userId: orderModel.value.driverId.toString(),
-        note: "Admin commission debited");
-
-    await FireStoreUtils.setWalletTransaction(adminCommissionWallet)
-        .then((value) async {
-      if (value == true) {
-        await FireStoreUtils.updateDriverWallet(
-            amount:
-                "-${Constant.calculateOrderAdminCommission(amount: (double.parse(orderModel.value.finalRate.toString()) - double.parse(couponAmount.toString())).toString())}",
-            driverId: orderModel.value.driverId.toString());
-      }
-    });
+    // Driver-wallet settlement (earnings credit + admin commission) is now
+    // SERVER-SIDE via the settleIntercityCommissionOnCompletion Cloud Function.
+    // Legacy client-side credit + commission debit removed (all-cash).
 
     // Referral check
     await FireStoreUtils.getIntercityFirstOrderOrNOt(orderModel.value)

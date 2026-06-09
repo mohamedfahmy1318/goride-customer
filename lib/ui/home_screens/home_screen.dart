@@ -243,28 +243,37 @@ class HomeScreen extends StatelessWidget {
                                                           log("::::::::::11::::::::::::");
                                                           final result =
                                                               await Get.to(
-                                                            () => Constant.selectedMapType == 'osm'
+                                                            () => Constant
+                                                                        .selectedMapType ==
+                                                                    'osm'
                                                                 ? const OsmMapPickerPage()
                                                                 : const GoogleMapSearchPlacesApi(),
                                                             transition:
-                                                                Transition.rightToLeft,
+                                                                Transition
+                                                                    .rightToLeft,
                                                           );
                                                           if (result
                                                                   is PlaceDetailsModel &&
-                                                              result.result
-                                                                      ?.geometry?.location?.lat !=
+                                                              result
+                                                                      .result
+                                                                      ?.geometry
+                                                                      ?.location
+                                                                      ?.lat !=
                                                                   null &&
-                                                              result.result
-                                                                      ?.geometry?.location?.lng !=
+                                                              result
+                                                                      .result
+                                                                      ?.geometry
+                                                                      ?.location
+                                                                      ?.lng !=
                                                                   null) {
                                                             controller
-                                                                    .destinationLocationController
-                                                                    .value
-                                                                    .text =
-                                                                result.result!
-                                                                        .formattedAddress
-                                                                        ?.toString() ??
-                                                                    '';
+                                                                .destinationLocationController
+                                                                .value
+                                                                .text = result
+                                                                    .result!
+                                                                    .formattedAddress
+                                                                    ?.toString() ??
+                                                                '';
                                                             controller
                                                                     .destinationLocationLAtLng
                                                                     .value =
@@ -1532,8 +1541,7 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         child: Row(
           children: [
-            Icon(Icons.local_offer_outlined,
-                size: 22, color: Colors.grey[700]),
+            Icon(Icons.local_offer_outlined, size: 22, color: Colors.grey[700]),
             const SizedBox(width: 10),
             Expanded(
               child: TextField(
@@ -1570,8 +1578,8 @@ class HomeScreen extends StatelessWidget {
               TextButton(
                 onPressed: controller.clearPromoCode,
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: const Size(0, 0),
                 ),
                 child: Text(
@@ -1590,8 +1598,8 @@ class HomeScreen extends StatelessWidget {
                       .applyPromoCode(controller.promoCodeController.text);
                 },
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: const Size(0, 0),
                 ),
                 child: Text(
@@ -1655,7 +1663,8 @@ class HomeScreen extends StatelessWidget {
               children: [
                 Expanded(
                     child: Text("Discount Applied".tr,
-                        style: labelStyle().copyWith(color: Colors.green[700]))),
+                        style:
+                            labelStyle().copyWith(color: Colors.green[700]))),
                 Text(
                   "- ${Constant.amountShow(amount: discount.toStringAsFixed(2))}",
                   style: valueStyle(color: Colors.green[700]),
@@ -1898,7 +1907,7 @@ class HomeScreen extends StatelessWidget {
     orderModel.userId = FireStoreUtils.getCurrentUid();
     orderModel.sourceLocationName =
         controller.sourceLocationController.value.text;
-    orderModel.destinationLocationName = "رحلة بالعداد"; // Metered ride label
+    orderModel.destinationLocationName = "رحلة مفتوح"; // Metered ride label
     orderModel.sourceLocationLAtLng = controller.sourceLocationLAtLng.value;
     orderModel.destinationLocationLAtLng = null; // No destination
     orderModel.distance = "0"; // Will be calculated during ride

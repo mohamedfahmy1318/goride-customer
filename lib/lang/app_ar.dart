@@ -333,7 +333,7 @@ final Map<String, String> arAR = {
   // ترجمات الإشعارات
   'Payment Received': 'تم استلام الدفع',
   'Payment changed': 'تم تغيير طريقة الدفع',
-  'Metered Ride Request': 'طلب رحلة بالعداد',
+  'Metered Ride Request': 'طلب رحلة مفتوح',
   'Intercity Ride Request': 'طلب رحلة بين المدن',
   'Ride Confirmed': 'تم تأكيد الرحلة',
   'Driver Arrived': 'السائق وصل',
