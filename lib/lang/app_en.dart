@@ -97,7 +97,6 @@ final Map<String, String> enUS = {
   "Approx distance": "Approx distance",
   "Your Price is": "Your ride price is",
   "Enter your offer rate": "Enter your ride price",
-  "Select Payment type": "Select Payment type",
   "Remove": "Remove",
   "Applied": "Applied",
   "Enter promo code": "Enter promo code",
@@ -117,13 +116,11 @@ final Map<String, String> enUS = {
   "Coupon removed: fare is below the minimum bill amount":
       "Coupon removed: fare is below the minimum bill amount",
   "Book Ride": "Book Ride",
-  "Please select Payment Method": "Please select Payment Method",
   "Please select source location": "Please select source location",
   "Please select destination location": "Please select destination location",
   "Please select more than two location":
       "Please select more than two location",
   "Please Enter offer rate": "Please enter your ride price",
-  'Myself': 'Myself',
   'New Ride Available': 'New Ride Available',
   'A customer has placed an ride near your location.':
       'A customer has placed an ride near your location.',
@@ -133,12 +130,7 @@ final Map<String, String> enUS = {
   "Please select address": "Please select address",
   "Please select city": "Please select city",
   "Pay": "Pay",
-  "Someone else taking this ride?": "Someone else taking this ride?",
-  "Choose a contact and share a code to conform that ride.":
-      "Choose a contact and share a code to conform that ride.",
   'From': 'From',
-  "Choose another contact": "Choose another contact",
-  "Book for ": "Book for ",
   "Do you want to travel for AirPort?": "Do you want to travel for AirPort?",
   "Choose a single AirPort": "Choose a single AirPort",
   "Book": "Book",
@@ -169,7 +161,6 @@ final Map<String, String> enUS = {
   // "Please Enter offer rate":"Please Enter offer rate",
   "Please select date and time": "Please select date and time",
   // "Services are currently unavailable on the selected location. Please reach out to the administrator for assistance.":"Services are currently unavailable on the selected location. Please reach out to the administrator for assistance.",
-  "Select Payment Method": "Select Payment Method",
   // "You are not able book new ride please complete previous ride payment":"You are not able book new ride please complete previous ride payment",
   'Add your parcel image.': 'Add your parcel image.',
   "Which vehicle is suitable for your cargo?":

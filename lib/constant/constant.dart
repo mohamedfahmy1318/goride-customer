@@ -402,14 +402,17 @@ class Constant {
     String? amount,
     AdminCommission? adminCommission,
   }) {
+    // Defensive parsing: a use-global service stores type:'' / amount:'' and a
+    // missing global config arrives as null — both must yield 0, never throw.
     double taxAmount = 0.0;
     if (adminCommission != null) {
+      final double cfgAmount =
+          double.tryParse(adminCommission.amount?.toString() ?? '') ?? 0.0;
       if (adminCommission.type == "fix") {
-        taxAmount = double.parse(adminCommission.amount.toString());
+        taxAmount = cfgAmount;
       } else {
-        taxAmount = (double.parse(amount.toString()) *
-                double.parse(adminCommission.amount!.toString())) /
-            100;
+        final double base = double.tryParse(amount?.toString() ?? '') ?? 0.0;
+        taxAmount = (base * cfgAmount) / 100;
       }
     }
     return taxAmount;

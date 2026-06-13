@@ -7,7 +7,6 @@ import 'package:customer/constant/constant.dart';
 import 'package:customer/constant/send_notification.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/controller/interCity_controller.dart';
-import 'package:customer/model/contact_model.dart';
 import 'package:customer/model/conversation_model.dart';
 import 'package:customer/model/intercity_order_model.dart';
 import 'package:customer/model/intercity_service_model.dart';
@@ -27,9 +26,6 @@ import 'package:customer/widget/osm_map_picker_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
-import 'package:flutter_native_contact_picker/model/contact.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -446,112 +442,6 @@ class InterCityScreen extends StatelessWidget {
                                   const SizedBox(
                                     height: 10,
                                   ),
-                                  controller.selectedInterCityType.value.id ==
-                                              "UmQ2bjWTnlwoKqdCIlTr" ||
-                                          controller.selectedInterCityType.value
-                                                  .id ==
-                                              "647f340e35553"
-                                      ? Column(
-                                          children: [
-                                            InkWell(
-                                              onTap: () {
-                                                someOneTakingDialog(
-                                                    context, controller);
-                                              },
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                          Radius.circular(4)),
-                                                  border: Border.all(
-                                                      color: AppColors
-                                                          .textFieldBorder,
-                                                      width: 1),
-                                                ),
-                                                child: Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 12),
-                                                  child: Row(
-                                                    children: [
-                                                      const Icon(Icons.person),
-                                                      const SizedBox(
-                                                        width: 10,
-                                                      ),
-                                                      Expanded(
-                                                          child: Text(
-                                                        controller
-                                                                    .selectedTakingRide
-                                                                    .value
-                                                                    .fullName ==
-                                                                "Myself"
-                                                            ? "Myself".tr
-                                                            : controller
-                                                                .selectedTakingRide
-                                                                .value
-                                                                .fullName
-                                                                .toString(),
-                                                        style: GoogleFonts
-                                                            .poppins(),
-                                                      )),
-                                                      const Icon(Icons
-                                                          .arrow_drop_down_outlined)
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              height: 10,
-                                            ),
-                                          ],
-                                        )
-                                      : const SizedBox(),
-                                  InkWell(
-                                    onTap: () {
-                                      paymentMethodDialog(context, controller);
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(4)),
-                                        border: Border.all(
-                                            color: AppColors.textFieldBorder,
-                                            width: 1),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 12),
-                                        child: Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                              'assets/icons/ic_payment.svg',
-                                              width: 26,
-                                            ),
-                                            const SizedBox(
-                                              width: 10,
-                                            ),
-                                            Expanded(
-                                                child: Text(
-                                              controller.selectedPaymentMethod
-                                                      .value.isNotEmpty
-                                                  ? controller
-                                                      .selectedPaymentMethod
-                                                      .value
-                                                  : "Select Payment type".tr,
-                                              style: GoogleFonts.poppins(),
-                                            )),
-                                            const Icon(
-                                                Icons.arrow_drop_down_outlined)
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
                                   ButtonThem.buildButton(
                                     context,
                                     title: controller.selectedInterCityType
@@ -614,13 +504,6 @@ class InterCityScreen extends StatelessWidget {
                                                     .isEmpty) {
                                                   ShowToastDialog.showToast(
                                                       "Please select destination location"
-                                                          .tr);
-                                                } else if (controller
-                                                    .selectedPaymentMethod
-                                                    .value
-                                                    .isEmpty) {
-                                                  ShowToastDialog.showToast(
-                                                      "Please select Payment Method"
                                                           .tr);
                                                 } else if (controller
                                                     .parcelWeight
@@ -753,11 +636,14 @@ class InterCityScreen extends StatelessWidget {
                                                       Timestamp.now();
                                                   intercityOrderModel.status =
                                                       Constant.ridePlaced;
+                                                  // paymentType is read by the
+                                                  // driver app, Cloud Functions
+                                                  // and the dashboard, so the
+                                                  // field stays — pinned to
+                                                  // "Cash" (cash-only
+                                                  // deployment).
                                                   intercityOrderModel
-                                                          .paymentType =
-                                                      controller
-                                                          .selectedPaymentMethod
-                                                          .value;
+                                                      .paymentType = "Cash";
                                                   intercityOrderModel
                                                       .paymentStatus = false;
                                                   intercityOrderModel.whenTime =
@@ -836,13 +722,6 @@ class InterCityScreen extends StatelessWidget {
                                                     .isEmpty) {
                                                   ShowToastDialog.showToast(
                                                       "Please select destination location"
-                                                          .tr);
-                                                } else if (controller
-                                                    .selectedPaymentMethod
-                                                    .value
-                                                    .isEmpty) {
-                                                  ShowToastDialog.showToast(
-                                                      "Please select Payment Method"
                                                           .tr);
                                                 } else if (controller
                                                     .noOfPassengers
@@ -944,11 +823,14 @@ class InterCityScreen extends StatelessWidget {
                                                       Timestamp.now();
                                                   intercityOrderModel.status =
                                                       Constant.ridePlaced;
+                                                  // paymentType is read by the
+                                                  // driver app, Cloud Functions
+                                                  // and the dashboard, so the
+                                                  // field stays — pinned to
+                                                  // "Cash" (cash-only
+                                                  // deployment).
                                                   intercityOrderModel
-                                                          .paymentType =
-                                                      controller
-                                                          .selectedPaymentMethod
-                                                          .value;
+                                                      .paymentType = "Cash";
                                                   intercityOrderModel
                                                       .paymentStatus = false;
                                                   intercityOrderModel.whenTime =
@@ -996,17 +878,6 @@ class InterCityScreen extends StatelessWidget {
                                                   intercityOrderModel.zone =
                                                       controller
                                                           .selectedZone.value;
-                                                  if (controller
-                                                          .selectedTakingRide
-                                                          .value
-                                                          .fullName !=
-                                                      "Myself") {
-                                                    intercityOrderModel
-                                                            .someOneElse =
-                                                        controller
-                                                            .selectedTakingRide
-                                                            .value;
-                                                  }
                                                   await FireStoreUtils
                                                           .setInterCityOrder(
                                                               intercityOrderModel)
@@ -1081,415 +952,6 @@ class InterCityScreen extends StatelessWidget {
         return alert;
       },
     );
-  }
-
-  paymentMethodDialog(BuildContext context, InterCityController controller) {
-    return showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-                topRight: Radius.circular(15), topLeft: Radius.circular(15))),
-        context: context,
-        isScrollControlled: true,
-        isDismissible: false,
-        builder: (context1) {
-          final themeChange = Provider.of<DarkThemeProvider>(context1);
-
-          return FractionallySizedBox(
-            heightFactor: 0.9,
-            child: StatefulBuilder(builder: (context1, setState) {
-              return Obx(
-                () => Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 10),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            InkWell(
-                                onTap: () {
-                                  Get.back();
-                                },
-                                child: const Icon(Icons.arrow_back_ios)),
-                            Expanded(
-                                child: Center(
-                                    child: Text(
-                              "Select Payment Method".tr,
-                            ))),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              Visibility(
-                                visible: controller
-                                        .paymentModel.value.cash?.enable ==
-                                    true,
-                                child: Obx(
-                                  () => Column(
-                                    children: [
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
-                                      InkWell(
-                                        onTap: () {
-                                          controller.selectedPaymentMethod
-                                              .value = controller
-                                                  .paymentModel.value.cash?.name
-                                                  ?.toString() ??
-                                              "";
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(10)),
-                                            border: Border.all(
-                                                color: controller
-                                                            .selectedPaymentMethod
-                                                            .value ==
-                                                        controller.paymentModel
-                                                            .value.cash?.name
-                                                            .toString()
-                                                    ? themeChange.getThem()
-                                                        ? AppColors
-                                                            .darkModePrimary
-                                                        : AppColors.primary
-                                                    : AppColors.textFieldBorder,
-                                                width: 1),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 10),
-                                            child: Row(
-                                              children: [
-                                                Container(
-                                                  height: 40,
-                                                  width: 80,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                          color: AppColors
-                                                              .lightGray,
-                                                          borderRadius:
-                                                              BorderRadius.all(
-                                                                  Radius
-                                                                      .circular(
-                                                                          5))),
-                                                  child: const Padding(
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    child: Icon(Icons.money,
-                                                        color: Colors.black),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  width: 10,
-                                                ),
-                                                Expanded(
-                                                  child: Text(
-                                                    controller.paymentModel
-                                                            .value.cash?.name
-                                                            ?.toString() ??
-                                                        "",
-                                                    style:
-                                                        GoogleFonts.poppins(),
-                                                  ),
-                                                ),
-                                                Radio(
-                                                  value: controller.paymentModel
-                                                          .value.cash?.name
-                                                          ?.toString() ??
-                                                      "",
-                                                  groupValue: controller
-                                                      .selectedPaymentMethod
-                                                      .value,
-                                                  activeColor:
-                                                      themeChange.getThem()
-                                                          ? AppColors
-                                                              .darkModePrimary
-                                                          : AppColors.primary,
-                                                  onChanged: (value) {
-                                                    controller
-                                                        .selectedPaymentMethod
-                                                        .value = controller
-                                                            .paymentModel
-                                                            .value
-                                                            .cash
-                                                            ?.name
-                                                            ?.toString() ??
-                                                        "";
-                                                  },
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              // Bankily removed (V1)
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      ButtonThem.buildButton(
-                        context,
-                        title: "Pay".tr,
-                        onPress: () async {
-                          Get.back();
-                        },
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          );
-        });
-  }
-
-  someOneTakingDialog(BuildContext context, InterCityController controller) {
-    return showModalBottomSheet(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-                topRight: Radius.circular(15), topLeft: Radius.circular(15))),
-        context: context,
-        isScrollControlled: true,
-        isDismissible: false,
-        builder: (context1) {
-          final themeChange = Provider.of<DarkThemeProvider>(context1);
-
-          return StatefulBuilder(builder: (context1, setState) {
-            return Obx(
-              () => Container(
-                constraints:
-                    BoxConstraints(maxHeight: Responsive.height(90, context)),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 10),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Someone else taking this ride?".tr,
-                          style: GoogleFonts.poppins(
-                              fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                        Text(
-                          "Choose a contact and share a code to conform that ride."
-                              .tr,
-                          style: GoogleFonts.poppins(),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        InkWell(
-                          onTap: () {
-                            controller.selectedTakingRide.value = ContactModel(
-                                fullName: "Myself".tr, contactNumber: "");
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(10)),
-                              border: Border.all(
-                                  color: controller.selectedTakingRide.value
-                                              .fullName ==
-                                          "Myself".tr
-                                      ? themeChange.getThem()
-                                          ? AppColors.darkModePrimary
-                                          : AppColors.primary
-                                      : AppColors.textFieldBorder,
-                                  width: 1),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 10),
-                              child: Row(
-                                children: [
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child:
-                                        Icon(Icons.person, color: Colors.black),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      "Myself".tr,
-                                      style: GoogleFonts.poppins(),
-                                    ),
-                                  ),
-                                  Radio(
-                                    value: "Myself".tr,
-                                    groupValue: controller
-                                        .selectedTakingRide.value.fullName,
-                                    activeColor: themeChange.getThem()
-                                        ? AppColors.darkModePrimary
-                                        : AppColors.primary,
-                                    onChanged: (value) {
-                                      controller.selectedTakingRide.value =
-                                          ContactModel(
-                                              fullName: "Myself".tr,
-                                              contactNumber: "");
-                                    },
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        ListView.builder(
-                          itemCount: controller.contactList.length,
-                          shrinkWrap: true,
-                          itemBuilder: (context, index) {
-                            ContactModel contactModel =
-                                controller.contactList[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 5),
-                              child: InkWell(
-                                onTap: () {
-                                  controller.selectedTakingRide.value =
-                                      contactModel;
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(10)),
-                                    border: Border.all(
-                                        color: controller.selectedTakingRide
-                                                    .value.fullName ==
-                                                contactModel.fullName
-                                            ? themeChange.getThem()
-                                                ? AppColors.darkModePrimary
-                                                : AppColors.primary
-                                            : AppColors.textFieldBorder,
-                                        width: 1),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 10),
-                                    child: Row(
-                                      children: [
-                                        const Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Icon(Icons.person,
-                                              color: Colors.black),
-                                        ),
-                                        const SizedBox(
-                                          width: 10,
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            contactModel.fullName.toString(),
-                                            style: GoogleFonts.poppins(),
-                                          ),
-                                        ),
-                                        Radio(
-                                          value:
-                                              contactModel.fullName.toString(),
-                                          groupValue: controller
-                                              .selectedTakingRide
-                                              .value
-                                              .fullName,
-                                          activeColor: themeChange.getThem()
-                                              ? AppColors.darkModePrimary
-                                              : AppColors.primary,
-                                          onChanged: (value) {
-                                            controller.selectedTakingRide
-                                                .value = contactModel;
-                                          },
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            final FlutterNativeContactPicker contactPicker =
-                                FlutterNativeContactPicker();
-                            Contact? contact =
-                                await contactPicker.selectContact();
-                            ContactModel contactModel = ContactModel();
-                            contactModel.fullName = "${contact!.fullName}";
-                            contactModel.contactNumber =
-                                contact.selectedPhoneNumber;
-
-                            if (!controller.contactList
-                                .contains(contactModel)) {
-                              controller.contactList.add(contactModel);
-                              controller.setContact();
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 10),
-                            child: Row(
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child:
-                                      Icon(Icons.contacts, color: Colors.black),
-                                ),
-                                const SizedBox(
-                                  width: 10,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    "Choose another contact".tr,
-                                    style: GoogleFonts.poppins(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        ButtonThem.buildButton(
-                          context,
-                          title:
-                              "${"Book for ".tr} ${controller.selectedTakingRide.value.fullName?.tr}",
-                          onPress: () async {
-                            Get.back();
-                          },
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          });
-        });
   }
 
   parcelImageWidget(BuildContext context, InterCityController controller) {

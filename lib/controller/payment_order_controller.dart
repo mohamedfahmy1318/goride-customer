@@ -7,12 +7,9 @@ import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/model/coupon_model.dart';
 import 'package:customer/model/driver_user_model.dart';
 import 'package:customer/model/order_model.dart';
-import 'package:customer/model/payment_model.dart';
 import 'package:customer/model/user_model.dart';
-import 'package:customer/model/wallet_transaction_model.dart';
 import 'package:customer/ui/dashboard_screen.dart';
 import 'package:customer/utils/fire_store_utils.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PaymentOrderController extends GetxController {
@@ -36,19 +33,13 @@ class PaymentOrderController extends GetxController {
     update();
   }
 
-  Rx<PaymentModel> paymentModel = PaymentModel().obs;
   Rx<UserModel> userModel = UserModel().obs;
   Rx<DriverUserModel> driverUserModel = DriverUserModel().obs;
 
   RxString selectedPaymentMethod = "".obs;
 
   getPaymentData() async {
-    await FireStoreUtils().getPayment().then((value) {
-      if (value != null) {
-        paymentModel.value = value;
-        selectedPaymentMethod.value = orderModel.value.paymentType.toString();
-      }
-    });
+    selectedPaymentMethod.value = orderModel.value.paymentType.toString();
 
     await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid())
         .then((value) {
@@ -145,124 +136,6 @@ class PaymentOrderController extends GetxController {
         Get.offAll(() => const DashBoardScreen());
       }
     });
-  }
-
-  completeWalletOrder() async {
-    ShowToastDialog.showLoader("Please wait");
-    try {
-      await _completeWalletOrderInternal();
-    } catch (e, st) {
-      log('completeWalletOrder failed: $e\n$st');
-      ShowToastDialog.closeLoader();
-      ShowToastDialog.showToast("Payment failed. Please contact support.");
-    }
-  }
-
-  Future<void> _completeWalletOrderInternal() async {
-    // Check wallet balance
-    double walletBalance =
-        double.tryParse(userModel.value.walletAmount?.toString() ?? '0') ?? 0;
-    if (walletBalance < total.value) {
-      ShowToastDialog.closeLoader();
-      ShowToastDialog.showToast(
-          'رصيد المحفظة غير كافي. الرصيد الحالي: ${Constant.amountShow(amount: walletBalance.toString())}');
-      return;
-    }
-
-    // Deduct from customer wallet
-    await FireStoreUtils.updateUserWallet(amount: "-${total.value}");
-
-    // Record customer wallet transaction
-    WalletTransactionModel customerTransaction = WalletTransactionModel(
-        id: Constant.getUuid(),
-        amount: "-${total.value}",
-        createdDate: Timestamp.now(),
-        paymentType: "Wallet",
-        transactionId: orderModel.value.id,
-        userId: FireStoreUtils.getCurrentUid(),
-        orderType: "city",
-        userType: "customer",
-        note: "Ride payment from wallet");
-    await FireStoreUtils.setWalletTransaction(customerTransaction);
-
-    // Complete order (same as completeOrder but with Wallet payment type)
-    orderModel.value.paymentStatus = true;
-    orderModel.value.paymentType = "Wallet";
-    orderModel.value.status = Constant.rideComplete;
-    if (!hasPersistedBreakdown) {
-      orderModel.value.coupon = selectedCouponModel.value;
-    }
-    orderModel.value.updateDate = Timestamp.now();
-
-    // Driver-wallet settlement (earnings credit + admin commission) is now
-    // SERVER-SIDE via the settleDriverCommissionOnCompletion Cloud Function.
-    // The legacy client-side credit + commission debit are removed. (Wallet/
-    // online payment is test-only/dead in this all-cash deployment; the
-    // customer-wallet deduction above is left untouched per scope.)
-
-    // Notify driver
-    if (driverUserModel.value.fcmToken != null) {
-      Map<String, dynamic> playLoad = <String, dynamic>{
-        "type": "city_order_payment_complete",
-        "orderId": orderModel.value.id
-      };
-      await SendNotification.sendOneNotification(
-          token: driverUserModel.value.fcmToken.toString(),
-          title: 'Payment Received',
-          titleAr: 'تم استلام الدفع',
-          body:
-              '${userModel.value.fullName} has paid ${Constant.amountShow(amount: total.value.toString())} from wallet.',
-          bodyAr:
-              '${userModel.value.fullName} دفع ${Constant.amountShow(amount: total.value.toString())} من المحفظة.',
-          payload: playLoad,
-          recipientId: orderModel.value.driverId,
-          recipientType: 'driver');
-    }
-
-    // Referral check
-    await FireStoreUtils.getFirestOrderOrNOt(orderModel.value)
-        .then((value) async {
-      if (value == true) {
-        await FireStoreUtils.updateReferralAmount(orderModel.value);
-      }
-    });
-
-    final bool orderSaved =
-        (await FireStoreUtils.setOrder(orderModel.value)) ?? false;
-    ShowToastDialog.closeLoader();
-    if (!orderSaved) {
-      ShowToastDialog.showToast(
-          "Payment was sent but the order failed to update. Please contact support.");
-      return;
-    }
-    await _showWalletPaymentSuccessDialog();
-    Get.offAll(() => const DashBoardScreen());
-  }
-
-  Future<void> _showWalletPaymentSuccessDialog() async {
-    await Get.dialog<void>(
-      AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Row(
-          children: const [
-            Icon(Icons.check_circle, color: Colors.green, size: 28),
-            SizedBox(width: 8),
-            Text('Payment Successful'),
-          ],
-        ),
-        content: Text(
-          'Paid ${Constant.amountShow(amount: total.value.toString())} from your wallet. The ride is now complete.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-      barrierDismissible: false,
-    );
   }
 
   Rx<CouponModel> selectedCouponModel = CouponModel().obs;

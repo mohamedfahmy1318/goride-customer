@@ -1,16 +1,12 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:customer/constant/constant.dart';
 import 'package:customer/controller/dash_board_controller.dart';
-import 'package:customer/model/contact_model.dart';
 import 'package:customer/model/intercity_service_model.dart';
 import 'package:customer/model/order/location_lat_lng.dart';
-import 'package:customer/model/payment_model.dart';
 import 'package:customer/model/user_model.dart';
 import 'package:customer/model/zone_model.dart';
 import 'package:customer/themes/app_colors.dart';
-import 'package:customer/utils/Preferences.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -61,7 +57,7 @@ class InterCityController extends GetxController {
   @override
   void onInit() {
     // TODO: implement onInit
-    getPaymentData();
+    getZoneAndUserData();
     getIntercityService();
 
     super.onInit();
@@ -79,20 +75,12 @@ class InterCityController extends GetxController {
     isLoading.value = false;
   }
 
-  Rx<PaymentModel> paymentModel = PaymentModel().obs;
   Rx<UserModel> userModel = UserModel().obs;
 
-  RxString selectedPaymentMethod = "".obs;
-
-  getPaymentData() async {
+  getZoneAndUserData() async {
     await FireStoreUtils().getZone().then((value) {
       if (value != null) {
         zoneList.value = value;
-      }
-    });
-    await FireStoreUtils().getPayment().then((value) {
-      if (value != null) {
-        paymentModel.value = value;
       }
     });
     await getUser();
@@ -222,29 +210,4 @@ class InterCityController extends GetxController {
     }
   }
 
-  RxList<ContactModel> contactList = <ContactModel>[].obs;
-  Rx<ContactModel> selectedTakingRide =
-      ContactModel(fullName: "Myself", contactNumber: "").obs;
-
-  setContact() {
-    log(jsonEncode(contactList));
-    Preferences.setString(
-        Preferences.contactList,
-        json.encode(contactList
-            .map<Map<String, dynamic>>((music) => music.toJson())
-            .toList()));
-    getContact();
-  }
-
-  getContact() {
-    String contactListJson = Preferences.getString(Preferences.contactList);
-
-    if (contactListJson.isNotEmpty) {
-      log("---->");
-      contactList.clear();
-      contactList.value = (json.decode(contactListJson) as List<dynamic>)
-          .map<ContactModel>((item) => ContactModel.fromJson(item))
-          .toList();
-    }
-  }
 }

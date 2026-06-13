@@ -24,7 +24,6 @@ import 'package:customer/model/language_terms_condition.dart';
 import 'package:customer/model/on_boarding_model.dart';
 import 'package:customer/model/order/driverId_accept_reject.dart';
 import 'package:customer/model/order_model.dart';
-import 'package:customer/model/payment_model.dart';
 import 'package:customer/model/referral_model.dart';
 import 'package:customer/model/review_model.dart';
 import 'package:customer/model/service_model.dart';
@@ -855,35 +854,6 @@ class FireStoreUtils {
     return orderModel;
   }
 
-  Future<PaymentModel?> getPayment() async {
-    PaymentModel? paymentModel;
-    try {
-      await fireStore
-          .collection(CollectionName.settings)
-          .doc("payment")
-          .get()
-          .then((value) {
-        if (value.exists && value.data() != null) {
-          paymentModel = PaymentModel.fromJson(value.data()!);
-        } else {
-          // Return default payment model with Bankily enabled
-          paymentModel = PaymentModel(
-            bankily: Wallet(enable: true, name: 'Bankily'),
-            cash: Wallet(enable: false, name: 'Cash'),
-          );
-        }
-      });
-    } catch (e) {
-      log('Error getting payment settings: $e');
-      // Return default payment model on error
-      paymentModel = PaymentModel(
-        bankily: Wallet(enable: true, name: 'Bankily'),
-        cash: Wallet(enable: false, name: 'Cash'),
-      );
-    }
-    return paymentModel;
-  }
-
   Future<CurrencyModel?> getCurrency() async {
     CurrencyModel? currencyModel;
     await fireStore
@@ -997,26 +967,6 @@ class FireStoreUtils {
       }
     });
     return reviewModel;
-  }
-
-  static Future<List<WalletTransactionModel>?> getWalletTransaction() async {
-    List<WalletTransactionModel> walletTransactionModel = [];
-
-    await fireStore
-        .collection(CollectionName.walletTransaction)
-        .where('userId', isEqualTo: FireStoreUtils.getCurrentUid())
-        .orderBy('createdDate', descending: true)
-        .get()
-        .then((value) {
-      for (var element in value.docs) {
-        WalletTransactionModel taxModel =
-            WalletTransactionModel.fromJson(element.data());
-        walletTransactionModel.add(taxModel);
-      }
-    }).catchError((error) {
-      log(error.toString());
-    });
-    return walletTransactionModel;
   }
 
   static Future<bool?> setWalletTransaction(

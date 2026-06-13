@@ -102,7 +102,6 @@ final Map<String, String> trFr = {
   "Approx distance": "Distance approximative",
   "Your Price is": "Le prix de la course est",
   "Enter your offer rate": "Entrez le prix de la course",
-  "Select Payment type": "SÃ©lectionnez le type de paiement",
   "Remove": "Retirer",
   "Applied": "Appliqué",
   "Enter promo code": "Entrez le code promo",
@@ -122,7 +121,6 @@ final Map<String, String> trFr = {
   "Coupon removed: fare is below the minimum bill amount":
       "Coupon retiré : le tarif est inférieur au minimum requis",
   "Book Ride": "Tour de livre",
-  "Please select Payment Method": "Veuillez sÃ©lectionner le mode de paiement",
   "Please select source location":
       "Veuillez sÃ©lectionner l'emplacement source",
   "Please select destination location":
@@ -130,7 +128,6 @@ final Map<String, String> trFr = {
   "Please select more than two location":
       "Veuillez sÃ©lectionner plus de deux emplacements",
   "Please Enter offer rate": "Veuillez saisir le prix de la course",
-  'Myself': 'Moi-mÃªme',
   'New Ride Available': 'Nouveau trajet disponible',
   'A customer has placed an ride near your location.':
       'Un client a placÃ© un trajet Ã  proximitÃ© de chez vous.',
@@ -140,12 +137,7 @@ final Map<String, String> trFr = {
   "Please select address": "Veuillez sÃ©lectionner l'adresse",
   "Please select city": "Veuillez sÃ©lectionner la ville",
   "Pay": "Payer",
-  "Someone else taking this ride?": "Quelqu'un d'autre fait ce trajet ?",
-  "Choose a contact and share a code to conform that ride.":
-      "Choisissez un contact et partagez un code pour conformer ce trajet.",
   'From': 'Depuis',
-  "Choose another contact": "Choisissez un autre contact",
-  "Book for ": "RÃ©servez pour ",
   "Do you want to travel for AirPort?": "Voulez-vous voyager pour AirPort?",
   "Choose a single AirPort": "Choisissez un seul AirPort",
   "Book": "Livre",
@@ -177,7 +169,6 @@ final Map<String, String> trFr = {
   // "Please Enter offer rate":"Please Enter offer rate",
   "Please select date and time": "Veuillez sÃ©lectionner la date et l'heure",
   // "Services are currently unavailable on the selected location. Please reach out to the administrator for assistance.":"Services are currently unavailable on the selected location. Please reach out to the administrator for assistance.",
-  "Select Payment Method": "SÃ©lectionnez le mode de paiement",
   // "You are not able book new ride please complete previous ride payment":"You are not able book new ride please complete previous ride payment",
   'Add your parcel image.': 'Ajoutez l\'image de votre colis.',
   "Which vehicle is suitable for your cargo?":

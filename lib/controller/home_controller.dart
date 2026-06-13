@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,15 +8,12 @@ import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/controller/dash_board_controller.dart';
 import 'package:customer/model/airport_model.dart';
 import 'package:customer/model/banner_model.dart';
-import 'package:customer/model/contact_model.dart';
 import 'package:customer/model/coupon_model.dart';
 import 'package:customer/model/order/location_lat_lng.dart';
-import 'package:customer/model/payment_model.dart';
 import 'package:customer/model/service_model.dart';
 import 'package:customer/model/user_model.dart';
 import 'package:customer/model/zone_model.dart';
 import 'package:customer/themes/app_colors.dart';
-import 'package:customer/utils/Preferences.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:customer/utils/notification_service.dart';
 import 'package:customer/utils/utils.dart';
@@ -74,8 +70,7 @@ class HomeController extends GetxController {
   void onInit() {
     getLocation();
     getServiceType();
-    getPaymentData();
-    getContact();
+    getZoneAndUserData();
     // Keep the coupon discount in sync with the live fare — if the customer
     // switches service or distance shifts, a percentage coupon's absolute
     // value moves with it, and a fare below the min-bill auto-drops the
@@ -505,19 +500,9 @@ class HomeController extends GetxController {
     update();
   }
 
-  Rx<PaymentModel> paymentModel = PaymentModel().obs;
-
-  RxString selectedPaymentMethod = "".obs;
-
   RxList airPortList = <AriPortModel>[].obs;
 
-  getPaymentData() async {
-    await FireStoreUtils().getPayment().then((value) {
-      if (value != null) {
-        paymentModel.value = value;
-      }
-    });
-
+  getZoneAndUserData() async {
     await FireStoreUtils().getZone().then((value) {
       if (value != null) {
         zoneList.value = value;
@@ -536,32 +521,7 @@ class HomeController extends GetxController {
     });
   }
 
-  RxList<ContactModel> contactList = <ContactModel>[].obs;
-  Rx<ContactModel> selectedTakingRide =
-      ContactModel(fullName: "Myself", contactNumber: "").obs;
   Rx<AriPortModel> selectedAirPort = AriPortModel().obs;
-
-  setContact() {
-    log(jsonEncode(contactList));
-    Preferences.setString(
-        Preferences.contactList,
-        json.encode(contactList
-            .map<Map<String, dynamic>>((music) => music.toJson())
-            .toList()));
-    getContact();
-  }
-
-  getContact() {
-    String contactListJson = Preferences.getString(Preferences.contactList);
-
-    if (contactListJson.isNotEmpty) {
-      log("---->");
-      contactList.clear();
-      contactList.value = (json.decode(contactListJson) as List<dynamic>)
-          .map<ContactModel>((item) => ContactModel.fromJson(item))
-          .toList();
-    }
-  }
 
   /// Start the ride-request expiration timer. Duration comes from
   /// `Constant.autoCancelMinutes`, which is loaded from

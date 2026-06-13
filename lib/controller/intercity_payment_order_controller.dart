@@ -1,13 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:customer/constant/constant.dart';
 import 'package:customer/constant/send_notification.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
 import 'package:customer/model/coupon_model.dart';
 import 'package:customer/model/driver_user_model.dart';
 import 'package:customer/model/intercity_order_model.dart';
-import 'package:customer/model/payment_model.dart';
 import 'package:customer/model/user_model.dart';
-import 'package:customer/model/wallet_transaction_model.dart';
 import 'package:customer/ui/dashboard_screen.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:get/get.dart';
@@ -32,19 +29,13 @@ class IntercityPaymentOrderController extends GetxController {
     update();
   }
 
-  Rx<PaymentModel> paymentModel = PaymentModel().obs;
   Rx<UserModel> userModel = UserModel().obs;
   Rx<DriverUserModel> driverUserModel = DriverUserModel().obs;
 
   RxString selectedPaymentMethod = "".obs;
 
   getPaymentData() async {
-    await FireStoreUtils().getPayment().then((value) {
-      if (value != null) {
-        paymentModel.value = value;
-        selectedPaymentMethod.value = orderModel.value.paymentType.toString();
-      }
-    });
+    selectedPaymentMethod.value = orderModel.value.paymentType.toString();
 
     await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid())
         .then((value) {
@@ -130,83 +121,6 @@ class IntercityPaymentOrderController extends GetxController {
       if (value == true) {
         ShowToastDialog.closeLoader();
         ShowToastDialog.showToast("Payment method update successfully");
-        Get.offAll(() => const DashBoardScreen());
-      }
-    });
-  }
-
-  completeWalletOrder() async {
-    ShowToastDialog.showLoader("Please wait");
-
-    double totalAmount = calculateAmount();
-
-    // Check wallet balance
-    double walletBalance =
-        double.tryParse(userModel.value.walletAmount?.toString() ?? '0') ?? 0;
-    if (walletBalance < totalAmount) {
-      ShowToastDialog.closeLoader();
-      ShowToastDialog.showToast(
-          'رصيد المحفظة غير كافي. الرصيد الحالي: ${Constant.amountShow(amount: walletBalance.toString())}');
-      return;
-    }
-
-    // Deduct from customer wallet
-    await FireStoreUtils.updateUserWallet(amount: "-$totalAmount");
-
-    // Record customer wallet transaction
-    WalletTransactionModel customerTransaction = WalletTransactionModel(
-        id: Constant.getUuid(),
-        amount: "-$totalAmount",
-        createdDate: Timestamp.now(),
-        paymentType: "Wallet",
-        transactionId: orderModel.value.id,
-        userId: FireStoreUtils.getCurrentUid(),
-        orderType: "intercity",
-        userType: "customer",
-        note: "Ride payment from wallet");
-    await FireStoreUtils.setWalletTransaction(customerTransaction);
-
-    // Complete order
-    orderModel.value.paymentStatus = true;
-    orderModel.value.paymentType = "Wallet";
-    orderModel.value.status = Constant.rideComplete;
-    orderModel.value.coupon = selectedCouponModel.value;
-
-    // Driver-wallet settlement (earnings credit + admin commission) is now
-    // SERVER-SIDE via the settleIntercityCommissionOnCompletion Cloud Function.
-    // Legacy client-side credit + commission debit removed (all-cash).
-
-    // Referral check
-    await FireStoreUtils.getIntercityFirstOrderOrNOt(orderModel.value)
-        .then((value) async {
-      if (value == true) {
-        await FireStoreUtils.updateIntercityReferralAmount(orderModel.value);
-      }
-    });
-
-    // Notify driver
-    if (driverUserModel.value.fcmToken != null) {
-      Map<String, dynamic> playLoad = <String, dynamic>{
-        "type": "intercity_order_payment_complete",
-        "orderId": orderModel.value.id
-      };
-      await SendNotification.sendOneNotification(
-          token: driverUserModel.value.fcmToken.toString(),
-          title: 'Payment Received',
-          titleAr: 'تم استلام الدفع',
-          body:
-              '${userModel.value.fullName} has paid ${Constant.amountShow(amount: totalAmount.toString())} from wallet.',
-          bodyAr:
-              '${userModel.value.fullName} دفع ${Constant.amountShow(amount: totalAmount.toString())} من المحفظة.',
-          payload: playLoad,
-          recipientId: orderModel.value.driverId,
-          recipientType: 'driver');
-    }
-
-    await FireStoreUtils.setInterCityOrder(orderModel.value).then((value) {
-      if (value == true) {
-        ShowToastDialog.closeLoader();
-        ShowToastDialog.showToast("Ride Complete successfully");
         Get.offAll(() => const DashBoardScreen());
       }
     });

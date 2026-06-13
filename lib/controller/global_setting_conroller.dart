@@ -53,12 +53,12 @@ class GlobalSettingController extends GetxController {
         } else {
           Constant.currencyModel = CurrencyModel(
               id: "",
-              code: "USD",
-              decimalDigits: 2,
+              code: "MRU",
+              decimalDigits: 0,
               enable: true,
-              name: "US Dollar",
-              symbol: "\$",
-              symbolAtRight: false);
+              name: "Mauritanian Ouguiya",
+              symbol: "أوقية",
+              symbolAtRight: true);
         }
       });
       try {
@@ -70,12 +70,12 @@ class GlobalSettingController extends GetxController {
       log("❌ Error loading global settings: $e");
       Constant.currencyModel = CurrencyModel(
           id: "",
-          code: "USD",
-          decimalDigits: 2,
+          code: "MRU",
+          decimalDigits: 0,
           enable: true,
-          name: "US Dollar",
-          symbol: "\$",
-          symbolAtRight: false);
+          name: "Mauritanian Ouguiya",
+          symbol: "أوقية",
+          symbolAtRight: true);
     } finally {
       settingsLoaded.value = true;
     }
