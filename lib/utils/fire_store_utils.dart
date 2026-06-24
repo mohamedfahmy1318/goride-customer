@@ -75,6 +75,18 @@ class FireStoreUtils {
     return ageMs <= maxAgeMs;
   }
 
+  /// Public freshness check for a deserialized driver model, reusing the SAME
+  /// `positionStaleAfterMinutes` cutoff as dispatch (one definition everywhere).
+  /// Used by live tracking so a frozen `location` is not drawn as a live fix.
+  /// Legacy docs without `updatedAt` are treated as fresh (rollout-safe).
+  static bool isDriverModelPositionFresh(DriverUserModel driver) {
+    final updatedAt = driver.position?.updatedAt;
+    if (updatedAt == null) return true;
+    final ageMs = DateTime.now().millisecondsSinceEpoch -
+        updatedAt.toDate().millisecondsSinceEpoch;
+    return ageMs <= Constant.positionStaleAfterMinutes * 60 * 1000;
+  }
+
   static Future<bool> isLogin() async {
     bool isLogin = false;
     if (FirebaseAuth.instance.currentUser != null) {

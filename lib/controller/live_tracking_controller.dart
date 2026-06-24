@@ -89,6 +89,11 @@ class LiveTrackingController extends GetxController {
   RxBool isLoading = true.obs;
   RxString type = "".obs;
 
+  /// True when the driver's last fix is older than `positionStaleAfterMinutes`.
+  /// The UI can bind this to show "updating location…" / grey the marker; the
+  /// route + ETA are NOT redrawn off a stale fix (the last-known marker stays).
+  RxBool isDriverLocationStale = false.obs;
+
   getArgument() async {
     log("=====argumentData====");
     dynamic argumentData = Get.arguments;
@@ -215,6 +220,14 @@ class LiveTrackingController extends GetxController {
     if (driverLat == null || driverLng == null) {
       return;
     }
+    // Don't draw the live route/marker/ETA off a stale fix — keep the last-known
+    // marker and flag the UI. `position.updatedAt` is the authoritative
+    // freshness (written in lockstep with `location` by the driver app).
+    if (!FireStoreUtils.isDriverModelPositionFresh(driverUserModel.value)) {
+      isDriverLocationStale.value = true;
+      return;
+    }
+    isDriverLocationStale.value = false;
 
     final bool isInProgress =
         orderModel.value.status == Constant.rideInProgress;
@@ -266,6 +279,12 @@ class LiveTrackingController extends GetxController {
     if (driverLat == null || driverLng == null) {
       return;
     }
+    // Same staleness guard as the city path — never draw off a stale fix.
+    if (!FireStoreUtils.isDriverModelPositionFresh(driverUserModel.value)) {
+      isDriverLocationStale.value = true;
+      return;
+    }
+    isDriverLocationStale.value = false;
 
     final bool isInProgress =
         intercityOrderModel.value.status == Constant.rideInProgress;

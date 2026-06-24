@@ -11,6 +11,7 @@ import 'package:customer/model/order/location_lat_lng.dart';
 import 'package:customer/model/order/positions.dart';
 import 'package:customer/model/order_model.dart';
 import 'package:customer/model/service_model.dart';
+import 'package:customer/model/zone_model.dart';
 import 'package:customer/themes/app_colors.dart';
 import 'package:customer/themes/button_them.dart';
 import 'package:customer/themes/responsive.dart';
@@ -1210,7 +1211,7 @@ class HomeScreen extends StatelessWidget {
         : false;
     orderModel.taxList = Constant.taxList;
 
-    bool zoneFound = false;
+    ZoneModel? matchedZone;
     for (int i = 0; i < controller.zoneList.length; i++) {
       if (Constant.isPointInPolygon(
           LatLng(
@@ -1219,36 +1220,38 @@ class HomeScreen extends StatelessWidget {
               double.parse(
                   controller.sourceLocationLAtLng.value.longitude.toString())),
           controller.zoneList[i].area!)) {
-        zoneFound = true;
-        controller.selectedZone.value = controller.zoneList[i];
-        orderModel.zoneId = controller.selectedZone.value.id;
-        orderModel.zone = controller.selectedZone.value;
-        orderModel.dispatchMode = 'smart_escalation';
-        orderModel.notifiedDriverIds = [];
-        await FireStoreUtils.setOrder(orderModel).then((value) {
-          ShowToastDialog.showToast("Ride Placed successfully".tr);
-          controller.dashboardController.selectedDrawerIndex(2);
-          ShowToastDialog.closeLoader();
-          controller.isBookingInProgress.value = false;
-          // Coupon was redeemed atomically inside setOrder's transaction.
-          // Reset local state so the next booking starts without a stale promo.
-          controller.clearPromoCode();
-        }).catchError((e) {
-          ShowToastDialog.closeLoader();
-          controller.isBookingInProgress.value = false;
-          ShowToastDialog.showToast(
-              "Something went wrong, please try again".tr);
-        });
+        matchedZone = controller.zoneList[i];
         break;
       }
     }
-    if (!zoneFound) {
-      controller.isBookingInProgress.value = false;
-      ShowToastDialog.closeLoader();
-      ShowToastDialog.showToast(
-        "Services are currently unavailable on the selected location. Please reach out to the administrator for assistance.",
-      );
+
+    // Out-of-zone pickups (outside every published service-zone polygon) are
+    // allowed so the platform operates everywhere: the ride still dispatches, to
+    // the nearest online driver at any distance (the 3 km cap applies only inside
+    // a zone). Zoned pickups keep their zone (per-zone dispatch config preserved).
+    if (matchedZone != null) {
+      controller.selectedZone.value = matchedZone;
+      orderModel.zoneId = matchedZone.id;
+      orderModel.zone = matchedZone;
+    } else {
+      orderModel.zoneId = '';
+      orderModel.zone = null;
     }
+    orderModel.dispatchMode = 'smart_escalation';
+    orderModel.notifiedDriverIds = [];
+    await FireStoreUtils.setOrder(orderModel).then((value) {
+      ShowToastDialog.showToast("Ride Placed successfully".tr);
+      controller.dashboardController.selectedDrawerIndex(2);
+      ShowToastDialog.closeLoader();
+      controller.isBookingInProgress.value = false;
+      // Coupon was redeemed atomically inside setOrder's transaction.
+      // Reset local state so the next booking starts without a stale promo.
+      controller.clearPromoCode();
+    }).catchError((e) {
+      ShowToastDialog.closeLoader();
+      controller.isBookingInProgress.value = false;
+      ShowToastDialog.showToast("Something went wrong, please try again".tr);
+    });
   }
 
   /// Shows confirmation dialog for metered ride (destinationless)
@@ -1411,7 +1414,7 @@ class HomeScreen extends StatelessWidget {
     orderModel.isAcSelected = false;
     orderModel.taxList = Constant.taxList;
 
-    bool zoneFound = false;
+    ZoneModel? matchedZone;
     for (int i = 0; i < controller.zoneList.length; i++) {
       if (Constant.isPointInPolygon(
           LatLng(
@@ -1420,32 +1423,33 @@ class HomeScreen extends StatelessWidget {
               double.parse(
                   controller.sourceLocationLAtLng.value.longitude.toString())),
           controller.zoneList[i].area!)) {
-        zoneFound = true;
-        controller.selectedZone.value = controller.zoneList[i];
-        orderModel.zoneId = controller.selectedZone.value.id;
-        orderModel.zone = controller.selectedZone.value;
-        orderModel.dispatchMode = 'smart_escalation';
-        orderModel.notifiedDriverIds = [];
-        await FireStoreUtils.setOrder(orderModel).then((value) {
-          ShowToastDialog.showToast("تم حجز الرحلة بنجاح".tr);
-          controller.dashboardController.selectedDrawerIndex(2);
-          ShowToastDialog.closeLoader();
-          controller.isBookingInProgress.value = false;
-        }).catchError((e) {
-          ShowToastDialog.closeLoader();
-          controller.isBookingInProgress.value = false;
-          ShowToastDialog.showToast(
-              "Something went wrong, please try again".tr);
-        });
+        matchedZone = controller.zoneList[i];
         break;
       }
     }
-    if (!zoneFound) {
-      controller.isBookingInProgress.value = false;
-      ShowToastDialog.closeLoader();
-      ShowToastDialog.showToast(
-        "Services are currently unavailable on the selected location. Please reach out to the administrator for assistance.",
-      );
+
+    // Out-of-zone pickups are allowed (operate everywhere): the ride still
+    // dispatches, to the nearest online driver at any distance. Zoned pickups
+    // keep their zone. Mirrors the non-metered booking path above.
+    if (matchedZone != null) {
+      controller.selectedZone.value = matchedZone;
+      orderModel.zoneId = matchedZone.id;
+      orderModel.zone = matchedZone;
+    } else {
+      orderModel.zoneId = '';
+      orderModel.zone = null;
     }
+    orderModel.dispatchMode = 'smart_escalation';
+    orderModel.notifiedDriverIds = [];
+    await FireStoreUtils.setOrder(orderModel).then((value) {
+      ShowToastDialog.showToast("تم حجز الرحلة بنجاح".tr);
+      controller.dashboardController.selectedDrawerIndex(2);
+      ShowToastDialog.closeLoader();
+      controller.isBookingInProgress.value = false;
+    }).catchError((e) {
+      ShowToastDialog.closeLoader();
+      controller.isBookingInProgress.value = false;
+      ShowToastDialog.showToast("Something went wrong, please try again".tr);
+    });
   }
 }
