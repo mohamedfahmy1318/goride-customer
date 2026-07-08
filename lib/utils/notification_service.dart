@@ -9,6 +9,8 @@ import 'package:customer/ui/admin_chat/admin_chat_screen.dart';
 import 'package:customer/ui/chat_screen/chat_screen.dart';
 import 'package:customer/ui/intercityOrders/intercity_payment_order_screen.dart';
 import 'package:customer/ui/orders/payment_order_screen.dart';
+import 'package:customer/constant/constant.dart';
+import 'package:customer/utils/Preferences.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -128,12 +130,43 @@ class NotificationService {
         }
       }
     });
-    await FirebaseMessaging.instance.subscribeToTopic("goRide_customer");
+    // Persist a rotated token (reinstall, data clear, periodic refresh) so the
+    // server can keep targeting this device without us re-calling getToken().
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+      Constant.fcmToken = newToken;
+      FireStoreUtils.updateUserFcmToken(newToken);
+    });
+
+    // Subscribe to the topic at most once per *successful* subscribe per install.
+    // The flag is set ONLY after the await returns (success path). If the
+    // subscribe throws (weak network / TOO_MANY_REGISTRATIONS), control jumps to
+    // catch and the flag stays unset, so it retries next launch — the user is
+    // never left permanently unsubscribed. This stops the per-launch re-enqueue
+    // of FCM registration ops that fills the GMS store.
+    if (!Preferences.getBoolean(Preferences.fcmTopicSubscribedKey)) {
+      try {
+        await FirebaseMessaging.instance.subscribeToTopic("goRide_customer");
+        await Preferences.setBoolean(Preferences.fcmTopicSubscribedKey, true);
+      } catch (e) {
+        log('Failed to subscribe to topic goRide_customer: $e');
+      }
+    }
   }
 
   static Future<String?> getToken() async {
-    String? token = await FirebaseMessaging.instance.getToken();
-    return token;
+    try {
+      final String? token = await FirebaseMessaging.instance.getToken();
+      if (token != null && token.isNotEmpty) {
+        Constant.fcmToken = token;
+      }
+      return token;
+    } catch (e) {
+      // A thrown TOO_MANY_REGISTRATIONS (or any FCM error) must NOT crash app
+      // start. Degrade: no token this session; it'll be retried next launch /
+      // picked up by onTokenRefresh.
+      log('NotificationService.getToken error: $e');
+      return null;
+    }
   }
 
   void display(RemoteMessage message) async {

@@ -45,6 +45,10 @@ class Constant {
   static const String appleLoginType = "apple";
   static String mapAPIKey = "";
   static String senderId = '';
+  // Cached FCM token for this session, so we don't re-call getToken() on every
+  // controller rebuild (each call is an FCM registration op — part of the
+  // TOO_MANY_REGISTRATIONS leak). Seeded once when getToken() first succeeds.
+  static String? fcmToken;
   static String jsonNotificationFileURL = '';
   // Fallback when settings/globalValue is unreachable. Effective dispatch
   // radius is clamped to a hard max in FireStoreUtils — see

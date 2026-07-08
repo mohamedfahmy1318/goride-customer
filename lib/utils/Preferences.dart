@@ -7,6 +7,10 @@ class Preferences {
   static const themKey = "themKey";
   static const isFinishOnBoardingKey = "isFinishOnBoardingKey";
   static const chatEulaAcceptedKey = "chatEulaAcceptedKey";
+  // Set ONLY after subscribeToTopic("goRide_customer") succeeds, so we don't
+  // re-enqueue an FCM registration op every launch (the TOO_MANY_REGISTRATIONS
+  // leak). Keyed on the topic name so a future topic rename re-subscribes.
+  static const fcmTopicSubscribedKey = "topicSubscribed_goRide_customer";
 
   static late SharedPreferences pref;
 

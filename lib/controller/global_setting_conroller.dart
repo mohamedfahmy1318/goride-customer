@@ -85,27 +85,34 @@ class GlobalSettingController extends GetxController {
 
   notificationInit() {
     notificationService.initInfo().then((value) async {
-      String? token = await NotificationService.getToken();
-      if (token != null && FirebaseAuth.instance.currentUser != null) {
-        await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid())
-            .then((value) {
-          if (value != null) {
-            UserModel driverUserModel = value;
-            driverUserModel.fcmToken = token;
-            // Save language to Firestore
-            String langPref =
-                Preferences.getString(Preferences.languageCodeKey);
-            if (langPref.isNotEmpty) {
-              try {
-                final langData = jsonDecode(langPref);
-                driverUserModel.language = langData['code'] ?? 'ar';
-              } catch (_) {
-                driverUserModel.language = 'ar';
+      // Guard the whole continuation: getToken() can throw TOO_MANY_REGISTRATIONS
+      // and this runs in a fire-and-forget .then(), so an unguarded rejection
+      // becomes an unhandled async error (fatal at app start). Degrade instead.
+      try {
+        String? token = await NotificationService.getToken();
+        if (token != null && FirebaseAuth.instance.currentUser != null) {
+          await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid())
+              .then((value) {
+            if (value != null) {
+              UserModel driverUserModel = value;
+              driverUserModel.fcmToken = token;
+              // Save language to Firestore
+              String langPref =
+                  Preferences.getString(Preferences.languageCodeKey);
+              if (langPref.isNotEmpty) {
+                try {
+                  final langData = jsonDecode(langPref);
+                  driverUserModel.language = langData['code'] ?? 'ar';
+                } catch (_) {
+                  driverUserModel.language = 'ar';
+                }
               }
+              FireStoreUtils.updateUser(driverUserModel);
             }
-            FireStoreUtils.updateUser(driverUserModel);
-          }
-        });
+          });
+        }
+      } catch (e) {
+        log('notificationInit error: $e');
       }
     });
   }

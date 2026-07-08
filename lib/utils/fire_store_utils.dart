@@ -410,6 +410,21 @@ class FireStoreUtils {
     });
   }
 
+  // Field-only FCM token write (does NOT overwrite the whole user doc). Used by
+  // the onTokenRefresh listener so a rotated token is persisted without relying
+  // on getToken() being re-called. Safe no-op when logged out / doc missing.
+  static Future<void> updateUserFcmToken(String token) async {
+    final uid = getCurrentUid();
+    if (uid.isEmpty || token.isEmpty) return;
+    try {
+      await fireStore.collection(CollectionName.users).doc(uid).update({
+        'fcmToken': token,
+      });
+    } catch (e) {
+      log('updateUserFcmToken failed: $e');
+    }
+  }
+
   static Future<bool> updateDriver(DriverUserModel userModel) async {
     bool isUpdate = false;
     await fireStore

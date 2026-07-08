@@ -207,12 +207,17 @@ class HomeController extends GetxController {
       final airports = await FireStoreUtils().getAirports();
       if (airports != null) Constant.airaPortList = airports;
 
-      String? token = await NotificationService.getToken();
+      // Reuse the token cached this session (seeded by getToken()/onTokenRefresh)
+      // instead of issuing a fresh FCM registration on every HomeController
+      // rebuild — that churn is part of the TOO_MANY_REGISTRATIONS leak. Only
+      // fall back to a live getToken() if we have nothing cached yet.
+      String? token =
+          Constant.fcmToken ?? await NotificationService.getToken();
       final profile =
           await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid());
       if (profile != null) {
         userModel.value = profile;
-        if (token != null) {
+        if (token != null && token.isNotEmpty) {
           userModel.value.fcmToken = token;
           FireStoreUtils.updateUser(userModel.value);
         }
