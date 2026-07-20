@@ -426,12 +426,21 @@ class FireStoreUtils {
   }
 
   static Future<bool> updateDriver(DriverUserModel userModel) async {
+    // Targeted UPDATE of the review aggregates only. The customer app must
+    // never full-write a driver doc: the old non-merge set(toJson()) here
+    // REPLACED the whole driver_users doc — deleting every driver-owned field
+    // the customer model doesn't carry (walletActivated, bannedUntil,
+    // banReason, currentOrderId…) — and round-tripped a stale isBanned:false
+    // over a just-set admin ban. The only caller (review submit) changes
+    // exactly these two fields.
     bool isUpdate = false;
     await fireStore
         .collection(CollectionName.driverUsers)
         .doc(userModel.id)
-        .set(userModel.toJson())
-        .whenComplete(() {
+        .update({
+      'reviewsCount': userModel.reviewsCount,
+      'reviewsSum': userModel.reviewsSum,
+    }).whenComplete(() {
       isUpdate = true;
     }).catchError((error) {
       log("Failed to update user: $error");

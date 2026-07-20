@@ -156,7 +156,10 @@ class DriverUserModel {
     data['identityImage'] = identityImage;
     data['licenseImage'] = licenseImage;
     data['isApproved'] = isApproved;
-    if (isBanned != null) data['isBanned'] = isBanned;
+    // isBanned intentionally NOT serialized: ban state is owned by the admin
+    // dashboard, and fromJson coerces it non-null, so round-tripping it here
+    // could overwrite an admin ban with a stale false. (Mirrors the same fix
+    // in the driver app's model.)
     if (currentOrderId != null) data['currentOrderId'] = currentOrderId;
     data['approvedAt'] = approvedAt;
     data['language'] = language;
