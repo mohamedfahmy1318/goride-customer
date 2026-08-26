@@ -176,8 +176,8 @@ class OrderDetailsScreen extends StatelessWidget {
                                       ),
                                       Text(
                                         Constant.amountShow(
-                                            amount: orderModel.offerRate
-                                                .toString()),
+                                            amount: orderModel
+                                                .customerPayableFareText),
                                         style: GoogleFonts.poppins(
                                             fontWeight: FontWeight.bold),
                                       ),

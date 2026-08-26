@@ -12,6 +12,14 @@ import 'package:customer/model/zone_model.dart';
 class OrderModel {
   String? sourceLocationName;
   String? destinationLocationName;
+
+  // Two-line address shape (venue/street + neighbourhood, city) resolved by
+  // LocationResolver. Optional: orders placed before this existed carry only
+  // the joined `...LocationName`, which the driver app splits as a fallback.
+  String? sourceLocationTitle;
+  String? sourceLocationSubtitle;
+  String? destinationLocationTitle;
+  String? destinationLocationSubtitle;
   String? paymentType;
   LocationLatLng? sourceLocationLAtLng;
   LocationLatLng? destinationLocationLAtLng;
@@ -58,6 +66,7 @@ class OrderModel {
   String? driverEarnings;
   String? discountAmount;
   String? finalPayableAmount;
+  bool? fareIncludesTax;
   Timestamp? commissionDebitedAt;
 
   OrderModel(
@@ -106,11 +115,20 @@ class OrderModel {
       this.adminCommissionAmount,
       this.driverEarnings,
       this.discountAmount,
-      this.finalPayableAmount});
+      this.finalPayableAmount,
+      this.fareIncludesTax,
+      this.sourceLocationTitle,
+      this.sourceLocationSubtitle,
+      this.destinationLocationTitle,
+      this.destinationLocationSubtitle});
 
   OrderModel.fromJson(Map<String, dynamic> json) {
     serviceId = json['serviceId'];
     sourceLocationName = json['sourceLocationName'];
+    sourceLocationTitle = json['sourceLocationTitle'];
+    sourceLocationSubtitle = json['sourceLocationSubtitle'];
+    destinationLocationTitle = json['destinationLocationTitle'];
+    destinationLocationSubtitle = json['destinationLocationSubtitle'];
     paymentType = json['paymentType'];
     destinationLocationName = json['destinationLocationName'];
     sourceLocationLAtLng = json['sourceLocationLAtLng'] != null
@@ -162,6 +180,7 @@ class OrderModel {
     driverEarnings = json['driverEarnings']?.toString();
     discountAmount = json['discountAmount']?.toString();
     finalPayableAmount = json['finalPayableAmount']?.toString();
+    fareIncludesTax = json['fareIncludesTax'] == true;
     commissionDebitedAt = json['commissionDebitedAt'];
     position =
         json['position'] != null ? Positions.fromJson(json['position']) : null;
@@ -184,6 +203,10 @@ class OrderModel {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['serviceId'] = serviceId;
     data['sourceLocationName'] = sourceLocationName;
+    data['sourceLocationTitle'] = sourceLocationTitle;
+    data['sourceLocationSubtitle'] = sourceLocationSubtitle;
+    data['destinationLocationTitle'] = destinationLocationTitle;
+    data['destinationLocationSubtitle'] = destinationLocationSubtitle;
     data['destinationLocationName'] = destinationLocationName;
     if (sourceLocationLAtLng != null) {
       data['sourceLocationLAtLng'] = sourceLocationLAtLng!.toJson();
@@ -250,6 +273,7 @@ class OrderModel {
     if (finalPayableAmount != null) {
       data['finalPayableAmount'] = finalPayableAmount;
     }
+    if (fareIncludesTax != null) data['fareIncludesTax'] = fareIncludesTax;
     if (commissionDebitedAt != null) {
       data['commissionDebitedAt'] = commissionDebitedAt;
     }
@@ -261,4 +285,28 @@ class OrderModel {
     }
     return data;
   }
+
+  /// One customer-facing fare across customer, driver and admin surfaces.
+  /// New orders persist tax inside `finalPayableAmount`. For older snapshots,
+  /// add their saved tax list once so historical rides still render correctly.
+  double get customerPayableFare {
+    final persisted = double.tryParse(finalPayableAmount ?? '');
+    if (persisted != null) {
+      if (fareIncludesTax == true) return persisted;
+      var tax = 0.0;
+      for (final item in taxList ?? const <TaxModel>[]) {
+        if (item.enable == false) continue;
+        final rate = double.tryParse(item.tax ?? '0') ?? 0;
+        tax += item.type == 'fix' ? rate : (persisted * rate) / 100;
+      }
+      return persisted + tax;
+    }
+    final accepted = double.tryParse(finalRate ?? '');
+    if (accepted != null && accepted > 0) return accepted;
+    final gross = double.tryParse(totalFare ?? '');
+    if (gross != null) return gross;
+    return double.tryParse(offerRate ?? '') ?? 0;
+  }
+
+  String get customerPayableFareText => customerPayableFare.toStringAsFixed(2);
 }

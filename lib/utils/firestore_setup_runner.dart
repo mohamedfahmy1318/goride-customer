@@ -4,13 +4,19 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:customer/utils/Preferences.dart';
 import 'dart:developer';
 
 class FirestoreSetupRunner {
   static FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  static const String _setupVersion = '1.0.0';
 
   /// Run this ONCE to setup all payment configurations
   static Future<void> runOnce() async {
+    if (Preferences.getString(Preferences.firestoreSetupVersionKey) ==
+        _setupVersion) {
+      return;
+    }
     log('🚀 FirestoreSetupRunner: Starting one-time setup...');
 
     try {
@@ -18,6 +24,8 @@ class FirestoreSetupRunner {
           await _firestore.collection('settings').doc('_setup_completed').get();
 
       if (setupDoc.exists) {
+        await Preferences.setString(
+            Preferences.firestoreSetupVersionKey, _setupVersion);
         log('⚠️ Setup already completed. Skipping...');
         return;
       }
@@ -28,8 +36,11 @@ class FirestoreSetupRunner {
       await _firestore.collection('settings').doc('_setup_completed').set({
         'mauritanianPayments': true,
         'completedAt': FieldValue.serverTimestamp(),
-        'version': '1.0.0',
+        'version': _setupVersion,
       });
+
+      await Preferences.setString(
+          Preferences.firestoreSetupVersionKey, _setupVersion);
 
       log('✅ FirestoreSetupRunner: All setup completed successfully!');
     } catch (e) {
@@ -119,6 +130,7 @@ class FirestoreSetupRunner {
 
   static Future<void> forceRerun() async {
     await _firestore.collection('settings').doc('_setup_completed').delete();
+    await Preferences.clearKeyData(Preferences.firestoreSetupVersionKey);
     await runOnce();
   }
 }

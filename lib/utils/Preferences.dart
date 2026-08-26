@@ -11,6 +11,8 @@ class Preferences {
   // re-enqueue an FCM registration op every launch (the TOO_MANY_REGISTRATIONS
   // leak). Keyed on the topic name so a future topic rename re-subscribes.
   static const fcmTopicSubscribedKey = "topicSubscribed_goRide_customer";
+  static const lastSyncedFcmTokenKey = "lastSyncedFcmToken_customer";
+  static const firestoreSetupVersionKey = "firestoreSetupVersion";
 
   static late SharedPreferences pref;
 

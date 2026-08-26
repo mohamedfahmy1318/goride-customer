@@ -63,6 +63,23 @@ class CompleteOrderController extends GetxController {
   RxDouble holdingCharge = 0.0.obs;
 
   calculateAmount() async {
+    final persistedGross =
+        double.tryParse(orderModel.value.totalFare ?? '');
+    if (persistedGross != null) {
+      final discount =
+          double.tryParse(orderModel.value.discountAmount ?? '0') ?? 0;
+      subTotal.value = persistedGross;
+      amount.value = persistedGross;
+      meterStartCharge.value = 0;
+      totalChargeOfMinute.value = 0;
+      holdingCharge.value = 0;
+      total.value = orderModel.value.customerPayableFare;
+      taxAmount.value = (total.value - (persistedGross - discount))
+          .clamp(0, double.infinity)
+          .toDouble();
+      return;
+    }
+
     // Admin-created rides: the admin's manually-entered fare (finalRate) is the
     // sole source of truth. Skip distance/per-minute/holding computation entirely.
     if (orderModel.value.isAdminCreated == true) {

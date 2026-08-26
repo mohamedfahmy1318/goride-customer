@@ -324,7 +324,7 @@ final Map<String, String> arAR = {
   // ترجمات الإشعارات
   'Payment Received': 'تم استلام الدفع',
   'Payment changed': 'تم تغيير طريقة الدفع',
-  'Metered Ride Request': 'طلب رحلة مفتوح',
+  'Metered Ride Request': 'طلب كورس مفتوح',
   'Intercity Ride Request': 'طلب رحلة بين المدن',
   'Ride Confirmed': 'تم تأكيد الرحلة',
   'Driver Arrived': 'السائق وصل',
@@ -334,7 +334,7 @@ final Map<String, String> arAR = {
   'Ride Hold Ended': 'انتهى تعليق الرحلة',
   'Cash Payment confirmed': 'تم تأكيد الدفع النقدي',
   'Scheduled Ride Reminder': 'تذكير برحلة مجدولة',
-  'Tell driver': 'أخبر السائق',
+  'Tell driver': 'كورس مفتوح',
   'Start ride without destination': 'ابدأ رحلة بدون تحديد وجهة',
   'Warning': 'تحذير',
   'You are not able book new ride please complete previous ride payment':
@@ -360,4 +360,10 @@ final Map<String, String> arAR = {
   'Your ride has been canceled by the driver. Please request a new ride.':
       'تم إلغاء رحلتك من قبل السائق. يرجى طلب رحلة جديدة.',
   'Meter Ride - Live': 'العداد - مباشر',
+  'Please turn on location services to book a ride.': 'يرجى تشغيل خدمة الموقع لطلب رحلة.',
+  'Location permission is blocked. Enable it from your device settings.': 'إذن الموقع محظور. فعّله من إعدادات جهازك.',
+  'Location permission is required to set your pickup point.': 'نحتاج إذن الموقع لتحديد نقطة انطلاقك.',
+  'Couldn\'t determine your location. Please try again.': 'تعذّر تحديد موقعك. حاول مرة أخرى.',
+  'Move the map to pick a location': 'حرّك الخريطة لتحديد الموقع',
+  'Resolving address...': 'جاري تحديد العنوان...',
 };

@@ -373,4 +373,10 @@ final Map<String, String> trFr = {
   'Your ride has been canceled by the driver. Please request a new ride.':
       'Votre course a été annulée par le conducteur. Veuillez demander une nouvelle course.',
   'Meter Ride - Live': 'Compteur - En direct',
+  'Please turn on location services to book a ride.': 'Veuillez activer la localisation pour commander une course.',
+  'Location permission is blocked. Enable it from your device settings.': 'L\'autorisation de localisation est bloquée. Activez-la dans les réglages.',
+  'Location permission is required to set your pickup point.': 'L\'autorisation de localisation est requise pour définir votre point de départ.',
+  'Couldn\'t determine your location. Please try again.': 'Impossible de déterminer votre position. Réessayez.',
+  'Move the map to pick a location': 'Déplacez la carte pour choisir un lieu',
+  'Resolving address...': 'Résolution de l\'adresse...',
 };

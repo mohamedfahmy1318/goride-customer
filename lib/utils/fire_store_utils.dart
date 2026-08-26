@@ -34,10 +34,61 @@ import 'package:customer/model/wallet_transaction_model.dart';
 import 'package:customer/model/zone_model.dart';
 import 'package:customer/widget/geoflutterfire/src/geoflutterfire.dart';
 import 'package:customer/widget/geoflutterfire/src/models/point.dart';
+import 'package:customer/utils/Preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class FireStoreUtils {
   static FirebaseFirestore fireStore = FirebaseFirestore.instance;
+
+  /// Cache only slow-changing configuration reads. Operational ride, user and
+  /// driver data deliberately bypasses this helper and stays real-time.
+  static Future<DocumentSnapshot<Map<String, dynamic>>> _getCachedSettingsDoc(
+    String documentId, {
+    Duration maxAge = const Duration(hours: 1),
+  }) async {
+    final key = 'firestore_settings_checked_$documentId';
+    final checkedAt = Preferences.getInt(key);
+    final fresh = checkedAt > 0 &&
+        DateTime.now().millisecondsSinceEpoch - checkedAt <
+            maxAge.inMilliseconds;
+    final ref = fireStore.collection(CollectionName.settings).doc(documentId);
+    if (fresh) {
+      try {
+        final cached = await ref.get(const GetOptions(source: Source.cache));
+        if (cached.exists) return cached;
+      } catch (_) {
+        // Cache may have been evicted independently of SharedPreferences.
+      }
+    }
+    final snapshot = await ref.get();
+    if (!snapshot.metadata.isFromCache) {
+      await Preferences.setInt(key, DateTime.now().millisecondsSinceEpoch);
+    }
+    return snapshot;
+  }
+
+  static Future<QuerySnapshot<Map<String, dynamic>>> _getCachedQuery(
+    Query<Map<String, dynamic>> query,
+    String cacheKey, {
+    Duration maxAge = const Duration(hours: 1),
+  }) async {
+    final key = 'firestore_query_checked_$cacheKey';
+    final checkedAt = Preferences.getInt(key);
+    final fresh = checkedAt > 0 &&
+        DateTime.now().millisecondsSinceEpoch - checkedAt <
+            maxAge.inMilliseconds;
+    if (fresh) {
+      try {
+        final cached = await query.get(const GetOptions(source: Source.cache));
+        if (cached.docs.isNotEmpty) return cached;
+      } catch (_) {}
+    }
+    final snapshot = await query.get();
+    if (!snapshot.metadata.isFromCache) {
+      await Preferences.setInt(key, DateTime.now().millisecondsSinceEpoch);
+    }
+    return snapshot;
+  }
 
   /// Hard ceiling on the city-ride dispatch radius. The effective value comes
   /// from `settings/globalValue.radius` (admin-tunable), clamped DOWN to this.
@@ -69,8 +120,8 @@ class FireStoreUtils {
     if (raw is! Map) return true;
     final updatedAtRaw = raw['updatedAt'];
     if (updatedAtRaw is! Timestamp) return true;
-    final ageMs =
-        DateTime.now().millisecondsSinceEpoch - updatedAtRaw.toDate().millisecondsSinceEpoch;
+    final ageMs = DateTime.now().millisecondsSinceEpoch -
+        updatedAtRaw.toDate().millisecondsSinceEpoch;
     final maxAgeMs = Constant.positionStaleAfterMinutes * 60 * 1000;
     return ageMs <= maxAgeMs;
   }
@@ -98,10 +149,7 @@ class FireStoreUtils {
   }
 
   getSettings() async {
-    await fireStore
-        .collection(CollectionName.settings)
-        .doc("globalKey")
-        .get()
+    await _getCachedSettingsDoc("globalKey", maxAge: const Duration(hours: 24))
         .then((value) {
       if (value.exists) {
         String key = value.data()!["googleMapKey"] ?? '';
@@ -122,10 +170,8 @@ class FireStoreUtils {
       log('❌ Error loading globalKey: $e, using fallback key');
     });
 
-    await fireStore
-        .collection(CollectionName.settings)
-        .doc("notification_setting")
-        .get()
+    await _getCachedSettingsDoc("notification_setting",
+            maxAge: const Duration(hours: 24))
         .then((value) {
       if (value.exists) {
         if (value.data() != null) {
@@ -136,10 +182,8 @@ class FireStoreUtils {
       }
     });
 
-    await fireStore
-        .collection(CollectionName.settings)
-        .doc("globalValue")
-        .get()
+    await _getCachedSettingsDoc("globalValue",
+            maxAge: const Duration(minutes: 5))
         .then((value) {
       if (value.exists) {
         Constant.distanceType = value.data()!["distanceType"].toString().trim();
@@ -157,8 +201,7 @@ class FireStoreUtils {
         // staleness check) and the AdminRideService dispatch filter. Bad
         // values (≤0, NaN, missing) fall back to the in-code default.
         final autoCancelRaw = value.data()!["autoCancelMinutes"];
-        final autoCancelParsed =
-            int.tryParse(autoCancelRaw?.toString() ?? '');
+        final autoCancelParsed = int.tryParse(autoCancelRaw?.toString() ?? '');
         if (autoCancelParsed != null && autoCancelParsed > 0) {
           Constant.autoCancelMinutes = autoCancelParsed;
         }
@@ -170,10 +213,7 @@ class FireStoreUtils {
       }
     });
 
-    await fireStore
-        .collection(CollectionName.settings)
-        .doc("global")
-        .get()
+    await _getCachedSettingsDoc("global", maxAge: const Duration(hours: 6))
         .then((value) {
       if (value.exists) {
         if (value.data()!["privacyPolicy"] != null) {
@@ -208,21 +248,14 @@ class FireStoreUtils {
       }
     });
 
-    await fireStore
-        .collection(CollectionName.settings)
-        .doc("referral")
-        .get()
+    await _getCachedSettingsDoc("referral", maxAge: const Duration(minutes: 5))
         .then((value) {
       if (value.exists) {
         Constant.referralAmount = value.data()!["referralAmount"];
       }
     });
 
-    await fireStore
-        .collection(CollectionName.settings)
-        .doc("contact_us")
-        .get()
-        .then((value) {
+    await _getCachedSettingsDoc("contact_us").then((value) {
       if (value.exists) {
         Constant.supportURL = value.data()!["supportURL"];
       }
@@ -414,12 +447,19 @@ class FireStoreUtils {
   // the onTokenRefresh listener so a rotated token is persisted without relying
   // on getToken() being re-called. Safe no-op when logged out / doc missing.
   static Future<void> updateUserFcmToken(String token) async {
-    final uid = getCurrentUid();
-    if (uid.isEmpty || token.isEmpty) return;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty || token.isEmpty) return;
+    final syncMarker = '$uid:$token';
+    if (Preferences.getString(Preferences.lastSyncedFcmTokenKey) ==
+        syncMarker) {
+      return;
+    }
     try {
       await fireStore.collection(CollectionName.users).doc(uid).update({
         'fcmToken': token,
       });
+      await Preferences.setString(
+          Preferences.lastSyncedFcmTokenKey, syncMarker);
     } catch (e) {
       log('updateUserFcmToken failed: $e');
     }
@@ -652,9 +692,7 @@ class FireStoreUtils {
         final int? usageLimit = usageLimitRaw is int
             ? usageLimitRaw
             : int.tryParse(usageLimitRaw?.toString() ?? '');
-        if (usageLimit != null &&
-            usageLimit > 0 &&
-            usedCount >= usageLimit) {
+        if (usageLimit != null && usageLimit > 0 && usedCount >= usageLimit) {
           throw StateError('coupon_exhausted');
         }
 
@@ -755,15 +793,12 @@ class FireStoreUtils {
       // trip. `currentOrderId` is set by the driver's `acceptOrderDirectly`
       // transaction and cleared by the `syncDriverCurrentOrderId` Cloud
       // Function on terminal status.
-      final currentOrderId =
-          (data['currentOrderId'] ?? '').toString().trim();
+      final currentOrderId = (data['currentOrderId'] ?? '').toString().trim();
       if (currentOrderId.isNotEmpty) continue;
-      // Negative wallet: drop drivers who owe unsettled commission. Stored
-      // as a String on the driver doc — parse defensively. Missing/null
-      // treated as 0 (not blocked).
+      // Only drivers with a finite positive wallet may receive rides.
       final walletBalance =
           double.tryParse((data['walletAmount'] ?? '0').toString()) ?? 0.0;
-      if (walletBalance < 0) continue;
+      if (!walletBalance.isFinite || walletBalance <= 0) continue;
       // Stale-position guard — see `_isDriverPositionFresh`.
       if (!_isDriverPositionFresh(data)) continue;
       DriverUserModel orderModel = DriverUserModel.fromJson(data);
@@ -817,11 +852,11 @@ class FireStoreUtils {
         final currentOrderId =
             (doc.data()['currentOrderId'] ?? '').toString().trim();
         if (currentOrderId.isNotEmpty) continue;
-        // Negative wallet: drop drivers who owe unsettled commission.
-        final walletBalance = double.tryParse(
-                (doc.data()['walletAmount'] ?? '0').toString()) ??
-            0.0;
-        if (walletBalance < 0) continue;
+        // Only drivers with a finite positive wallet may receive rides.
+        final walletBalance =
+            double.tryParse((doc.data()['walletAmount'] ?? '0').toString()) ??
+                0.0;
+        if (!walletBalance.isFinite || walletBalance <= 0) continue;
         // Stale-position guard — see `_isDriverPositionFresh`.
         if (!_isDriverPositionFresh(doc.data())) continue;
         DriverUserModel driver = DriverUserModel.fromJson(doc.data());
@@ -892,10 +927,11 @@ class FireStoreUtils {
 
   Future<CurrencyModel?> getCurrency() async {
     CurrencyModel? currencyModel;
-    await fireStore
-        .collection(CollectionName.currency)
-        .where("enable", isEqualTo: true)
-        .get()
+    await _getCachedQuery(
+            fireStore
+                .collection(CollectionName.currency)
+                .where("enable", isEqualTo: true),
+            'enabled_currency')
         .then((value) {
       if (value.docs.isNotEmpty) {
         currencyModel = CurrencyModel.fromJson(value.docs.first.data());
@@ -1067,11 +1103,13 @@ class FireStoreUtils {
   static Future<List<LanguageModel>?> getLanguage() async {
     List<LanguageModel> languageList = [];
 
-    await fireStore
-        .collection(CollectionName.languages)
-        .where("enable", isEqualTo: true)
-        .where("isDeleted", isEqualTo: false)
-        .get()
+    await _getCachedQuery(
+            fireStore
+                .collection(CollectionName.languages)
+                .where("enable", isEqualTo: true)
+                .where("isDeleted", isEqualTo: false),
+            'enabled_languages',
+            maxAge: const Duration(hours: 6))
         .then((value) {
       for (var element in value.docs) {
         LanguageModel taxModel = LanguageModel.fromJson(element.data());

@@ -48,13 +48,13 @@ void main() async {
     return true;
   };
 
+  await Preferences.initPref();
+
   // ============================================================
   // ONE-TIME SETUP: Initialize Mauritanian payment methods
   // This runs only once and creates the necessary Firestore data
   // ============================================================
   await FirestoreSetupRunner.runOnce();
-
-  await Preferences.initPref();
 
   // Initialize connectivity monitoring
   Get.put(ConnectivityService(), permanent: true);

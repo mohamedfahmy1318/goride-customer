@@ -264,7 +264,7 @@ class PaymentOrderController extends GetxController {
     // finalPayableAmount + tax (what the customer actually pays). Legacy
     // orders fall back to the pre-migration formula.
     if (hasPersistedBreakdown) {
-      total.value = persistedFinalPayable + taxAmount.value;
+      total.value = orderModel.value.customerPayableFare;
     } else {
       total.value =
           (subTotal.value - double.parse(couponAmount.value)) + taxAmount.value;

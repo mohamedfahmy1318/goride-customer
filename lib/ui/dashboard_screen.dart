@@ -23,101 +23,107 @@ class DashBoardScreen extends StatelessWidget {
     return GetX<DashBoardController>(
         init: DashBoardController(),
         builder: (controller) {
-          return Scaffold(
-            backgroundColor: themeChange.getThem()
-                ? AppColors.darkBackground
-                : AppColors.background,
-            appBar: AppBar(
+          return MediaQuery.withClampedTextScaling(
+            minScaleFactor: 1.12,
+            maxScaleFactor: 1.4,
+            child: Scaffold(
               backgroundColor: themeChange.getThem()
                   ? AppColors.darkBackground
-                  : Colors.white,
-              title: controller.selectedDrawerIndex.value != 0 &&
-                      controller.selectedDrawerIndex.value != 6
-                  ? Text(
-                      _getAppBarTitle(controller.selectedDrawerIndex.value),
-                      style: TextStyle(
-                        color:
-                            themeChange.getThem() ? Colors.white : Colors.black,
-                      ),
-                    )
-                  : const Text(""),
-              leading: Builder(builder: (context) {
-                return InkWell(
-                  onTap: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 10, right: 20, top: 20, bottom: 20),
-                    child: SvgPicture.asset('assets/icons/ic_humber.svg',
-                        colorFilter: ColorFilter.mode(
-                            AppColors.primary, BlendMode.srcIn)),
-                  ),
-                );
-              }),
-              actions: [
-                controller.selectedDrawerIndex.value == 0
-                    ? FutureBuilder<UserModel?>(
-                        future: FireStoreUtils.getUserProfile(
-                            FireStoreUtils.getCurrentUid()),
-                        builder: (context, snapshot) {
-                          switch (snapshot.connectionState) {
-                            case ConnectionState.waiting:
-                              return Constant.loader();
-                            case ConnectionState.done:
-                              if (snapshot.hasError) {
-                                return Text(snapshot.error.toString());
-                              } else {
-                                UserModel driverModel = snapshot.data!;
-                                return InkWell(
-                                  onTap: () {
-                                    controller.selectedDrawerIndex(8);
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: ClipOval(
-                                      child: CachedNetworkImage(
-                                        height: 40,
-                                        width: 36,
-                                        imageUrl: Constant.safeImageUrl(
-                                            driverModel.profilePic),
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) =>
-                                            Constant.loader(),
-                                        errorWidget: (context, url, error) =>
-                                            Constant.placeholderWidget(
+                  : AppColors.background,
+              appBar: AppBar(
+                backgroundColor: themeChange.getThem()
+                    ? AppColors.darkBackground
+                    : Colors.white,
+                title: controller.selectedDrawerIndex.value != 0 &&
+                        controller.selectedDrawerIndex.value != 6
+                    ? Text(
+                        _getAppBarTitle(controller.selectedDrawerIndex.value),
+                        style: TextStyle(
+                          color: themeChange.getThem()
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      )
+                    : const Text(""),
+                leading: Builder(builder: (context) {
+                  return InkWell(
+                    onTap: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 10, right: 20, top: 20, bottom: 20),
+                      child: SvgPicture.asset('assets/icons/ic_humber.svg',
+                          colorFilter: ColorFilter.mode(
+                              AppColors.primary, BlendMode.srcIn)),
+                    ),
+                  );
+                }),
+                actions: [
+                  controller.selectedDrawerIndex.value == 0
+                      ? FutureBuilder<UserModel?>(
+                          future: FireStoreUtils.getUserProfile(
+                              FireStoreUtils.getCurrentUid()),
+                          builder: (context, snapshot) {
+                            switch (snapshot.connectionState) {
+                              case ConnectionState.waiting:
+                                return Constant.loader();
+                              case ConnectionState.done:
+                                if (snapshot.hasError) {
+                                  return Text(snapshot.error.toString());
+                                } else {
+                                  UserModel driverModel = snapshot.data!;
+                                  return InkWell(
+                                    onTap: () {
+                                      controller.selectedDrawerIndex(8);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: ClipOval(
+                                        child: CachedNetworkImage(
                                           height: 40,
                                           width: 36,
+                                          imageUrl: Constant.safeImageUrl(
+                                              driverModel.profilePic),
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              Constant.loader(),
+                                          errorWidget: (context, url, error) =>
+                                              Constant.placeholderWidget(
+                                            height: 40,
+                                            width: 36,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              }
-                            default:
-                              return Text('Error'.tr);
-                          }
-                        })
-                    : Container(),
-              ],
-            ),
-            drawer: buildAppDrawer(context, controller),
-            body: PopScope(
-                canPop: false,
-                onPopInvokedWithResult: (didPop, result) {
-                  if (!didPop) {
-                    final now = DateTime.now();
-                    if (now.difference(controller.currentBackPressTime.value) >
-                        const Duration(seconds: 2)) {
-                      controller.currentBackPressTime.value = now;
-                      ShowToastDialog.showToast('Double press to exit'.tr);
-                    } else {
-                      SystemNavigator.pop();
+                                  );
+                                }
+                              default:
+                                return Text('Error'.tr);
+                            }
+                          })
+                      : Container(),
+                ],
+              ),
+              drawer: buildAppDrawer(context, controller),
+              body: PopScope(
+                  canPop: false,
+                  onPopInvokedWithResult: (didPop, result) {
+                    if (!didPop) {
+                      final now = DateTime.now();
+                      if (now.difference(
+                              controller.currentBackPressTime.value) >
+                          const Duration(seconds: 2)) {
+                        controller.currentBackPressTime.value = now;
+                        ShowToastDialog.showToast('Double press to exit'.tr);
+                      } else {
+                        SystemNavigator.pop();
+                      }
                     }
-                  }
-                },
-                child: controller
-                    .getDrawerItemWidget(controller.selectedDrawerIndex.value)),
+                  },
+                  child: controller.getDrawerItemWidget(
+                      controller.selectedDrawerIndex.value)),
+            ),
           );
         });
   }

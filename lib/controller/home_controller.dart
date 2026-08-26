@@ -9,19 +9,19 @@ import 'package:customer/controller/dash_board_controller.dart';
 import 'package:customer/model/airport_model.dart';
 import 'package:customer/model/banner_model.dart';
 import 'package:customer/model/coupon_model.dart';
+import 'package:customer/model/place_picker_model.dart';
 import 'package:customer/model/order/location_lat_lng.dart';
 import 'package:customer/model/service_model.dart';
 import 'package:customer/model/user_model.dart';
 import 'package:customer/model/zone_model.dart';
 import 'package:customer/themes/app_colors.dart';
+import 'package:customer/services/location_resolver.dart';
+import 'package:customer/utils/address_formatter.dart';
 import 'package:customer/utils/fire_store_utils.dart';
 import 'package:customer/utils/notification_service.dart';
-import 'package:customer/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:osm_nominatim/osm_nominatim.dart';
 
 class HomeController extends GetxController {
   DashBoardController dashboardController = Get.put(DashBoardController());
@@ -38,6 +38,9 @@ class HomeController extends GetxController {
   Rx<LocationLatLng> destinationLocationLAtLng = LocationLatLng().obs;
 
   RxString currentLocation = "".obs;
+  Rx<ResolvedAddress> sourceAddress = ResolvedAddress.empty.obs;
+  Rx<ResolvedAddress> destinationAddress = ResolvedAddress.empty.obs;
+  RxBool isLocatingUser = false.obs;
   RxBool isLoading = true.obs;
   RxList<ServiceModel> serviceList = <ServiceModel>[].obs;
   RxList bannerList = <BannerModel>[].obs;
@@ -79,114 +82,114 @@ class HomeController extends GetxController {
     super.onInit();
   }
 
-  Future<void> getLocation() async {
+  /// Resolves the rider's pickup: an accuracy-checked GPS fix plus a
+  /// two-line address (venue/street + neighbourhood, city). Both come from
+  /// [LocationResolver], the same pipeline the place picker uses, so the
+  /// pickup we ship to the driver reads identically wherever it is shown.
+  Future<void> getLocation({bool forceFresh = false}) async {
+    isLocatingUser.value = true;
     try {
-      Constant.currentLocation = await Utils.getCurrentLocation();
+      final position =
+          await LocationResolver.currentPosition(forceFresh: forceFresh);
 
-      if (Constant.currentLocation == null) {
-        return;
-      }
-
-      // Try geocoding to get address from coordinates
-      String address = '';
-      bool geocoded = false;
-
-      // Method 1: Google geocoding (native platform)
-      if (Constant.selectedMapType == 'google') {
-        try {
-          List<Placemark> placeMarks = await placemarkFromCoordinates(
-            Constant.currentLocation!.latitude,
-            Constant.currentLocation!.longitude,
-          );
-          if (placeMarks.isNotEmpty) {
-            Constant.country = placeMarks.first.country;
-            Constant.city = placeMarks.first.locality;
-            // Build parts list — `placemark.name` is often a Plus Code (Open
-            // Location Code) when there's no friendly street/business name on
-            // iOS/Android. Drop those before joining; the rest of the chain
-            // still goes through `_cleanAddress` as a second line of defense.
-            final pm = placeMarks.first;
-            final String rawName = (pm.name ?? '').trim();
-            final bool nameIsPlusCode =
-                RegExp(r'^[A-Z0-9]{2,}\+[A-Z0-9]{2,}').hasMatch(rawName);
-            final parts = <String>[
-              if (!nameIsPlusCode) rawName,
-              (pm.subLocality ?? '').trim(),
-              (pm.locality ?? '').trim(),
-              (pm.administrativeArea ?? '').trim(),
-              (pm.postalCode ?? '').trim(),
-              (pm.country ?? '').trim(),
-            ].where((p) => p.isNotEmpty).toList();
-            address = _cleanAddress(parts.join(', '));
-            geocoded = true;
-          }
-        } catch (_) {}
-      }
-
-      // Method 2: Nominatim fallback (or primary if OSM selected)
-      if (!geocoded) {
-        try {
-          Place place = await Nominatim.reverseSearch(
-            lat: Constant.currentLocation!.latitude,
-            lon: Constant.currentLocation!.longitude,
-            zoom: 14,
-            addressDetails: true,
-            extraTags: true,
-            nameDetails: true,
-          );
-          address = _cleanAddress(place.displayName.toString());
-          Constant.country = place.address?['country'] ?? '';
-          Constant.city = place.address?['city'] ?? '';
-          geocoded = true;
-        } catch (_) {}
-      }
-
-      // Method 3: Use raw coordinates if all geocoding fails
-      if (!geocoded) {
-        address =
-            '${Constant.currentLocation!.latitude.toStringAsFixed(4)}, ${Constant.currentLocation!.longitude.toStringAsFixed(4)}';
-      }
-
-      currentLocation.value = address;
-
-      // Always set source location from current location
-      sourceLocationLAtLng.value = LocationLatLng(
-        latitude: Constant.currentLocation!.latitude,
-        longitude: Constant.currentLocation!.longitude,
+      final address = await LocationResolver.resolve(
+        position.latitude,
+        position.longitude,
       );
-      sourceLocationController.value.text = currentLocation.value;
-    } catch (e) {
+
+      sourceAddress.value = address;
+      currentLocation.value = address.display;
+      sourceLocationLAtLng.value = LocationLatLng(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+      sourceLocationController.value.text = address.display;
+    } on LocationUnavailable catch (e) {
       ShowToastDialog.showToast(
-        "Location access permission is currently unavailable. You're unable to retrieve any location data. Please grant permission from your device settings.",
+        _locationErrorMessage(e.reason),
         duration: const Duration(seconds: 3),
       );
+    } catch (e) {
+      log('getLocation failed: $e');
+      ShowToastDialog.showToast(
+        "Couldn't determine your location. Please try again.".tr,
+        duration: const Duration(seconds: 3),
+      );
+    } finally {
+      isLocatingUser.value = false;
     }
   }
 
-  /// Drop Plus-Code-looking parts and highly-numeric segments from an
-  /// address string, then collapse consecutive duplicates. Used after
-  /// reverse geocoding to keep the customer-facing source address (and the
-  /// `sourceLocationName` we ship to drivers) free of strings like
-  /// `322R+6P2` that the native geocoder emits when there is no friendly
-  /// street/business name.
-  String _cleanAddress(String address) {
-    if (address.isEmpty) return address;
-    final parts = address
+  String _locationErrorMessage(String reason) {
+    switch (reason) {
+      case 'service_off':
+        return 'Please turn on location services to book a ride.'.tr;
+      case 'denied_forever':
+        return 'Location permission is blocked. Enable it from your device settings.'
+            .tr;
+      case 'denied':
+        return 'Location permission is required to set your pickup point.'.tr;
+      default:
+        return "Couldn't determine your location. Please try again.".tr;
+    }
+  }
+
+  /// Applies a point the rider chose on the map / from search as the pickup.
+  /// Riders correct GPS drift this way — the same escape hatch Uber and
+  /// Careem give when the pin lands on the wrong side of the street.
+  Future<void> applySourcePlace(PlaceDetailsModel details) async {
+    final location = details.result?.geometry?.location;
+    if (location?.lat == null || location?.lng == null) return;
+    sourceAddress.value = _addressFromPlace(details);
+    sourceLocationController.value.text = sourceAddress.value.display;
+    currentLocation.value = sourceAddress.value.display;
+    sourceLocationLAtLng.value =
+        LocationLatLng(latitude: location!.lat, longitude: location.lng);
+    if (destinationLocationLAtLng.value.latitude != null) {
+      await calculateDurationAndDistance();
+    }
+    calculateAmount();
+  }
+
+  Future<void> applyDestinationPlace(PlaceDetailsModel details) async {
+    final location = details.result?.geometry?.location;
+    if (location?.lat == null || location?.lng == null) return;
+    destinationAddress.value = _addressFromPlace(details);
+    destinationLocationController.value.text = destinationAddress.value.display;
+    destinationLocationLAtLng.value =
+        LocationLatLng(latitude: location!.lat, longitude: location.lng);
+    await calculateDurationAndDistance();
+    calculateAmount();
+  }
+
+  /// The picker carries the venue name in `result.name` and the placing line
+  /// in `result.vicinity`; older/OSM pickers only fill `formattedAddress`, so
+  /// fall back to splitting that.
+  ResolvedAddress _addressFromPlace(PlaceDetailsModel details) {
+    final result = details.result;
+    final name = (result?.name ?? '').trim();
+    final vicinity = (result?.vicinity ?? '').trim();
+    if (name.isNotEmpty) {
+      return ResolvedAddress(
+        title: name,
+        subtitle: AddressFormatter.clean(vicinity),
+        components: result?.addressComponents ?? const [],
+      );
+    }
+    final formatted = (result?.formattedAddress ?? '').trim();
+    final parts = formatted
         .split(RegExp(r'[,،]'))
         .map((p) => p.trim())
-        .where((p) {
-          if (p.isEmpty) return false;
-          if (RegExp(r'[A-Z0-9]{2,}\+[A-Z0-9]{2,}').hasMatch(p)) return false;
-          final digits = RegExp(r'\d').allMatches(p).length;
-          if (digits > 0 && digits / p.length >= 0.5) return false;
-          return true;
-        })
+        .where((p) => !AddressFormatter.isNoise(p))
         .toList();
-    final dedup = <String>[];
-    for (final p in parts) {
-      if (dedup.isEmpty || dedup.last != p) dedup.add(p);
+    if (parts.isEmpty) {
+      return ResolvedAddress(title: formatted);
     }
-    return dedup.isEmpty ? address : dedup.join(', ');
+    return ResolvedAddress(
+      title: parts.first,
+      subtitle: parts.skip(1).take(2).join('، '),
+      components: result?.addressComponents ?? const [],
+    );
   }
 
   getServiceType() async {
@@ -211,8 +214,7 @@ class HomeController extends GetxController {
       // instead of issuing a fresh FCM registration on every HomeController
       // rebuild — that churn is part of the TOO_MANY_REGISTRATIONS leak. Only
       // fall back to a live getToken() if we have nothing cached yet.
-      String? token =
-          Constant.fcmToken ?? await NotificationService.getToken();
+      String? token = Constant.fcmToken ?? await NotificationService.getToken();
       final profile =
           await FireStoreUtils.getUserProfile(FireStoreUtils.getCurrentUid());
       if (profile != null) {
@@ -248,13 +250,27 @@ class HomeController extends GetxController {
   final RxBool isApplyingCoupon = false.obs;
   final TextEditingController promoCodeController = TextEditingController();
 
-  /// Computed: what the customer actually pays (subtotal − discount). Read
+  /// Tax locked into the quote using the same saved tax snapshot as booking.
+  double get quotedTaxAmount {
+    final double subTotal = double.tryParse(amount.value) ?? 0;
+    final taxable =
+        (subTotal - discountAmount.value).clamp(0, double.infinity).toDouble();
+    var taxTotal = 0.0;
+    for (final tax in Constant.taxList ?? []) {
+      if (tax.enable == false) continue;
+      taxTotal +=
+          Constant().calculateTax(amount: taxable.toString(), taxModel: tax);
+    }
+    return taxTotal;
+  }
+
+  /// Computed: what the customer actually pays (subtotal − discount + tax).
   /// this at placement time and via Obx in the breakdown widget.
   double get finalPayable {
     final double subTotal = double.tryParse(amount.value) ?? 0;
-    return (subTotal - discountAmount.value)
-        .clamp(0, double.infinity)
-        .toDouble();
+    final discounted =
+        (subTotal - discountAmount.value).clamp(0, double.infinity).toDouble();
+    return discounted + quotedTaxAmount;
   }
 
   /// Recompute the discount against the current [amount]. Called when the

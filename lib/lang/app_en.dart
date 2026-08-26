@@ -375,4 +375,10 @@ final Map<String, String> enUS = {
   'Your ride has been canceled by the driver. Please request a new ride.':
       'Your ride has been canceled by the driver. Please request a new ride.',
   'Meter Ride - Live': 'Meter - Live',
+  'Please turn on location services to book a ride.': 'Please turn on location services to book a ride.',
+  'Location permission is blocked. Enable it from your device settings.': 'Location permission is blocked. Enable it from your device settings.',
+  'Location permission is required to set your pickup point.': 'Location permission is required to set your pickup point.',
+  'Couldn\'t determine your location. Please try again.': 'Couldn\'t determine your location. Please try again.',
+  'Move the map to pick a location': 'Move the map to pick a location',
+  'Resolving address...': 'Resolving address...',
 };

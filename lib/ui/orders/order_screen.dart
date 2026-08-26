@@ -216,15 +216,9 @@ class OrderScreen extends StatelessWidget {
                                                                     ),
                                                                   ),
                                                                   Text(
-                                                                    orderModel.status ==
-                                                                            Constant
-                                                                                .ridePlaced
-                                                                        ? Constant.amountShow(
-                                                                            amount: double.parse(orderModel.offerRate.toString()).toStringAsFixed(Constant
-                                                                                .currencyModel!.decimalDigits!))
-                                                                        : Constant.amountShow(
-                                                                            amount:
-                                                                                double.parse(orderModel.finalRate.toString()).toStringAsFixed(Constant.currencyModel!.decimalDigits!)),
+                                                                    Constant.amountShow(
+                                                                        amount: orderModel
+                                                                            .customerPayableFareText),
                                                                     style: GoogleFonts.poppins(
                                                                         fontWeight:
                                                                             FontWeight.bold),
@@ -1145,12 +1139,8 @@ class OrderScreen extends StatelessWidget {
                                                                 ),
                                                                 Text(
                                                                   Constant.amountShow(
-                                                                      amount: double.parse(orderModel
-                                                                              .offerRate
-                                                                              .toString())
-                                                                          .toStringAsFixed(Constant
-                                                                              .currencyModel!
-                                                                              .decimalDigits!)),
+                                                                      amount: orderModel
+                                                                          .customerPayableFareText),
                                                                   style: GoogleFonts.poppins(
                                                                       fontWeight:
                                                                           FontWeight

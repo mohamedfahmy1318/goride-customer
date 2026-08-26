@@ -2,33 +2,16 @@ import 'dart:async';
 
 import 'package:customer/constant/constant.dart';
 import 'package:customer/constant/show_toast_dialog.dart';
+import 'package:customer/services/location_resolver.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:map_launcher/map_launcher.dart';
 
 class Utils {
-  static Future<Position> getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Test if location services are enabled.
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-
-    if (!serviceEnabled) {
-      await Geolocator.openLocationSettings();
-    }
-
-    permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.deniedForever) {
-        return Future.error('Location Not Available');
-      }
-    }
-
-    final position = await Geolocator.getCurrentPosition();
-    return position;
-  }
+  /// The rider's position, waiting for a fix accurate enough to book from.
+  /// Delegates to [LocationResolver] so every caller shares one permission
+  /// flow and one accuracy bar.
+  static Future<Position> getCurrentLocation({bool forceFresh = false}) =>
+      LocationResolver.currentPosition(forceFresh: forceFresh);
 
   static redirectMap(
       {required String name,

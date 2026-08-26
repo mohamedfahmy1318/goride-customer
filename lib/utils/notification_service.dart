@@ -137,6 +137,18 @@ class NotificationService {
       FireStoreUtils.updateUserFcmToken(newToken);
     });
 
+    // Sync once per actual token value, rather than reading and rewriting the
+    // complete user document on every app launch.
+    try {
+      final currentToken = await FirebaseMessaging.instance.getToken();
+      if (currentToken != null && currentToken.isNotEmpty) {
+        Constant.fcmToken = currentToken;
+        await FireStoreUtils.updateUserFcmToken(currentToken);
+      }
+    } catch (e) {
+      log('Initial FCM token save failed: $e');
+    }
+
     // Subscribe to the topic at most once per *successful* subscribe per install.
     // The flag is set ONLY after the await returns (success path). If the
     // subscribe throws (weak network / TOO_MANY_REGISTRATIONS), control jumps to

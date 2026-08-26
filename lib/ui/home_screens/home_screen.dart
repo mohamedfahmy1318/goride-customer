@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,6 +20,7 @@ import 'package:customer/utils/fire_store_utils.dart';
 import 'package:customer/widget/geoflutterfire/src/geoflutterfire.dart';
 import 'package:customer/widget/geoflutterfire/src/models/point.dart';
 import 'package:customer/model/place_picker_model.dart';
+import 'package:customer/services/location_resolver.dart';
 import 'package:customer/widget/google_map_search_place.dart';
 import 'package:customer/widget/osm_map_picker_page.dart';
 import 'package:flutter/material.dart';
@@ -222,23 +222,11 @@ class HomeScreen extends StatelessWidget {
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
                                                   children: [
-                                                    // Source location - auto-detected, read-only
-                                                    TextFieldThem.buildTextFiled(
-                                                        context,
-                                                        hintText:
-                                                            'Your current location'
-                                                                .tr,
-                                                        controller: controller
-                                                            .sourceLocationController
-                                                            .value,
-                                                        enable: false),
-                                                    SizedBox(
-                                                        height:
-                                                            Responsive.height(
-                                                                1, context)),
+                                                    // Pickup — detected by GPS, but tappable so the
+                                                    // rider can correct a drifted pin the way Uber /
+                                                    // Careem let you drag the pickup marker.
                                                     InkWell(
                                                         onTap: () async {
-                                                          log("::::::::::11::::::::::::");
                                                           final result =
                                                               await Get.to(
                                                             () => Constant
@@ -251,46 +239,47 @@ class HomeScreen extends StatelessWidget {
                                                                     .rightToLeft,
                                                           );
                                                           if (result
-                                                                  is PlaceDetailsModel &&
-                                                              result
-                                                                      .result
-                                                                      ?.geometry
-                                                                      ?.location
-                                                                      ?.lat !=
-                                                                  null &&
-                                                              result
-                                                                      .result
-                                                                      ?.geometry
-                                                                      ?.location
-                                                                      ?.lng !=
-                                                                  null) {
-                                                            controller
-                                                                .destinationLocationController
-                                                                .value
-                                                                .text = result
-                                                                    .result!
-                                                                    .formattedAddress
-                                                                    ?.toString() ??
-                                                                '';
-                                                            controller
-                                                                    .destinationLocationLAtLng
-                                                                    .value =
-                                                                LocationLatLng(
-                                                              latitude: result
-                                                                  .result!
-                                                                  .geometry!
-                                                                  .location!
-                                                                  .lat,
-                                                              longitude: result
-                                                                  .result!
-                                                                  .geometry!
-                                                                  .location!
-                                                                  .lng,
-                                                            );
+                                                              is PlaceDetailsModel) {
                                                             await controller
-                                                                .calculateDurationAndDistance();
-                                                            controller
-                                                                .calculateAmount();
+                                                                .applySourcePlace(
+                                                                    result);
+                                                          }
+                                                        },
+                                                        child: IgnorePointer(
+                                                          child: TextFieldThem
+                                                              .buildTextFiled(
+                                                                  context,
+                                                                  hintText:
+                                                                      'Your current location'
+                                                                          .tr,
+                                                                  controller: controller
+                                                                      .sourceLocationController
+                                                                      .value,
+                                                                  enable:
+                                                                      false),
+                                                        )),
+                                                    SizedBox(
+                                                        height:
+                                                            Responsive.height(
+                                                                1, context)),
+                                                    InkWell(
+                                                        onTap: () async {
+                                                          final result =
+                                                              await Get.to(
+                                                            () => Constant
+                                                                        .selectedMapType ==
+                                                                    'osm'
+                                                                ? const OsmMapPickerPage()
+                                                                : const GoogleMapSearchPlacesApi(),
+                                                            transition:
+                                                                Transition
+                                                                    .rightToLeft,
+                                                          );
+                                                          if (result
+                                                              is PlaceDetailsModel) {
+                                                            await controller
+                                                                .applyDestinationPlace(
+                                                                    result);
                                                           }
                                                         },
                                                         child: Row(
@@ -621,7 +610,8 @@ class HomeScreen extends StatelessWidget {
                                                         controller.amount.value
                                                                 .isNotEmpty
                                                             ? controller
-                                                                .amount.value
+                                                                .finalPayable
+                                                                .toStringAsFixed(2)
                                                             : "Offer rate".tr,
                                                         style:
                                                             GoogleFonts.poppins(
@@ -850,6 +840,10 @@ class HomeScreen extends StatelessWidget {
                               controller.sourceLocationController.value.text =
                                   controller.selectedAirPort.value.airportName
                                       .toString();
+                              controller.sourceAddress.value = ResolvedAddress(
+                                  title: controller
+                                      .selectedAirPort.value.airportName
+                                      .toString());
                               controller.sourceLocationLAtLng.value =
                                   LocationLatLng(
                                       latitude: double.parse(controller
@@ -864,6 +858,11 @@ class HomeScreen extends StatelessWidget {
                                       .text =
                                   controller.selectedAirPort.value.airportName
                                       .toString();
+                              controller.destinationAddress.value =
+                                  ResolvedAddress(
+                                      title: controller
+                                          .selectedAirPort.value.airportName
+                                          .toString());
                               controller.destinationLocationLAtLng.value =
                                   LocationLatLng(
                                       latitude: double.parse(controller
@@ -1058,9 +1057,10 @@ class HomeScreen extends StatelessWidget {
       final double subTotal = double.tryParse(controller.amount.value) ?? 0;
       if (subTotal <= 0) return const SizedBox.shrink();
       final double discount = controller.discountAmount.value;
+      final double tax = controller.quotedTaxAmount;
       final double payable = controller.finalPayable;
       final bool hasDiscount = discount > 0;
-      if (!hasDiscount) return const SizedBox.shrink();
+      if (!hasDiscount && tax <= 0) return const SizedBox.shrink();
 
       TextStyle labelStyle() => GoogleFonts.poppins(
             fontSize: 13,
@@ -1092,18 +1092,31 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                    child: Text("Discount Applied".tr,
-                        style:
-                            labelStyle().copyWith(color: Colors.green[700]))),
-                Text(
-                  "- ${Constant.amountShow(amount: discount.toStringAsFixed(2))}",
-                  style: valueStyle(color: Colors.green[700]),
-                ),
-              ],
-            ),
+            if (hasDiscount)
+              Row(
+                children: [
+                  Expanded(
+                      child: Text("Discount Applied".tr,
+                          style: labelStyle()
+                              .copyWith(color: Colors.green[700]))),
+                  Text(
+                    "- ${Constant.amountShow(amount: discount.toStringAsFixed(2))}",
+                    style: valueStyle(color: Colors.green[700]),
+                  ),
+                ],
+              ),
+            if (tax > 0) ...[
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(child: Text("Tax".tr, style: labelStyle())),
+                  Text(
+                    Constant.amountShow(amount: tax.toStringAsFixed(2)),
+                    style: valueStyle(),
+                  ),
+                ],
+              ),
+            ],
             const Divider(height: 14),
             Row(
               children: [
@@ -1135,6 +1148,14 @@ class HomeScreen extends StatelessWidget {
         controller.sourceLocationController.value.text;
     orderModel.destinationLocationName =
         controller.destinationLocationController.value.text;
+    // Structured pickup/drop-off so the driver card can render a bold venue
+    // line over a muted placing line instead of one long geocoder string.
+    orderModel.sourceLocationTitle = controller.sourceAddress.value.title;
+    orderModel.sourceLocationSubtitle = controller.sourceAddress.value.subtitle;
+    orderModel.destinationLocationTitle =
+        controller.destinationAddress.value.title;
+    orderModel.destinationLocationSubtitle =
+        controller.destinationAddress.value.subtitle;
     orderModel.sourceLocationLAtLng = controller.sourceLocationLAtLng.value;
     orderModel.destinationLocationLAtLng =
         controller.destinationLocationLAtLng.value;
@@ -1197,10 +1218,21 @@ class HomeScreen extends StatelessWidget {
             coupon: appliedCoupon,
           )
         : 0.0;
-    final double finalPayable =
+    final double discountedFare =
         (computedTotalFare - discount).clamp(0, double.infinity).toDouble();
+    double computedTax = 0;
+    for (final tax in Constant.taxList ?? []) {
+      if (tax.enable == false) continue;
+      computedTax += Constant().calculateTax(
+        amount: discountedFare.toString(),
+        taxModel: tax,
+      );
+    }
+    final double finalPayable = discountedFare + computedTax;
     orderModel.discountAmount = discount.toStringAsFixed(2);
     orderModel.finalPayableAmount = finalPayable.toStringAsFixed(2);
+    orderModel.finalRate = finalPayable.toStringAsFixed(2);
+    orderModel.fareIncludesTax = true;
     if (appliedCoupon != null && discount > 0) {
       orderModel.coupon = appliedCoupon;
     }
@@ -1339,7 +1371,9 @@ class HomeScreen extends StatelessWidget {
     orderModel.userId = FireStoreUtils.getCurrentUid();
     orderModel.sourceLocationName =
         controller.sourceLocationController.value.text;
-    orderModel.destinationLocationName = "رحلة مفتوح"; // Metered ride label
+    orderModel.sourceLocationTitle = controller.sourceAddress.value.title;
+    orderModel.sourceLocationSubtitle = controller.sourceAddress.value.subtitle;
+    orderModel.destinationLocationName = "كورس مفتوح"; // Metered ride label
     orderModel.sourceLocationLAtLng = controller.sourceLocationLAtLng.value;
     orderModel.destinationLocationLAtLng = null; // No destination
     orderModel.distance = "0"; // Will be calculated during ride
@@ -1402,10 +1436,21 @@ class HomeScreen extends StatelessWidget {
             coupon: appliedCoupon,
           )
         : 0.0;
-    final double finalPayable =
+    final double discountedFare =
         (computedTotalFare - discount).clamp(0, double.infinity).toDouble();
+    double computedTax = 0;
+    for (final tax in Constant.taxList ?? []) {
+      if (tax.enable == false) continue;
+      computedTax += Constant().calculateTax(
+        amount: discountedFare.toString(),
+        taxModel: tax,
+      );
+    }
+    final double finalPayable = discountedFare + computedTax;
     orderModel.discountAmount = discount.toStringAsFixed(2);
     orderModel.finalPayableAmount = finalPayable.toStringAsFixed(2);
+    orderModel.finalRate = finalPayable.toStringAsFixed(2);
+    orderModel.fareIncludesTax = true;
     if (appliedCoupon != null && discount > 0) {
       orderModel.coupon = appliedCoupon;
     }
